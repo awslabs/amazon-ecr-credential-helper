@@ -11,18 +11,6 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package main
+package api
 
-import (
-	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
-	log "github.com/cihub/seelog"
-	"github.com/docker/docker-credential-helpers/credentials"
-)
-
-func main() {
-	defer log.Flush()
-	config.SetupLogger()
-	credentials.Serve(ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}})
-}
+//go:generate mockgen.sh github.com/aws/aws-sdk-go/service/ecr/ecriface ECRAPI mocks/api_mocks.go

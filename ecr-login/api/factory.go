@@ -11,18 +11,21 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package main
+package api
 
 import (
-	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
-	log "github.com/cihub/seelog"
-	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
-func main() {
-	defer log.Flush()
-	config.SetupLogger()
-	credentials.Serve(ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}})
+type ClientFactory interface {
+	NewClient(region string) Client
+}
+type DefaultClientFactory struct{}
+
+func (DefaultClientFactory) NewClient(region string) Client {
+	return &defaultClient{
+		ecrClient: ecr.New(session.New(), &aws.Config{Region: aws.String(region)}),
+	}
 }

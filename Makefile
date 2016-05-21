@@ -26,6 +26,21 @@ $(LOCAL_BINARY): $(SOURCES)
 	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local
 	@echo "Built ecr-login"
 
+.PHONY: test
+test:
+	. ./scripts/shared_env && go test -v -timeout 30s -short -cover ./ecr-login/...
+
+.PHONY: gogenerate
+gogenerate:
+	./scripts/gogenerate
+
+.PHONY: get-deps
+get-deps:
+	go get github.com/tools/godep
+	go get golang.org/x/tools/cmd/cover
+	go get github.com/golang/mock/mockgen
+	go get golang.org/x/tools/cmd/goimports
+
 .PHONY: clean
 clean:
 	rm -rf ./bin ||:

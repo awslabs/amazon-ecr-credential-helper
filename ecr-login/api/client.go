@@ -19,24 +19,21 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
 	log "github.com/cihub/seelog"
 )
 
 const proxyEndpointScheme = "https://"
 
-type Client struct {
-	ecrClient *ecr.ECR
+type Client interface {
+	GetCredentials(registry, image string) (string, string, error)
+}
+type defaultClient struct {
+	ecrClient ecriface.ECRAPI
 }
 
-func NewClient(region string) *Client {
-	return &Client{
-		ecrClient: ecr.New(session.New(), &aws.Config{Region: aws.String(region)}),
-	}
-}
-
-func (self *Client) GetCredentials(registry, image string) (string, string, error) {
+func (self *defaultClient) GetCredentials(registry, image string) (string, string, error) {
 	log.Debugf("Calling ECR.GetAuthorizationToken for %s", registry)
 	input := &ecr.GetAuthorizationTokenInput{
 		RegistryIds: []*string{aws.String(registry)},
