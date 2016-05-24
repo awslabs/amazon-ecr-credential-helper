@@ -2,12 +2,22 @@
 
 The Amazon ECR Docker Credential Helper is a 
 [credential helper](https://github.com/docker/docker-credential-helpers)
-for the Docker daemon that makes it easier to use Amazon EC2 Container
-Registry.
+for the Docker daemon that makes it easier to use
+[Amazon EC2 Container Registry](https://aws.amazon.com/ecr/).
 
-## Installation
+## Prerequisites
 
 You must have at least Docker 1.11 installed.
+
+You also must have AWS credentials available in one of the standard locations:
+* The `~/.aws/credentials` file
+* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
+* An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+
+The credentials must have a policy applied that
+[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+
+## Installation
 
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the contents
 of your `~/.docker/config.json` file to be:
@@ -36,6 +46,8 @@ binary will be produced in `bin/local/docker-credential-ecr-login`.
 ## Troubleshooting
 
 Logs are placed in `~/.ecr/log`.
+
+[General information about Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html).
 
 ## License
 
