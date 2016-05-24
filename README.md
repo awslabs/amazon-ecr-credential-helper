@@ -38,7 +38,7 @@ There is no need to `docker login` or `docker logout`.
 
 ## Building
 
-You'll need Go 1.4 or greater, git, and make installed.
+You'll need Go 1.5 or greater, git, and make installed.
 
 Check out this repository into your existing `GOPATH`, then run `make`.  A
 binary will be produced in `bin/local/docker-credential-ecr-login`.

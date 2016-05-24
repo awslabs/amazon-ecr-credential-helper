@@ -14,9 +14,8 @@
 
 # This script should be sourced by bash or zsh prior to doing basically
 # anything
-vendor="$(pwd)/ecr-login/vendor"
-export GOPATH="${vendor}:${GOPATH}"
-export PATH="${vendor}/bin:$(pwd)/scripts:${PATH}"
+export GO15VENDOREXPERIMENT=1
+
 # Include generate scripts and any binaries we might have installed with godep
 # (none at the time of writing this comment).
 # The existing PATH should have a recent 'go' binary on it, as well as basic posix tools
