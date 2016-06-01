@@ -52,6 +52,11 @@ Clone this repository into your existing `GOPATH` under
 `src/github.com/awslabs/amazon-ecr-credential-helper`, then run `make`.  The
 resulting binary can be found in `bin/local/docker-credential-ecr-login`.
 
+Or if you already have Docker environment, just clone this repository anywhere
+and run `make docker`. This command builds the binary by Go inside docker container and
+output it to local directory. With `TARGET_GOOS` environment variable, you can also
+cross complie the binary.
+
 ## Troubleshooting
 
 Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
