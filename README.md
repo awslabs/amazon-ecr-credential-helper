@@ -1,6 +1,6 @@
 # Amazon ECR Docker Credential Helper
 
-[![Build Status](https://travis-ci.org/awslabs/amazon-ecr-credential-helper.svg?branch=travis)](https://travis-ci.org/awslabs/amazon-ecr-credential-helper)
+[![Build Status](https://travis-ci.org/awslabs/amazon-ecr-credential-helper.svg?branch=master)](https://travis-ci.org/awslabs/amazon-ecr-credential-helper)
 
 The Amazon ECR Docker Credential Helper is a
 [credential helper](https://github.com/docker/docker-credential-helpers)
