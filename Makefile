@@ -32,7 +32,7 @@ $(LOCAL_BINARY): $(SOURCES)
 
 .PHONY: test
 test:
-	. ./scripts/shared_env && go test -v -timeout 30s -short -cover ./ecr-login/...
+	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
 
 .PHONY: gogenerate
 gogenerate:
