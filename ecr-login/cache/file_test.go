@@ -50,7 +50,10 @@ func TestCredentials(t *testing.T) {
 	credentialCache.Set(testRegistryName, &testAuthEntry)
 
 	entry := credentialCache.Get(testRegistryName)
-	assert.Equal(t, &testAuthEntry, entry)
+	assert.Equal(t, testAuthEntry.AuthorizationToken, entry.AuthorizationToken)
+	assert.Equal(t, testAuthEntry.ProxyEndpoint, entry.ProxyEndpoint)
+	assert.WithinDuration(t, testAuthEntry.RequestedAt, entry.RequestedAt, 1*time.Second)
+	assert.WithinDuration(t, testAuthEntry.ExpiresAt, entry.ExpiresAt, 1*time.Second)
 
 	credentialCache.Clear()
 
