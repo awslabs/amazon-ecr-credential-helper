@@ -32,5 +32,5 @@ type AuthEntry struct {
 // requested window.
 func (authEntry *AuthEntry) IsValid(testTime time.Time) bool {
 	window := authEntry.ExpiresAt.Sub(authEntry.RequestedAt)
-	return authEntry.ExpiresAt.After(testTime.Add(-1 * (window / time.Duration(2))))
+	return authEntry.ExpiresAt.After(testTime.Add(window / time.Duration(2)))
 }

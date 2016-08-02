@@ -142,6 +142,7 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 	authEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
 		ExpiresAt:          expiresAt,
+		RequestedAt:        time.Now(),
 		AuthorizationToken: authorizationToken,
 	}
 
@@ -188,8 +189,8 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 
 	expiredAuthEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
-		RequestedAt:        time.Now().Add(-12 * time.Hour),
-		ExpiresAt:          time.Now().Add(-6 * time.Hour),
+		RequestedAt:        time.Now().Add(-13 * time.Hour),
+		ExpiresAt:          time.Now().Add(-1 * time.Hour),
 		AuthorizationToken: authorizationToken,
 	}
 
