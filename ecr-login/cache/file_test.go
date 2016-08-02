@@ -36,12 +36,17 @@ var testPath = os.TempDir()
 var testFilename = "test.json"
 var testFullFillename = filepath.Join(testPath, testFilename)
 
+
 func TestAuthEntryValid(t *testing.T) {
-	assert.True(t, testAuthEntry.IsValid(time.Now()))
+	assert.True(t, testAuthEntry.IsValid(time.Now().Add(-1 * time.Hour)))
 }
 
-func TestAuthEntryInValid(t *testing.T) {
-	assert.True(t, testAuthEntry.IsValid(time.Now().Add(time.Second)))
+func TestAuthEntryInValidVeryOld(t *testing.T) {
+	assert.False(t, testAuthEntry.IsValid(time.Now().Add(12 * time.Hour)))
+}
+
+func TestAuthEntryInValidHalftime(t *testing.T) {
+	assert.False(t, testAuthEntry.IsValid(time.Now().Add(3 * time.Hour)))
 }
 
 func TestCredentials(t *testing.T) {
