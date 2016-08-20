@@ -31,6 +31,7 @@ type AuthEntry struct {
 // Checks if AuthEntry is still valid at testTime. AuthEntries expire at 1/2 of their original
 // requested window.
 func (authEntry *AuthEntry) IsValid(testTime time.Time) bool {
-	window := authEntry.ExpiresAt.Sub(authEntry.RequestedAt)
-	return authEntry.ExpiresAt.After(testTime.Add(-1 * (window / time.Duration(2))))
+	validWindow := authEntry.ExpiresAt.Sub(authEntry.RequestedAt)
+	refreshTime := authEntry.ExpiresAt.Add(-1 * validWindow / time.Duration(2))
+	return testTime.Before(refreshTime)
 }

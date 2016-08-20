@@ -24,8 +24,8 @@ import (
 
 var testAuthEntry = AuthEntry{
 	AuthorizationToken: "testToken",
-	RequestedAt:        time.Now().Add(-6 * time.Hour),
-	ExpiresAt:          time.Now().Add(6 * time.Hour),
+	RequestedAt:        time.Now().Add(-5 * time.Hour),
+	ExpiresAt:          time.Now().Add(7 * time.Hour),
 	ProxyEndpoint:      "testEndpoint",
 }
 

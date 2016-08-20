@@ -142,6 +142,7 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 	authEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
 		ExpiresAt:          expiresAt,
+		RequestedAt:        time.Now(),
 		AuthorizationToken: authorizationToken,
 	}
 
