@@ -20,4 +20,4 @@ cd "${ROOT}"
 
 source ./scripts/shared_env
 
-go generate -x ./ecr-login/...
+go generate -x $(go list ./ecr-login/... | grep -v '/vendor/')
