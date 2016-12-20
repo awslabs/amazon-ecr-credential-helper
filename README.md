@@ -16,6 +16,7 @@ You also must have AWS credentials available in one of the standard locations:
 * The `~/.aws/credentials` file
 * The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
 * An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+* If you are working with an assumed role please set the environment variable: `AWS_SDK_LOAD_CONFIG=true` also.
 
 The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
 CLI and the AWS SDKs. For more information about configuring AWS credentials,
