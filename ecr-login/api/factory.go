@@ -31,15 +31,23 @@ import (
 
 type ClientFactory interface {
 	NewClient(region string) Client
+	NewClientWithAWSConfig(awsSession *session.Session, awsConfig *aws.Config) Client
 }
 type DefaultClientFactory struct{}
 
-func (defaultClientFactory DefaultClientFactory) NewClient(region string) Client {
+// NewClientWithRegion uses the region to create the client
+func (defaultClientFactory DefaultClientFactory) NewClientWithRegion(region string) Client {
 	awsSession := session.New()
+	awsConfig := &aws.Config{Region: aws.String(region)}
 
+	return defaultClientFactory.NewClient(awsSession, awsConfig)
+}
+
+// NewClient Create new client with AWS Config
+func (defaultClientFactory DefaultClientFactory) NewClient(awsSession *session.Session, awsConfig *aws.Config) Client {
 	return &defaultClient{
-		ecrClient:       ecr.New(awsSession, &aws.Config{Region: aws.String(region)}),
-		credentialCache: defaultClientFactory.buildCredentialsCache(awsSession, region),
+		ecrClient:       ecr.New(awsSession, awsConfig),
+		credentialCache: defaultClientFactory.buildCredentialsCache(awsSession, aws.StringValue(awsConfig.Region)),
 	}
 }
 

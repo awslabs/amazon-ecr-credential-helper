@@ -29,14 +29,21 @@ import (
 const proxyEndpointScheme = "https://"
 
 type Client interface {
-	GetCredentials(registry, image string) (string, string, error)
+	GetCredentials(registry, image string) (*Auth, error)
 }
 type defaultClient struct {
 	ecrClient       ecriface.ECRAPI
 	credentialCache cache.CredentialsCache
 }
 
-func (self *defaultClient) GetCredentials(registry, image string) (string, string, error) {
+type Auth struct {
+	ProxyEndpoint string
+	Username      string
+	Password      string
+}
+
+// GetCredentials returns username, password, and proxyEndpoint
+func (self *defaultClient) GetCredentials(registry, image string) (*Auth, error) {
 	log.Debugf("GetCredentials for %s", registry)
 
 	cachedEntry := self.credentialCache.Get(registry)
@@ -44,10 +51,9 @@ func (self *defaultClient) GetCredentials(registry, image string) (string, strin
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
 			log.Debugf("Using cached token for %s", registry)
-			return extractToken(cachedEntry.AuthorizationToken)
-		} else {
-			log.Debugf("Cached token is no longer valid. RequestAt: %s, ExpiresAt: %s", cachedEntry.RequestedAt, cachedEntry.ExpiresAt)
+			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 		}
+		log.Debugf("Cached token is no longer valid. RequestAt: %s, ExpiresAt: %s", cachedEntry.RequestedAt, cachedEntry.ExpiresAt)
 	}
 
 	log.Debugf("Calling ECR.GetAuthorizationToken for %s", registry)
@@ -68,14 +74,15 @@ func (self *defaultClient) GetCredentials(registry, image string) (string, strin
 		// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
 		if cachedEntry != nil {
 			log.Infof("Got error fetching authorization token. Falling back to cached token. Error was: %s", err)
-			return extractToken(cachedEntry.AuthorizationToken)
+			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 		}
 
-		return "", "", err
+		return nil, err
 	}
+
 	for _, authData := range output.AuthorizationData {
 		if authData.ProxyEndpoint != nil &&
-			strings.HasPrefix(proxyEndpointScheme+image, aws.StringValue(authData.ProxyEndpoint)) &&
+			containsProxyEndpoint(image, aws.StringValue(authData.ProxyEndpoint)) &&
 			authData.AuthorizationToken != nil {
 			authEntry := cache.AuthEntry{
 				AuthorizationToken: aws.StringValue(authData.AuthorizationToken),
@@ -85,17 +92,29 @@ func (self *defaultClient) GetCredentials(registry, image string) (string, strin
 			}
 
 			self.credentialCache.Set(registry, &authEntry)
-			return extractToken(aws.StringValue(authData.AuthorizationToken))
+			return extractToken(aws.StringValue(authData.AuthorizationToken), aws.StringValue(authData.ProxyEndpoint))
 		}
 	}
-	return "", "", fmt.Errorf("No AuthorizationToken found for %s", registry)
+	return nil, fmt.Errorf("No AuthorizationToken found for %s", registry)
 }
 
-func extractToken(token string) (string, string, error) {
+func containsProxyEndpoint(image string, proxyEndpoint string) bool {
+	if image == "" {
+		return true
+	}
+	return strings.HasPrefix(proxyEndpointScheme+image, proxyEndpoint)
+}
+
+func extractToken(token string, proxyEndpoint string) (*Auth, error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	parts := strings.SplitN(string(decodedToken), ":", 2)
-	return parts[0], parts[1], nil
+
+	return &Auth{
+		Username:      parts[0],
+		Password:      parts[1],
+		ProxyEndpoint: proxyEndpoint,
+	}, nil
 }
