@@ -17,6 +17,8 @@
 package mock_api
 
 import (
+	aws "github.com/aws/aws-sdk-go/aws"
+	session "github.com/aws/aws-sdk-go/aws/session"
 	api "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -52,6 +54,16 @@ func (_mr *_MockClientFactoryRecorder) NewClient(arg0 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClient", arg0)
 }
 
+func (_m *MockClientFactory) NewClientWithAWSConfig(_param0 *session.Session, _param1 *aws.Config) api.Client {
+	ret := _m.ctrl.Call(_m, "NewClientWithAWSConfig", _param0, _param1)
+	ret0, _ := ret[0].(api.Client)
+	return ret0
+}
+
+func (_mr *_MockClientFactoryRecorder) NewClientWithAWSConfig(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithAWSConfig", arg0, arg1)
+}
+
 // Mock of Client interface
 type MockClient struct {
 	ctrl     *gomock.Controller
@@ -73,12 +85,11 @@ func (_m *MockClient) EXPECT() *_MockClientRecorder {
 	return _m.recorder
 }
 
-func (_m *MockClient) GetCredentials(_param0 string, _param1 string) (string, string, error) {
+func (_m *MockClient) GetCredentials(_param0 string, _param1 string) (*api.Auth, error) {
 	ret := _m.ctrl.Call(_m, "GetCredentials", _param0, _param1)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*api.Auth)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockClientRecorder) GetCredentials(arg0, arg1 interface{}) *gomock.Call {

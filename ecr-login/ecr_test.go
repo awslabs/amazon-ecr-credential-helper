@@ -26,7 +26,8 @@ import (
 const (
 	region           = "my-region-1"
 	registryID       = "123456789012"
-	image            = registryID + ".dkr.ecr." + region + ".amazonaws.com/my-image"
+	proxyEndpoint    = registryID + ".dkr.ecr." + region + ".amazonaws.com"
+	image            = proxyEndpoint + "/my-image"
 	expectedUsername = "username"
 	expectedPassword = "password"
 )
@@ -42,7 +43,7 @@ func TestGetSuccess(t *testing.T) {
 	}
 
 	factory.EXPECT().NewClient(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return(expectedUsername, expectedPassword, nil)
+	client.EXPECT().GetCredentials(registryID, image).Return(expectedUsername, expectedPassword, proxyEndpoint, nil)
 
 	username, password, err := helper.Get(image)
 	assert.Nil(t, err)
@@ -61,7 +62,7 @@ func TestGetError(t *testing.T) {
 	}
 
 	factory.EXPECT().NewClient(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return("", "", errors.New("test error"))
+	client.EXPECT().GetCredentials(registryID, image).Return("", "", "", errors.New("test error"))
 
 	username, password, err := helper.Get(image)
 	assert.Equal(t, credentials.ErrCredentialsNotFound, err)

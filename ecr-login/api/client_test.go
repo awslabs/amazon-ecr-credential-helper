@@ -81,10 +81,11 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 			compareAuthEntry(t, actual, authEntry)
 		})
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.Nil(t, err)
-	assert.Equal(t, username, expectedUsername)
-	assert.Equal(t, password, expectedPassword)
+	assert.Equal(t, auth.Username, expectedUsername)
+	assert.Equal(t, auth.Password, expectedPassword)
+	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
 }
 
 func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
@@ -117,11 +118,9 @@ func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(nil)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.NotNil(t, err)
-	t.Log(err)
-	assert.Empty(t, username)
-	assert.Empty(t, password)
+	assert.Nil(t, auth)
 }
 
 func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
@@ -148,10 +147,11 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(authEntry)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.Nil(t, err)
-	assert.Equal(t, username, expectedUsername)
-	assert.Equal(t, password, expectedPassword)
+	assert.Equal(t, auth.Username, expectedUsername)
+	assert.Equal(t, auth.Password, expectedPassword)
+	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
 }
 
 func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
@@ -207,10 +207,11 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 			compareAuthEntry(t, actual, authEntry)
 		})
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.Nil(t, err)
-	assert.Equal(t, username, expectedUsername)
-	assert.Equal(t, password, expectedPassword)
+	assert.Equal(t, auth.Username, expectedUsername)
+	assert.Equal(t, auth.Password, expectedPassword)
+	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
 }
 
 func TestGetAuthConfigBadBase64(t *testing.T) {
@@ -243,11 +244,10 @@ func TestGetAuthConfigBadBase64(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(nil)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.NotNil(t, err)
 	t.Log(err)
-	assert.Empty(t, username)
-	assert.Empty(t, password)
+	assert.Nil(t, auth)
 }
 
 func TestGetAuthConfigMissingResponse(t *testing.T) {
@@ -273,11 +273,10 @@ func TestGetAuthConfigMissingResponse(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(nil)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.NotNil(t, err)
 	t.Log(err)
-	assert.Empty(t, username)
-	assert.Empty(t, password)
+	assert.Nil(t, auth)
 }
 
 func TestGetAuthConfigECRError(t *testing.T) {
@@ -303,11 +302,10 @@ func TestGetAuthConfigECRError(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(nil)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.NotNil(t, err)
 	t.Log(err)
-	assert.Empty(t, username)
-	assert.Empty(t, password)
+	assert.Nil(t, auth)
 }
 
 func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
@@ -343,10 +341,11 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 
 	credentialCache.EXPECT().Get(registryID).Return(expiredAuthEntry)
 
-	username, password, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
+	auth, err := client.GetCredentials(registryID, proxyEndpoint+"/myimage")
 	assert.Nil(t, err)
-	assert.Equal(t, username, expectedUsername)
-	assert.Equal(t, password, expectedPassword)
+	assert.Equal(t, auth.Username, expectedUsername)
+	assert.Equal(t, auth.Password, expectedPassword)
+	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
 }
 
 func compareAuthEntry(t *testing.T, actual *cache.AuthEntry, expected *cache.AuthEntry) {
