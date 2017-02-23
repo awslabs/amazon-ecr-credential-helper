@@ -30,8 +30,8 @@ import (
 )
 
 type ClientFactory interface {
-	NewClient(region string) Client
-	NewClientWithAWSConfig(awsSession *session.Session, awsConfig *aws.Config) Client
+	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
+	NewClientWithRegion(region string) Client
 }
 type DefaultClientFactory struct{}
 

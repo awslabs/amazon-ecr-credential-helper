@@ -17,6 +17,7 @@ import (
 	"errors"
 	"testing"
 
+	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/mocks"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/golang/mock/gomock"
@@ -42,8 +43,12 @@ func TestGetSuccess(t *testing.T) {
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClient(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return(expectedUsername, expectedPassword, proxyEndpoint, nil)
+	factory.EXPECT().NewClientWithRegion(region).Return(client)
+	client.EXPECT().GetCredentials(registryID, image).Return(&ecr.Auth{
+		Username:      expectedUsername,
+		Password:      expectedPassword,
+		ProxyEndpoint: proxyEndpoint,
+	}, nil)
 
 	username, password, err := helper.Get(image)
 	assert.Nil(t, err)
@@ -61,8 +66,8 @@ func TestGetError(t *testing.T) {
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClient(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return("", "", "", errors.New("test error"))
+	factory.EXPECT().NewClientWithRegion(region).Return(client)
+	client.EXPECT().GetCredentials(registryID, image).Return(nil, errors.New("test error"))
 
 	username, password, err := helper.Get(image)
 	assert.Equal(t, credentials.ErrCredentialsNotFound, err)
