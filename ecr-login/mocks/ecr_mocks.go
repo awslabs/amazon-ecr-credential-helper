@@ -44,24 +44,24 @@ func (_m *MockClientFactory) EXPECT() *_MockClientFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockClientFactory) NewClient(_param0 string) api.Client {
-	ret := _m.ctrl.Call(_m, "NewClient", _param0)
+func (_m *MockClientFactory) NewClient(_param0 *session.Session, _param1 *aws.Config) api.Client {
+	ret := _m.ctrl.Call(_m, "NewClient", _param0, _param1)
 	ret0, _ := ret[0].(api.Client)
 	return ret0
 }
 
-func (_mr *_MockClientFactoryRecorder) NewClient(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClient", arg0)
+func (_mr *_MockClientFactoryRecorder) NewClient(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClient", arg0, arg1)
 }
 
-func (_m *MockClientFactory) NewClientWithAWSConfig(_param0 *session.Session, _param1 *aws.Config) api.Client {
-	ret := _m.ctrl.Call(_m, "NewClientWithAWSConfig", _param0, _param1)
+func (_m *MockClientFactory) NewClientWithRegion(_param0 string) api.Client {
+	ret := _m.ctrl.Call(_m, "NewClientWithRegion", _param0)
 	ret0, _ := ret[0].(api.Client)
 	return ret0
 }
 
-func (_mr *_MockClientFactoryRecorder) NewClientWithAWSConfig(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithAWSConfig", arg0, arg1)
+func (_mr *_MockClientFactoryRecorder) NewClientWithRegion(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithRegion", arg0)
 }
 
 // Mock of Client interface
