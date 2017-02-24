@@ -43,7 +43,7 @@ func TestGetSuccess(t *testing.T) {
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientWithRegion(region).Return(client)
+	factory.EXPECT().NewClientFromRegion(region).Return(client)
 	client.EXPECT().GetCredentials(registryID, image).Return(&ecr.Auth{
 		Username:      expectedUsername,
 		Password:      expectedPassword,
@@ -66,7 +66,7 @@ func TestGetError(t *testing.T) {
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientWithRegion(region).Return(client)
+	factory.EXPECT().NewClientFromRegion(region).Return(client)
 	client.EXPECT().GetCredentials(registryID, image).Return(nil, errors.New("test error"))
 
 	username, password, err := helper.Get(image)

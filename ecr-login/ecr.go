@@ -55,7 +55,7 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	registry := matches[1]
 	region := matches[2]
 	log.Debugf("Retrieving credentials for %s in %s (%s)", registry, region, serverURL)
-	client := self.ClientFactory.NewClientWithRegion(region)
+	client := self.ClientFactory.NewClientFromRegion(region)
 	auth, err := client.GetCredentials(registry, serverURL)
 	if err != nil {
 		log.Errorf("Error retrieving credentials: %v", err)
