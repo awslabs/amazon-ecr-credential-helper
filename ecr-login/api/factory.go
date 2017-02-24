@@ -31,12 +31,12 @@ import (
 
 type ClientFactory interface {
 	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
-	NewClientWithRegion(region string) Client
+	NewClientFromRegion(region string) Client
 }
 type DefaultClientFactory struct{}
 
-// NewClientWithRegion uses the region to create the client
-func (defaultClientFactory DefaultClientFactory) NewClientWithRegion(region string) Client {
+// NewClientFromRegion uses the region to create the client
+func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
 	awsSession := session.New()
 	awsConfig := &aws.Config{Region: aws.String(region)}
 
