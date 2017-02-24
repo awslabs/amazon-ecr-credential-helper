@@ -70,7 +70,7 @@ func TestGetError(t *testing.T) {
 	client.EXPECT().GetCredentials(registryID, image).Return(nil, errors.New("test error"))
 
 	username, password, err := helper.Get(image)
-	assert.Equal(t, credentials.ErrCredentialsNotFound, err)
+	assert.True(t, credentials.IsErrCredentialsNotFound(err))
 	assert.Empty(t, username)
 	assert.Empty(t, password)
 }
@@ -79,7 +79,7 @@ func TestGetNoMatch(t *testing.T) {
 	helper := &ECRHelper{}
 
 	username, password, err := helper.Get("not-ecr-server-url")
-	assert.Equal(t, credentials.ErrCredentialsNotFound, err)
+	assert.True(t, credentials.IsErrCredentialsNotFound(err))
 	assert.Empty(t, username)
 	assert.Empty(t, password)
 }

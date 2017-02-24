@@ -31,6 +31,9 @@ type ECRHelper struct {
 	ClientFactory api.ClientFactory
 }
 
+// ensure ECRHelper adheres to the credentials.Helper interface
+var _ credentials.Helper = (*ECRHelper)(nil)
+
 func (ECRHelper) Add(creds *credentials.Credentials) error {
 	// This does not seem to get called
 	return notImplemented
@@ -46,10 +49,10 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	matches := ecrPattern.FindStringSubmatch(serverURL)
 	if len(matches) == 0 {
 		log.Error(programName + " can only be used with Amazon EC2 Container Registry.")
-		return "", "", credentials.ErrCredentialsNotFound
+		return "", "", credentials.NewErrCredentialsNotFound()
 	} else if len(matches) < 3 {
 		log.Error(serverURL + "is not a valid repository URI for Amazon EC2 Container Registry.")
-		return "", "", credentials.ErrCredentialsNotFound
+		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
 	registry := matches[1]
@@ -59,7 +62,12 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	auth, err := client.GetCredentials(registry, serverURL)
 	if err != nil {
 		log.Errorf("Error retrieving credentials: %v", err)
-		return "", "", credentials.ErrCredentialsNotFound
+		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 	return auth.Username, auth.Password, nil
+}
+
+func (self ECRHelper) List() (map[string]string, error) {
+	//TODO implement for docker 1.13 --pull
+	return nil, notImplemented
 }
