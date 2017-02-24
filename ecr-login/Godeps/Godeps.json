@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/awslabs/amazon-ecr-credential-helper/ecr-login",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v75",
+	"GodepVersion": "v79",
 	"Packages": [
 		"./..."
 	],
@@ -117,8 +117,8 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker-credential-helpers/credentials",
-			"Comment": "v0.2.0-8-g00703eb",
-			"Rev": "00703eb6dbc8783c9093cad8202ef246a07d20ce"
+			"Comment": "v0.4.1",
+			"Rev": "b7c53e02cd1a9a01500a58f22d83c6e964bc59db"
 		},
 		{
 			"ImportPath": "github.com/go-ini/ini",
