@@ -60,6 +60,16 @@ func (_mr *_MockCredentialsCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
+func (_m *MockCredentialsCache) List() []*cache.AuthEntry {
+	ret := _m.ctrl.Call(_m, "List")
+	ret0, _ := ret[0].([]*cache.AuthEntry)
+	return ret0
+}
+
+func (_mr *_MockCredentialsCacheRecorder) List() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "List")
+}
+
 func (_m *MockCredentialsCache) Set(_param0 string, _param1 *cache.AuthEntry) {
 	_m.ctrl.Call(_m, "Set", _param0, _param1)
 }

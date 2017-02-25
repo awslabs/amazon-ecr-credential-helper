@@ -64,6 +64,16 @@ func (_mr *_MockClientFactoryRecorder) NewClientFromRegion(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientFromRegion", arg0)
 }
 
+func (_m *MockClientFactory) NewClientWithDefaults() api.Client {
+	ret := _m.ctrl.Call(_m, "NewClientWithDefaults")
+	ret0, _ := ret[0].(api.Client)
+	return ret0
+}
+
+func (_mr *_MockClientFactoryRecorder) NewClientWithDefaults() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithDefaults")
+}
+
 // Mock of Client interface
 type MockClient struct {
 	ctrl     *gomock.Controller
@@ -94,4 +104,15 @@ func (_m *MockClient) GetCredentials(_param0 string, _param1 string) (*api.Auth,
 
 func (_mr *_MockClientRecorder) GetCredentials(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCredentials", arg0, arg1)
+}
+
+func (_m *MockClient) ListCredentials() ([]*api.Auth, error) {
+	ret := _m.ctrl.Call(_m, "ListCredentials")
+	ret0, _ := ret[0].([]*api.Auth)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockClientRecorder) ListCredentials() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ListCredentials")
 }

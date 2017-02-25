@@ -56,30 +56,34 @@ func NewFileCredentialsCache(path string, filename string, cachePrefixKey string
 
 func (f *fileCredentialCache) Get(registry string) *AuthEntry {
 	log.Debugf("Checking file cache for %s", registry)
-	registryCache, err := f.load()
-	if err != nil {
-		log.Infof("Could not load existing cache: %v", err)
-		f.Clear()
-		registryCache = newRegistryCache()
-	}
+	registryCache := f.init()
 	return registryCache.Registries[f.cachePrefixKey+registry]
 }
 
 func (f *fileCredentialCache) Set(registry string, entry *AuthEntry) {
 	log.Debugf("Saving credentials to file cache for %s", registry)
-	registryCache, err := f.load()
-	if err != nil {
-		log.Infof("Could not load existing cache: %v", err)
-		f.Clear()
-		registryCache = newRegistryCache()
-	}
+	registryCache := f.init()
 
 	registryCache.Registries[f.cachePrefixKey+registry] = entry
 
-	err = f.save(registryCache)
+	err := f.save(registryCache)
 	if err != nil {
 		log.Infof("Could not save cache: %s", err)
 	}
+}
+
+// List returns all of the available AuthEntries (regardless of prefix)
+func (f *fileCredentialCache) List() []*AuthEntry {
+	registryCache := f.init()
+
+	// optimize allocation for copy
+	entries := make([]*AuthEntry, 0, len(registryCache.Registries))
+
+	for _, entry := range registryCache.Registries {
+		entries = append(entries, entry)
+	}
+
+	return entries
 }
 
 func (f *fileCredentialCache) Clear() {
@@ -122,6 +126,16 @@ func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
 	// note this is only atomic when relying on linux syscalls
 	os.Rename(file.Name(), f.fullFilePath())
 	return err
+}
+
+func (f *fileCredentialCache) init() *RegistryCache {
+	registryCache, err := f.load()
+	if err != nil {
+		log.Infof("Could not load existing cache: %v", err)
+		f.Clear()
+		registryCache = newRegistryCache()
+	}
+	return registryCache
 }
 
 // Loading a cache from disk will return errors for malformed or incompatible cache files.
