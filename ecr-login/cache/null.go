@@ -26,5 +26,9 @@ func (nullCache *nullCredentialsCache) Get(registry string) *AuthEntry {
 func (nullCache *nullCredentialsCache) Set(registry string, entry *AuthEntry) {
 }
 
+func (nullCache *nullCredentialsCache) List() []*AuthEntry {
+	return []*AuthEntry{}
+}
+
 func (nullCache *nullCredentialsCache) Clear() {
 }

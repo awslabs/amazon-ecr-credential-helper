@@ -15,6 +15,7 @@ package ecr
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
@@ -28,6 +29,7 @@ const (
 	region           = "my-region-1"
 	registryID       = "123456789012"
 	proxyEndpoint    = registryID + ".dkr.ecr." + region + ".amazonaws.com"
+	proxyEndpointUrl = "https://" + proxyEndpoint
 	image            = proxyEndpoint + "/my-image"
 	expectedUsername = "username"
 	expectedPassword = "password"
@@ -82,4 +84,47 @@ func TestGetNoMatch(t *testing.T) {
 	assert.True(t, credentials.IsErrCredentialsNotFound(err))
 	assert.Empty(t, username)
 	assert.Empty(t, password)
+}
+
+func TestListSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	factory := mock_api.NewMockClientFactory(ctrl)
+	client := mock_api.NewMockClient(ctrl)
+
+	helper := &ECRHelper{
+		ClientFactory: factory,
+	}
+
+	factory.EXPECT().NewClientWithDefaults().Return(client)
+	client.EXPECT().ListCredentials().Return([]*ecr.Auth{
+		&ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: proxyEndpointUrl,
+		},
+	}, nil)
+
+	serverList, err := helper.List()
+	assert.NoError(t, err)
+	assert.Len(t, serverList, 1)
+	assert.Equal(t, expectedUsername, serverList[proxyEndpoint])
+}
+
+func TestListFailure(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	factory := mock_api.NewMockClientFactory(ctrl)
+	client := mock_api.NewMockClient(ctrl)
+
+	helper := &ECRHelper{
+		ClientFactory: factory,
+	}
+
+	factory.EXPECT().NewClientWithDefaults().Return(client)
+	client.EXPECT().ListCredentials().Return(nil, fmt.Errorf("nope"))
+
+	serverList, err := helper.List()
+	assert.Error(t, err)
+	assert.Len(t, serverList, 0)
 }

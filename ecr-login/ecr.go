@@ -15,7 +15,9 @@ package ecr
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	log "github.com/cihub/seelog"
@@ -68,6 +70,24 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 }
 
 func (self ECRHelper) List() (map[string]string, error) {
-	//TODO implement for docker 1.13 --pull
-	return nil, notImplemented
+	log.Debug("Listing credentials")
+	client := self.ClientFactory.NewClientWithDefaults()
+
+	auths, err := client.ListCredentials()
+	if err != nil {
+		log.Errorf("Error listing credentials: %v", err)
+		return nil, fmt.Errorf("Could not list credentials: %v:", err)
+	}
+
+	result := map[string]string{}
+
+	for _, auth := range auths {
+		serverURL := removeEndpointProtocol(auth.ProxyEndpoint)
+		result[serverURL] = auth.Username
+	}
+	return result, nil
+}
+
+func removeEndpointProtocol(endpointWithProtocol string) string {
+	return strings.TrimPrefix(endpointWithProtocol, "https://")
 }

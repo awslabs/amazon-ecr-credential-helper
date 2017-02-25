@@ -14,26 +14,24 @@
 package api
 
 import (
-	"crypto/md5"
-	"encoding/base64"
-	"fmt"
-	"os"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
-	"github.com/mitchellh/go-homedir"
-
-	log "github.com/cihub/seelog"
 )
 
 type ClientFactory interface {
 	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
 	NewClientFromRegion(region string) Client
+	NewClientWithDefaults() Client
 }
 type DefaultClientFactory struct{}
+
+// NewClientWithDefaults creates the client and defaults region
+func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client {
+	awsSession := session.New()
+	return defaultClientFactory.NewClient(awsSession, awsSession.Config)
+}
 
 // NewClientFromRegion uses the region to create the client
 func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
@@ -47,44 +45,6 @@ func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region stri
 func (defaultClientFactory DefaultClientFactory) NewClient(awsSession *session.Session, awsConfig *aws.Config) Client {
 	return &defaultClient{
 		ecrClient:       ecr.New(awsSession, awsConfig),
-		credentialCache: defaultClientFactory.buildCredentialsCache(awsSession, aws.StringValue(awsConfig.Region)),
+		credentialCache: cache.BuildCredentialsCache(awsSession, aws.StringValue(awsConfig.Region)),
 	}
-}
-
-func (defaultClientFactory DefaultClientFactory) buildCredentialsCache(awsSession *session.Session, region string) cache.CredentialsCache {
-	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
-		log.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
-		return cache.NewNullCredentialsCache()
-	}
-
-	cacheDir, err := homedir.Expand("~/.ecr")
-	if err != nil {
-		log.Debugf("Could expand cache path: %s", err)
-		log.Debug("Disabling cache")
-		return cache.NewNullCredentialsCache()
-	}
-
-	cacheFilename := "cache.json"
-
-	credentials, err := awsSession.Config.Credentials.Get()
-	if err != nil {
-		log.Debugf("Could fetch credentials for cache prefix: %s", err)
-		log.Debug("Disabling cache")
-		return cache.NewNullCredentialsCache()
-	}
-
-	return cache.NewFileCredentialsCache(cacheDir, cacheFilename, defaultClientFactory.credentialsCachePrefix(region, &credentials))
-}
-
-// Determine a key prefix for a credentials cache. Because auth tokens are scoped to an account and region, rely on provided
-// region, as well as hash of the access key.
-func (defaultClientFactory DefaultClientFactory) credentialsCachePrefix(region string, credentials *credentials.Value) string {
-	return fmt.Sprintf("%s-%s-", region, checksum(credentials.AccessKeyID))
-}
-
-// Base64 encodes an MD5 checksum. Relied on for uniqueness, and not for cryptographic security.
-func checksum(text string) string {
-	hasher := md5.New()
-	data := hasher.Sum([]byte(text))
-	return base64.StdEncoding.EncodeToString(data)
 }

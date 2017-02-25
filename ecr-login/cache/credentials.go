@@ -18,6 +18,7 @@ import "time"
 type CredentialsCache interface {
 	Get(registry string) *AuthEntry
 	Set(registry string, entry *AuthEntry)
+	List() []*AuthEntry
 	Clear()
 }
 

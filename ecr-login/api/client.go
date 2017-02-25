@@ -30,6 +30,7 @@ const proxyEndpointScheme = "https://"
 
 type Client interface {
 	GetCredentials(registry, image string) (*Auth, error)
+	ListCredentials() ([]*Auth, error)
 }
 type defaultClient struct {
 	ecrClient       ecriface.ECRAPI
@@ -98,6 +99,22 @@ func (self *defaultClient) GetCredentials(registry, image string) (*Auth, error)
 	return nil, fmt.Errorf("No AuthorizationToken found for %s", registry)
 }
 
+func (self *defaultClient) ListCredentials() ([]*Auth, error) {
+	log.Debug("Listing credentials from cache")
+
+	auths := []*Auth{}
+	for _, authEntry := range self.credentialCache.List() {
+		auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
+		if err != nil {
+			log.Debugf("Could not extract token: %v:", err)
+		} else {
+			auths = append(auths, auth)
+		}
+	}
+
+	return auths, nil
+}
+
 func containsProxyEndpoint(image string, proxyEndpoint string) bool {
 	if image == "" {
 		return true
@@ -108,9 +125,13 @@ func containsProxyEndpoint(image string, proxyEndpoint string) bool {
 func extractToken(token string, proxyEndpoint string) (*Auth, error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Invalid token: %v:", err)
 	}
+
 	parts := strings.SplitN(string(decodedToken), ":", 2)
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("Invalid token: expected two parts, got %n", len(parts))
+	}
 
 	return &Auth{
 		Username:      parts[0],

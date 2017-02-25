@@ -348,6 +348,96 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
 }
 
+func TestListCredentialsSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+
+	client := &defaultClient{
+		credentialCache: credentialCache,
+	}
+
+	testProxyEndpoint := proxyEndpointScheme + proxyEndpoint
+	authorizationToken := base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))
+	expiresAt := time.Now().Add(12 * time.Hour)
+
+	authEntry := &cache.AuthEntry{
+		ProxyEndpoint:      testProxyEndpoint,
+		RequestedAt:        time.Now(),
+		ExpiresAt:          expiresAt,
+		AuthorizationToken: authorizationToken,
+	}
+	authEntries := []*cache.AuthEntry{authEntry}
+
+	credentialCache.EXPECT().List().Return(authEntries)
+
+	auths, err := client.ListCredentials()
+	assert.NoError(t, err)
+	assert.NotNil(t, auths)
+	assert.Len(t, auths, 1)
+
+	auth := auths[0]
+	assert.Equal(t, auth.Username, expectedUsername)
+	assert.Equal(t, auth.Password, expectedPassword)
+	assert.Equal(t, auth.ProxyEndpoint, testProxyEndpoint)
+}
+
+func TestListCredentialsBadBase64AuthToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+
+	client := &defaultClient{
+		credentialCache: credentialCache,
+	}
+
+	testProxyEndpoint := proxyEndpointScheme + proxyEndpoint
+	expiresAt := time.Now().Add(12 * time.Hour)
+
+	authEntry := &cache.AuthEntry{
+		ProxyEndpoint:      testProxyEndpoint,
+		RequestedAt:        time.Now(),
+		ExpiresAt:          expiresAt,
+		AuthorizationToken: "invalid:token",
+	}
+	authEntries := []*cache.AuthEntry{authEntry}
+
+	credentialCache.EXPECT().List().Return(authEntries)
+
+	auths, err := client.ListCredentials()
+	assert.NoError(t, err)
+	assert.NotNil(t, auths)
+	assert.Empty(t, auths)
+}
+
+func TestListCredentialsInvalidAuthToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+
+	client := &defaultClient{
+		credentialCache: credentialCache,
+	}
+
+	testProxyEndpoint := proxyEndpointScheme + proxyEndpoint
+	expiresAt := time.Now().Add(12 * time.Hour)
+
+	authEntry := &cache.AuthEntry{
+		ProxyEndpoint:      testProxyEndpoint,
+		RequestedAt:        time.Now(),
+		ExpiresAt:          expiresAt,
+		AuthorizationToken: "invalidToken",
+	}
+	authEntries := []*cache.AuthEntry{authEntry}
+
+	credentialCache.EXPECT().List().Return(authEntries)
+
+	auths, err := client.ListCredentials()
+	assert.NoError(t, err)
+	assert.NotNil(t, auths)
+	assert.Empty(t, auths)
+}
+
 func compareAuthEntry(t *testing.T, actual *cache.AuthEntry, expected *cache.AuthEntry) {
 	assert.NotNil(t, actual)
 	assert.Equal(t, expected.AuthorizationToken, actual.AuthorizationToken)

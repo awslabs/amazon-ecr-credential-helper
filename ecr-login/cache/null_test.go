@@ -31,4 +31,7 @@ func TestNullCache(t *testing.T) {
 	assert.Nil(t, entry)
 
 	credentialCache.Clear()
+
+	entries := credentialCache.List()
+	assert.Empty(t, entries)
 }
