@@ -22,7 +22,11 @@ import (
 )
 
 func SetupLogger() {
-	logger, err := log.LoggerFromConfigAsString(loggerConfig())
+	SetupLoggerWithConfig(loggerConfig())
+}
+
+func SetupLoggerWithConfig(config string) {
+	logger, err := log.LoggerFromConfigAsString(config)
 	if err == nil {
 		log.ReplaceLogger(logger)
 	} else {
