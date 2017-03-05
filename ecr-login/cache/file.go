@@ -102,6 +102,9 @@ func (f *fileCredentialCache) fullFilePath() string {
 // file access. There is not guarantee here for handling multiple writes at once since there is no out of process locking.
 func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
 	defer log.Flush()
+	if _, err := os.Stat(f.path); err != nil {
+		os.MkdirAll(f.path, 0700)
+	}
 	file, err := ioutil.TempFile(f.path, ".config.json.tmp")
 	if err != nil {
 		return err

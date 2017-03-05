@@ -32,7 +32,7 @@ var testAuthEntry = AuthEntry{
 var testRegistryName = "testRegistry"
 
 var testCachePrefixKey = "prefix-"
-var testPath = os.TempDir()
+var testPath = os.TempDir() + "/ecr"
 var testFilename = "test.json"
 var testFullFillename = filepath.Join(testPath, testFilename)
 
