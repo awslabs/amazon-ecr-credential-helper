@@ -95,15 +95,15 @@ func (_m *MockClient) EXPECT() *_MockClientRecorder {
 	return _m.recorder
 }
 
-func (_m *MockClient) GetCredentials(_param0 string, _param1 string) (*api.Auth, error) {
-	ret := _m.ctrl.Call(_m, "GetCredentials", _param0, _param1)
+func (_m *MockClient) GetCredentials(_param0 string) (*api.Auth, error) {
+	ret := _m.ctrl.Call(_m, "GetCredentials", _param0)
 	ret0, _ := ret[0].(*api.Auth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockClientRecorder) GetCredentials(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCredentials", arg0, arg1)
+func (_mr *_MockClientRecorder) GetCredentials(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCredentials", arg0)
 }
 
 func (_m *MockClient) ListCredentials() ([]*api.Auth, error) {

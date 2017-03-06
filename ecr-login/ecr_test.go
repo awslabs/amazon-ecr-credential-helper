@@ -26,11 +26,9 @@ import (
 )
 
 const (
-	region           = "my-region-1"
-	registryID       = "123456789012"
-	proxyEndpoint    = registryID + ".dkr.ecr." + region + ".amazonaws.com"
+	region           = "us-east-1"
+	proxyEndpoint    = "123456789012" + ".dkr.ecr." + region + ".amazonaws.com"
 	proxyEndpointUrl = "https://" + proxyEndpoint
-	image            = proxyEndpoint + "/my-image"
 	expectedUsername = "username"
 	expectedPassword = "password"
 )
@@ -46,13 +44,13 @@ func TestGetSuccess(t *testing.T) {
 	}
 
 	factory.EXPECT().NewClientFromRegion(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return(&ecr.Auth{
+	client.EXPECT().GetCredentials(proxyEndpoint).Return(&ecr.Auth{
 		Username:      expectedUsername,
 		Password:      expectedPassword,
-		ProxyEndpoint: proxyEndpoint,
+		ProxyEndpoint: proxyEndpointUrl,
 	}, nil)
 
-	username, password, err := helper.Get(image)
+	username, password, err := helper.Get(proxyEndpoint)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedUsername, username)
 	assert.Equal(t, expectedPassword, password)
@@ -69,9 +67,9 @@ func TestGetError(t *testing.T) {
 	}
 
 	factory.EXPECT().NewClientFromRegion(region).Return(client)
-	client.EXPECT().GetCredentials(registryID, image).Return(nil, errors.New("test error"))
+	client.EXPECT().GetCredentials(proxyEndpoint).Return(nil, errors.New("test error"))
 
-	username, password, err := helper.Get(image)
+	username, password, err := helper.Get(proxyEndpoint)
 	assert.True(t, credentials.IsErrCredentialsNotFound(err))
 	assert.Empty(t, username)
 	assert.Empty(t, password)
@@ -108,7 +106,7 @@ func TestListSuccess(t *testing.T) {
 	serverList, err := helper.List()
 	assert.NoError(t, err)
 	assert.Len(t, serverList, 1)
-	assert.Equal(t, expectedUsername, serverList[proxyEndpoint])
+	assert.Equal(t, expectedUsername, serverList[proxyEndpointUrl])
 }
 
 func TestListFailure(t *testing.T) {
