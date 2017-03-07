@@ -106,6 +106,17 @@ func (_mr *_MockClientRecorder) GetCredentials(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCredentials", arg0)
 }
 
+func (_m *MockClient) GetCredentialsByRegistryID(_param0 string) (*api.Auth, error) {
+	ret := _m.ctrl.Call(_m, "GetCredentialsByRegistryID", _param0)
+	ret0, _ := ret[0].(*api.Auth)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockClientRecorder) GetCredentialsByRegistryID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCredentialsByRegistryID", arg0)
+}
+
 func (_m *MockClient) ListCredentials() ([]*api.Auth, error) {
 	ret := _m.ctrl.Call(_m, "ListCredentials")
 	ret0, _ := ret[0].([]*api.Auth)
