@@ -21,6 +21,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 	log "github.com/cihub/seelog"
 	homedir "github.com/mitchellh/go-homedir"
 )
@@ -31,7 +32,7 @@ func BuildCredentialsCache(awsSession *session.Session, region string) Credentia
 		return NewNullCredentialsCache()
 	}
 
-	cacheDir, err := homedir.Expand("~/.ecr")
+	cacheDir, err := homedir.Expand(config.GetCacheDir())
 	if err != nil {
 		log.Debugf("Could not expand cache path: %s", err)
 		log.Debug("Disabling cache")

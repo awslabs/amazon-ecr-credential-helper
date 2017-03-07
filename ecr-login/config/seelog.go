@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 
 	log "github.com/cihub/seelog"
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 func SetupLogger() {
@@ -35,7 +35,7 @@ func SetupLoggerWithConfig(config string) {
 }
 
 func loggerConfig() string {
-	logfile, err := homedir.Expand("~/.ecr/log/ecr-login.log")
+	logfile, err := homedir.Expand(GetCacheDir() + "/log/ecr-login.log")
 	if err != nil {
 		fmt.Errorf("%v", err)
 		logfile = "/tmp/.ecr/log/ecr-login.log"
