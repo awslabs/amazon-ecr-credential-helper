@@ -44,13 +44,13 @@ func (ECRHelper) Delete(serverURL string) error {
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	defer log.Flush()
 
-	_, region, err := api.ExtractRegistryAndRegion(serverURL)
+	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
 		log.Errorf("Error parsing the serverURL: %v", err)
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
-	client := self.ClientFactory.NewClientFromRegion(region)
+	client := self.ClientFactory.NewClientFromRegion(registry.Region)
 	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
 		log.Errorf("Error retrieving credentials: %v", err)
