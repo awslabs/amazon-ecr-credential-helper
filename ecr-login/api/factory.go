@@ -20,8 +20,16 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 )
 
+// Options makes the constructors more configurable
+type Options struct {
+	Session  *session.Session
+	Config   *aws.Config
+	CacheDir string
+}
+
 type ClientFactory interface {
 	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
+	NewClientWithOptions(opts Options) Client
 	NewClientFromRegion(region string) Client
 	NewClientWithDefaults() Client
 }
@@ -30,21 +38,35 @@ type DefaultClientFactory struct{}
 // NewClientWithDefaults creates the client and defaults region
 func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client {
 	awsSession := session.New()
-	return defaultClientFactory.NewClient(awsSession, awsSession.Config)
+	awsConfig := awsSession.Config
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	})
 }
 
 // NewClientFromRegion uses the region to create the client
 func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
 	awsSession := session.New()
 	awsConfig := &aws.Config{Region: aws.String(region)}
-
-	return defaultClientFactory.NewClient(awsSession, awsConfig)
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	})
 }
 
 // NewClient Create new client with AWS Config
 func (defaultClientFactory DefaultClientFactory) NewClient(awsSession *session.Session, awsConfig *aws.Config) Client {
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	})
+}
+
+// NewClientWithOptions Create new client with Options
+func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Options) Client {
 	return &defaultClient{
-		ecrClient:       ecr.New(awsSession, awsConfig),
-		credentialCache: cache.BuildCredentialsCache(awsSession, aws.StringValue(awsConfig.Region)),
+		ecrClient:       ecr.New(opts.Session, opts.Config),
+		credentialCache: cache.BuildCredentialsCache(opts.Session, aws.StringValue(opts.Config.Region), opts.CacheDir),
 	}
 }

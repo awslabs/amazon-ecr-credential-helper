@@ -74,6 +74,16 @@ func (_mr *_MockClientFactoryRecorder) NewClientWithDefaults() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithDefaults")
 }
 
+func (_m *MockClientFactory) NewClientWithOptions(_param0 api.Options) api.Client {
+	ret := _m.ctrl.Call(_m, "NewClientWithOptions", _param0)
+	ret0, _ := ret[0].(api.Client)
+	return ret0
+}
+
+func (_mr *_MockClientFactoryRecorder) NewClientWithOptions(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithOptions", arg0)
+}
+
 // Mock of Client interface
 type MockClient struct {
 	ctrl     *gomock.Controller

@@ -40,7 +40,7 @@ func TestFactoryBuildFileCache(t *testing.T) {
 		Credentials: awscredentials.NewStaticCredentials(testAccessKey, testSecretKey, testToken),
 	})
 
-	cache := BuildCredentialsCache(awsSession, testRegion)
+	cache := BuildCredentialsCache(awsSession, testRegion, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)
@@ -56,7 +56,7 @@ func TestFactoryBuildNullCacheWithoutCredentials(t *testing.T) {
 		Credentials: awscredentials.AnonymousCredentials,
 	})
 
-	cache := BuildCredentialsCache(awsSession, testRegion)
+	cache := BuildCredentialsCache(awsSession, testRegion, "")
 	assert.NotNil(t, cache)
 
 	_, ok := cache.(*nullCredentialsCache)
@@ -69,7 +69,7 @@ func TestFactoryBuildNullCache(t *testing.T) {
 
 	awsSession, _ := session.NewSession(&aws.Config{Region: aws.String(testRegion)})
 
-	cache := BuildCredentialsCache(awsSession, testRegion)
+	cache := BuildCredentialsCache(awsSession, testRegion, "")
 	assert.NotNil(t, cache)
 	_, ok := cache.(*nullCredentialsCache)
 	assert.True(t, ok, "built cache is a nullCredentialsCache")

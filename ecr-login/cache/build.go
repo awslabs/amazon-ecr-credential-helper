@@ -26,13 +26,18 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
-func BuildCredentialsCache(awsSession *session.Session, region string) CredentialsCache {
+func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir string) CredentialsCache {
 	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
 		log.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
 		return NewNullCredentialsCache()
 	}
 
-	cacheDir, err := homedir.Expand(config.GetCacheDir())
+	if cacheDir == "" {
+		//Get cacheDir from env var "AWS_ECR_CACHE_DIR" or set to default
+		cacheDir = config.GetCacheDir()
+	}
+
+	cacheDir, err := homedir.Expand(cacheDir)
 	if err != nil {
 		log.Debugf("Could not expand cache path: %s", err)
 		log.Debug("Disabling cache")
