@@ -51,7 +51,7 @@ of your `~/.docker/config.json` file to be:
 
 ## Usage
 
-`docker push 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`docker pull 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 `docker push 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
