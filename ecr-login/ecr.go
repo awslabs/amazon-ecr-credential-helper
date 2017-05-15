@@ -20,6 +20,7 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	log "github.com/cihub/seelog"
 	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 )
 
 var notImplemented = errors.New("not implemented")
@@ -43,15 +44,16 @@ func (ECRHelper) Delete(serverURL string) error {
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	defer log.Flush()
-
-	registry, err := api.ExtractRegistry(serverURL)
+	registryURL := config.GetRegistryURL(serverURL)
+	log.Debugf("Get for url: %s", serverURL)
+	registry, err := api.ExtractRegistry(registryURL)
 	if err != nil {
 		log.Errorf("Error parsing the serverURL: %v", err)
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
 	client := self.ClientFactory.NewClientFromRegion(registry.Region)
-	auth, err := client.GetCredentials(serverURL)
+	auth, err := client.GetCredentials(registryURL)
 	if err != nil {
 		log.Errorf("Error retrieving credentials: %v", err)
 		return "", "", credentials.NewErrCredentialsNotFound()
