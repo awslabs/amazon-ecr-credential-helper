@@ -49,6 +49,20 @@ of your `~/.docker/config.json` file to be:
 }
 ```
 
+This will cause `docker` to use `docker-credential-ecr-login` for all remote registries.
+
+To use this helper for a specific ECR registry, use a `credHelpers` section with the name of your ECR registry:
+
+```json
+{
+	"credHelpers": {
+		"aws_account_id.dkr.ecr.region.amazonaws.com": "ecr-login"
+	}
+}
+```
+
+This is useful if you use `docker` to operate on registries that have different authentication credentials.
+
 ## Usage
 
 `docker pull 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
