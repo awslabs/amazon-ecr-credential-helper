@@ -49,9 +49,9 @@ of your `~/.docker/config.json` file to be:
 }
 ```
 
-This will cause `docker` to use `docker-credential-ecr-login` for all remote registries.
+This configures the Docker daemon to use the credential helper for all Amazon ECR registries.
 
-To use this helper for a specific ECR registry, use a `credHelpers` section with the name of your ECR registry:
+To use this credential helper for a specific ECR registry, create a `credHelpers` section with the URI of your ECR registry:
 
 ```json
 {
@@ -61,7 +61,7 @@ To use this helper for a specific ECR registry, use a `credHelpers` section with
 }
 ```
 
-This is useful if you use `docker` to operate on registries that have different authentication credentials.
+This is useful if you use `docker` to operate on registries that use different authentication credentials.
 
 ## Usage
 
