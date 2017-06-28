@@ -71,6 +71,10 @@ This is useful if you use `docker` to operate on registries that use different a
 
 There is no need to use `docker login` or `docker logout`.
 
+### Usage with Docker Compose
+
+Note that the current version of Docker Compose (1.14.0 at the time of writing) does not support `credHelpers`. See [docker/compose#4948](https://github.com/docker/compose/issues/4948) for more information. Until this is fixed, you need to  specify `"credsStore": "ecr-login"`. Alternatively, you can manually pull your images with `docker pull <your image>`, before running `docker-compose up`.
+
 ## Troubleshooting
 
 Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
