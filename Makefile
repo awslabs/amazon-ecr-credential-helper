@@ -36,11 +36,11 @@ $(LOCAL_BINARY): $(SOURCES)
 
 .PHONY: test
 test:
-	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
+	. ./scripts/shared_env && govendor test -v -timeout 30s -short -cover +l
 
 .PHONY: get-deps
 get-deps:
-	go get github.com/tools/godep
+	go get github.com/kardianos/govendor
 
 .PHONY: clean
 clean:
