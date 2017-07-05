@@ -13,4 +13,32 @@
 
 package cache
 
-//go:generate mockgen.sh github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache CredentialsCache mocks/cache_mocks.go
+type MockCredentialsCache struct {
+	GetFn  func(registry string) *AuthEntry
+	SetFn  func(registry string, entry *AuthEntry)
+	ListFn func() []*AuthEntry
+}
+
+func (c *MockCredentialsCache) Get(registry string) *AuthEntry {
+	if c.GetFn != nil {
+		return c.GetFn(registry)
+	}
+	return nil
+}
+
+func (c *MockCredentialsCache) Set(registry string, entry *AuthEntry) {
+	if c.SetFn != nil {
+		c.SetFn(registry, entry)
+		return
+	}
+}
+
+func (c *MockCredentialsCache) List() []*AuthEntry {
+	if c.ListFn != nil {
+		return c.ListFn()
+	}
+	return nil
+}
+
+func (c *MockCredentialsCache) Clear() {
+}
