@@ -38,16 +38,9 @@ $(LOCAL_BINARY): $(SOURCES)
 test:
 	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
 
-.PHONY: gogenerate
-gogenerate:
-	./scripts/gogenerate
-
 .PHONY: get-deps
 get-deps:
 	go get github.com/tools/godep
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/golang/mock/mockgen
-	go get golang.org/x/tools/cmd/goimports
 
 .PHONY: clean
 clean:
