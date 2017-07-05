@@ -4,8 +4,9 @@ os:
     - linux
     - osx
 go:
-    - 1.5
     - 1.6
+    - 1.7
+    - 1.8
 before_install: ./scripts/hack/symlink-gopath-travisci
 install: make get-deps
 script:

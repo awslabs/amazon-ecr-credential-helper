@@ -22,7 +22,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 	log "github.com/cihub/seelog"
 )
@@ -33,12 +32,12 @@ const programName = "docker-credential-ecr-login"
 var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 
 type Registry struct {
-	ID	string
-	Region	string
+	ID     string
+	Region string
 }
 
 func ExtractRegistry(serverURL string) (*Registry, error) {
-	if (strings.HasPrefix(serverURL, proxyEndpointScheme)) {
+	if strings.HasPrefix(serverURL, proxyEndpointScheme) {
 		serverURL = strings.TrimPrefix(serverURL, proxyEndpointScheme)
 	}
 	matches := ecrPattern.FindStringSubmatch(serverURL)
@@ -48,8 +47,8 @@ func ExtractRegistry(serverURL string) (*Registry, error) {
 		return nil, fmt.Errorf(serverURL + "is not a valid repository URI for Amazon EC2 Container Registry.")
 	}
 	registry := &Registry{
-		ID:	matches[1],
-	        Region:	matches[2],
+		ID:     matches[1],
+		Region: matches[2],
 	}
 	return registry, nil
 }
@@ -60,7 +59,7 @@ type Client interface {
 	ListCredentials() ([]*Auth, error)
 }
 type defaultClient struct {
-	ecrClient       ecriface.ECRAPI
+	ecrClient       ECRClient
 	credentialCache cache.CredentialsCache
 }
 
@@ -126,12 +125,12 @@ func (self *defaultClient) ListCredentials() ([]*Auth, error) {
 		return auths, err
 	}
 
-	return auths, nil 
+	return auths, nil
 }
 
 func (self *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
 	var input *ecr.GetAuthorizationTokenInput
-        if registryID == "" {
+	if registryID == "" {
 		log.Debugf("Calling ECR.GetAuthorizationToken for default registry")
 		input = &ecr.GetAuthorizationTokenInput{}
 	} else {
