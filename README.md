@@ -49,9 +49,13 @@ of your `~/.docker/config.json` file to be:
 }
 ```
 
-This configures the Docker daemon to use the credential helper for all Amazon ECR registries.
+This configures the Docker daemon to use the credential helper for all Amazon
+ECR registries.
 
-To use this credential helper for a specific ECR registry, create a `credHelpers` section with the URI of your ECR registry:
+With Docker 1.13.0 or greater, you can configure Docker to use different
+credential helpers for different registries. To use this credential helper for
+a specific ECR registry, create a `credHelpers` section with the URI of your
+ECR registry:
 
 ```json
 {
@@ -73,7 +77,13 @@ There is no need to use `docker login` or `docker logout`.
 
 ### Usage with Docker Compose
 
-Note that the current version of Docker Compose (1.14.0 at the time of writing) does not support `credHelpers`. See [docker/compose#4948](https://github.com/docker/compose/issues/4948) for more information. Until this is fixed, you need to  specify `"credsStore": "ecr-login"`. Alternatively, you can manually pull your images with `docker pull <your image>`, before running `docker-compose up`.
+Note that the current version of Docker Compose (1.14.0 at the time of writing)
+does not support `credHelpers`. See
+[docker/compose#4948](https://github.com/docker/compose/issues/4948) for more
+information. Until this is supported, you need to specify
+`"credsStore": "ecr-login"` as described above. Alternatively, you can manually
+pull your images with `docker pull <your image>`, before running
+`docker-compose up`.
 
 ## Troubleshooting
 
