@@ -4,9 +4,11 @@ os:
     - linux
     - osx
 go:
-    - 1.5
-    - 1.6
-before_install: ./scripts/hack/symlink-gopath-travisci
+    - 1.5.x
+    - 1.6.x
+    - 1.7.x
+    - 1.8.x
+go_import_path: github.com/awslabs/amazon-ecr-credential-helper
 install: make get-deps
 script:
-    - cd $HOME/gopath/src/github.com/awslabs/amazon-ecr-credential-helper; make test
+    - make test
