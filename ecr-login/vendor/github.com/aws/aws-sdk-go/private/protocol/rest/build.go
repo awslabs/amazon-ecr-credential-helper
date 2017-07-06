@@ -4,6 +4,7 @@ package rest
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,26 +83,33 @@ func buildLocationElements(r *request.Request, v reflect.Value, buildGETQuery bo
 			if name == "" {
 				name = field.Name
 			}
-			if m.Kind() == reflect.Ptr {
+			if kind := m.Kind(); kind == reflect.Ptr {
 				m = m.Elem()
+			} else if kind == reflect.Interface {
+				if !m.Elem().IsValid() {
+					continue
+				}
 			}
 			if !m.IsValid() {
+				continue
+			}
+			if field.Tag.Get("ignore") != "" {
 				continue
 			}
 
 			var err error
 			switch field.Tag.Get("location") {
 			case "headers": // header maps
-				err = buildHeaderMap(&r.HTTPRequest.Header, m, field.Tag.Get("locationName"))
+				err = buildHeaderMap(&r.HTTPRequest.Header, m, field.Tag)
 			case "header":
-				err = buildHeader(&r.HTTPRequest.Header, m, name)
+				err = buildHeader(&r.HTTPRequest.Header, m, name, field.Tag)
 			case "uri":
-				err = buildURI(r.HTTPRequest.URL, m, name)
+				err = buildURI(r.HTTPRequest.URL, m, name, field.Tag)
 			case "querystring":
-				err = buildQueryString(query, m, name)
+				err = buildQueryString(query, m, name, field.Tag)
 			default:
 				if buildGETQuery {
-					err = buildQueryString(query, m, name)
+					err = buildQueryString(query, m, name, field.Tag)
 				}
 			}
 			r.Error = err
@@ -142,8 +150,8 @@ func buildBody(r *request.Request, v reflect.Value) {
 	}
 }
 
-func buildHeader(header *http.Header, v reflect.Value, name string) error {
-	str, err := convertType(v)
+func buildHeader(header *http.Header, v reflect.Value, name string, tag reflect.StructTag) error {
+	str, err := convertType(v, tag)
 	if err == errValueNotSet {
 		return nil
 	} else if err != nil {
@@ -155,9 +163,10 @@ func buildHeader(header *http.Header, v reflect.Value, name string) error {
 	return nil
 }
 
-func buildHeaderMap(header *http.Header, v reflect.Value, prefix string) error {
+func buildHeaderMap(header *http.Header, v reflect.Value, tag reflect.StructTag) error {
+	prefix := tag.Get("locationName")
 	for _, key := range v.MapKeys() {
-		str, err := convertType(v.MapIndex(key))
+		str, err := convertType(v.MapIndex(key), tag)
 		if err == errValueNotSet {
 			continue
 		} else if err != nil {
@@ -170,8 +179,8 @@ func buildHeaderMap(header *http.Header, v reflect.Value, prefix string) error {
 	return nil
 }
 
-func buildURI(u *url.URL, v reflect.Value, name string) error {
-	value, err := convertType(v)
+func buildURI(u *url.URL, v reflect.Value, name string, tag reflect.StructTag) error {
+	value, err := convertType(v, tag)
 	if err == errValueNotSet {
 		return nil
 	} else if err != nil {
@@ -187,7 +196,7 @@ func buildURI(u *url.URL, v reflect.Value, name string) error {
 	return nil
 }
 
-func buildQueryString(query url.Values, v reflect.Value, name string) error {
+func buildQueryString(query url.Values, v reflect.Value, name string, tag reflect.StructTag) error {
 	switch value := v.Interface().(type) {
 	case []*string:
 		for _, item := range value {
@@ -204,7 +213,7 @@ func buildQueryString(query url.Values, v reflect.Value, name string) error {
 			}
 		}
 	default:
-		str, err := convertType(v)
+		str, err := convertType(v, tag)
 		if err == errValueNotSet {
 			return nil
 		} else if err != nil {
@@ -243,7 +252,7 @@ func EscapePath(path string, encodeSep bool) string {
 	return buf.String()
 }
 
-func convertType(v reflect.Value) (string, error) {
+func convertType(v reflect.Value, tag reflect.StructTag) (string, error) {
 	v = reflect.Indirect(v)
 	if !v.IsValid() {
 		return "", errValueNotSet
@@ -263,6 +272,16 @@ func convertType(v reflect.Value) (string, error) {
 		str = strconv.FormatFloat(value, 'f', -1, 64)
 	case time.Time:
 		str = value.UTC().Format(RFC822)
+	case aws.JSONValue:
+		b, err := json.Marshal(value)
+		if err != nil {
+			return "", err
+		}
+		if tag.Get("location") == "header" {
+			str = base64.StdEncoding.EncodeToString(b)
+		} else {
+			str = string(b)
+		}
 	default:
 		err := fmt.Errorf("Unsupported value for param %v (%s)", v.Interface(), v.Type())
 		return "", err
