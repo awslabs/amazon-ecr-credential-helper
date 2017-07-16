@@ -27,21 +27,21 @@ in the *AWS Command Line Interface User Guide*.
 The credentials must have a policy applied that
 [allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
 
-## Building and Setup
-To build the Amazon ECR Docker Credential Helper, you must have Go 1.5 or greater, and you must have `git`
-and `make` installed on your system.
+## Installing
 
-Clone this repository into your existing `GOPATH` under
-`src/github.com/awslabs/amazon-ecr-credential-helper`, then run `make`.  The
-resulting binary can be found in `bin/local/docker-credential-ecr-login`.
+To build and install the Amazon ECR Docker Credential Helper, we suggest golang 1.7+ and `git` and `make` installed on your system.
 
-Or if you already have Docker environment, just clone this repository anywhere
-and run `make docker`. This command builds the binary by Go inside docker container and
-output it to local directory. With `TARGET_GOOS` environment variable, you can also
-cross compile the binary.
+You can install this via `go get` with:
 
-Place the `docker-credential-ecr-login` binary on your `PATH` and set the contents
-of your `~/.docker/config.json` file to be:
+```
+go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
+```
+
+
+If you already have Docker environment, just clone this repository anywhere
+and run `make docker`. This command builds the binary by Go inside docker container and output it to local directory. With `TARGET_GOOS` environment variable, you can also cross compile the binary.
+
+Place the `docker-credential-ecr-login` binary on your `PATH` and set the contents of your `~/.docker/config.json` file to be:
 
 ```json
 {
