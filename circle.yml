@@ -9,11 +9,11 @@ dependencies:
   pre:
     - git tag -l 
     - go get github.com/awslabs/amazon-ecr-credential-helper/ecr-login
-    - cd ~/.go_workspace/src/github.com/amazon-ecr-credential-helper
+    - cd ~/.go_workspace/src/github.com/awslabs/amazon-ecr-credential-helper
     - make get-deps
 test:
   override:
-    - cd ~/.go_workspace/src/github.com/amazon-ecr-credential-helper
+    - cd ~/.go_workspace/src/github.com/awslabs/amazon-ecr-credential-helper
     - ls -la
     - make 
 deployment:
