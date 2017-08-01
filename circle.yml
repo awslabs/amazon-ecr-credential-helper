@@ -2,6 +2,7 @@
 machine:
   environment:
     CHECKOUT_PATH: $HOME/$CIRCLE_PROJECT_REPONAME
+    GOPATH: /home/ubuntu/.go_workspace
   post:
     - echo "export BUILD_DATE=\"`date +%FT%T%z`\"" >> ~/.circlerc
     - cat ~/.circlerc|sed 's/.*GITHUB_TOKEN.*//g'|sed 's/.*COVERALLS_TOKEN.*//g'|sed 's/.*CLIENT_ID.*//g'|sed 's/.*CLIENT_SECRET.*//g'
