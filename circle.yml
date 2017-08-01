@@ -8,13 +8,13 @@ machine:
 dependencies:
   pre:
     - git tag -l 
-    - mkdir -p $GOPATH/github.com/
-    - ln -s $CHECKOUT_PATH $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME
+    - mkdir -p ~/.go_workspace/github.com/
+    - ln -s $CHECKOUT_PATH ~/.go_workspace/github.com/$CIRCLE_PROJECT_REPONAME
 test:
   override:
-    - ls -la $GOPATH
-    - cd $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make get-deps
-    - cd $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make test
+    - ls -la ~/.go_workspace
+    - cd ~/.go_workspace/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make get-deps
+    - cd ~/.go_workspace/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make test
 deployment:
   release:
      tag: /v.*/
