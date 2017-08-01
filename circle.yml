@@ -8,19 +8,23 @@ machine:
 dependencies:
   pre:
     - git tag -l 
-    - go get github.com/awslabs/amazon-ecr-credential-helper/ecr-login
+    - go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login
     - cd ~/.go_workspace/src/github.com/awslabs/amazon-ecr-credential-helper
     - make get-deps
+    - godep get
 test:
   override:
     - cd ~/.go_workspace/src/github.com/awslabs/amazon-ecr-credential-helper
     - ls -la
-    - make 
+    - make clean
+    - make test
 deployment:
   release:
      tag: /v.*/
      commands:
+     - cd ~/.go_workspace/src/github.com/awslabs/amazon-ecr-credential-helper
+     - make clean
+     - make 
      - go get github.com/tcnksm/ghr
-    #- gox --osarch "linux/386 linux/amd64 darwin/386 darwin/amd64" -ldflags "-X main.Version=$(git describe --always --dirty) -X main.Date=${BUILD_DATE}" -output "dist/{{.OS}}_{{.Arch}}/${CIRCLE_PROJECT_REPONAME}"
-     - cd dist;for i in $(ls);do tar -cvzf "${CIRCLE_PROJECT_REPONAME}_${i}.tar.gz" "${i}";rm -rf "${i}";done
-     - ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" --replace `git describe --tags` dist/ 
+     - cd bin;for i in $(ls);do tar -cvzf "${CIRCLE_PROJECT_REPONAME}_${i}.tar.gz" "${i}";rm -rf "${i}";done
+     - ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" --replace `git describe --tags` bin/ 
