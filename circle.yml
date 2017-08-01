@@ -15,6 +15,7 @@ test:
     - test -z "$(gofmt -s -l . | tee /dev/stderr)"
     - ls -la $GOPATH
     - cd $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME
+    - make get-deps
     - make test
 deployment:
   release:
