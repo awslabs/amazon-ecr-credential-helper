@@ -1,0 +1,26 @@
+# circle.yml
+machine:
+  environment:
+    CHECKOUT_PATH: $HOME/$CIRCLE_PROJECT_REPONAME
+  post:
+    - echo "export BUILD_DATE=\"`date +%FT%T%z`\"" >> ~/.circlerc
+    - cat ~/.circlerc|sed 's/.*GITHUB_TOKEN.*//g'|sed 's/.*COVERALLS_TOKEN.*//g'|sed 's/.*CLIENT_ID.*//g'|sed 's/.*CLIENT_SECRET.*//g'
+dependencies:
+  pre:
+    - git tag -l 
+    - mkdir -p $GOPATH/github.com/
+    - ln -s $CHECKOUT_PATH $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME
+test:
+  override:
+    - test -z "$(gofmt -s -l . | tee /dev/stderr)"
+    - ls -la $GOPATH
+    - cd $GOPATH/github.com/$CIRCLE_PROJECT_REPONAME
+    - make test
+deployment:
+  release:
+     tag: /v.*/
+     commands:
+     - go get github.com/tcnksm/ghr
+    #- gox --osarch "linux/386 linux/amd64 darwin/386 darwin/amd64" -ldflags "-X main.Version=$(git describe --always --dirty) -X main.Date=${BUILD_DATE}" -output "dist/{{.OS}}_{{.Arch}}/${CIRCLE_PROJECT_REPONAME}"
+     - cd dist;for i in $(ls);do tar -cvzf "${CIRCLE_PROJECT_REPONAME}_${i}.tar.gz" "${i}";rm -rf "${i}";done
+     - ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" --replace `git describe --tags` dist/ 
