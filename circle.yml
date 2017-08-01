@@ -13,6 +13,7 @@ dependencies:
 test:
   override:
     - ls -la ~/.go_workspace
+    - ls -la /home/ubuntu/.go_workspace/github.com/amazon-ecr-credential-helper
     - cd ~/.go_workspace/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make get-deps
     - cd ~/.go_workspace/github.com/$CIRCLE_PROJECT_REPONAME && pwd && make test
 deployment:
