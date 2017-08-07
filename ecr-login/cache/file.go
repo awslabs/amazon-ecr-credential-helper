@@ -19,11 +19,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	log "github.com/cihub/seelog"
 )
 
-const registryCacheVersion = "1.0"
+const (
+	cleanExpiredCredentialsEnv = "DISABLE_CLEANUP_EXPIRED_CREDENTIALS"
+	registryCacheVersion       = "1.0"
+)
 
 type RegistryCache struct {
 	Registries map[string]*AuthEntry
@@ -105,6 +109,16 @@ func (f *fileCredentialCache) fullFilePath() string {
 // file access. There is not guarantee here for handling multiple writes at once since there is no out of process locking.
 func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
 	defer log.Flush()
+
+	// Clean up the expired credentials
+	if os.Getenv(cleanExpiredCredentialsEnv) != "true" {
+		for registry, auth := range registryCache.Registries {
+			if !auth.IsValid(time.Now()) {
+				delete(registryCache.Registries, registry)
+				log.Infof("Deleting expired credentials for registry: %s", registry)
+			}
+		}
+	}
 
 	file, err := ioutil.TempFile(f.path, ".config.json.tmp")
 	if err != nil {
