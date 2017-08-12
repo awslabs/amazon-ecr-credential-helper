@@ -30,4 +30,4 @@ mkdir -p $1
 
 cd "${ROOT}"
 
-GOOS=$TARGET_GOOS GOARCH=$TARGET_GOARCH CGO_ENABLED=0 go build -installsuffix cgo -a -ldflags '-s' -o $1/docker-credential-ecr-login ./ecr-login/cmd/
+GOOS=$TARGET_GOOS GOARCH=$TARGET_GOARCH CGO_ENABLED=0 go build -installsuffix cgo -a -ldflags '-s' -o $1/docker-credential-ecr-login ./ecr-login/
