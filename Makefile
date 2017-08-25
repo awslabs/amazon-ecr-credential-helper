@@ -17,7 +17,12 @@ all: build
 
 SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
-LOCAL_BINARY=bin/local/docker-credential-ecr-login
+BINARY_NAME=docker-credential-ecr-login
+LOCAL_BINARY=bin/local/$(BINARY_NAME)
+
+LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
+DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
+WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
 .PHONY: docker
 docker: Dockerfile
@@ -37,6 +42,25 @@ $(LOCAL_BINARY): $(SOURCES)
 .PHONY: test
 test:
 	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
+
+.PHONY: all-variants
+all-variants: linux-amd64 darwin-amd64 windows-amd64
+
+.PHONY: linux-amd64
+linux-amd64: $(LINUX_AMD64_BINARY)
+$(LINUX_AMD64_BINARY): $(SOURCES)
+	./scripts/build_variant.sh linux amd64
+
+.PHONY: darwin-amd64
+darwin-amd64: $(DARWIN_AMD64_BINARY)
+$(DARWIN_AMD64_BINARY): $(SOURCES)
+	./scripts/build_variant.sh darwin amd64
+
+.PHONY: windows-amd64
+windows-amd64: $(WINDOWS_AMD64_BINARY)
+$(WINDOWS_AMD64_BINARY): $(SOURCES)
+	./scripts/build_variant.sh windows amd64
+	@mv ./bin/windows-amd64/docker-credential-ecr-login ./bin/windows-amd64/docker-credential-ecr-login.exe
 
 .PHONY: gogenerate
 gogenerate:
