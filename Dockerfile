@@ -11,10 +11,17 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-FROM golang:1.9
+FROM golang:1.9-alpine3.6 AS builder
 
-WORKDIR /go/src/github.com/awslabs/amazon-ecr-credential-helper
+COPY ecr-login /go/src/github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 
-COPY . .
+RUN env CGO_ENABLED=0 go install -installsuffix "static" \
+    github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
 
-CMD make
+FROM alpine:3.6
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /go/bin/docker-credential-ecr-login /usr/local/bin/docker-credential-ecr-login
+
+ENTRYPOINT [ "/usr/local/bin/docker-credential-ecr-login" ]
