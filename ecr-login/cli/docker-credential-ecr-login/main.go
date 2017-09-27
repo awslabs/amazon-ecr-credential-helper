@@ -41,7 +41,7 @@ func evalCommand(helper credentials.Helper) {
 		var user, token string
 		user, token, err = helper.Get(server)
 		if err == nil {
-			fmt.Printf("docker login -e none -u %s -p %s %s\n", user, token, server)
+			fmt.Printf("docker login -u %s -p %s %s\n", user, token, server)
 		}
 	}
 	if err != nil {
