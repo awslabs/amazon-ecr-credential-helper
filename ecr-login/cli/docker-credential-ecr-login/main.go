@@ -14,6 +14,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
@@ -24,5 +27,39 @@ import (
 func main() {
 	defer log.Flush()
 	config.SetupLogger()
-	credentials.Serve(ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}})
+	helper := ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}}
+	if len(os.Args) > 1 && os.Args[1] == "eval" {
+		evalCommand(helper)
+	} else {
+		credentials.Serve(helper)
+	}
+}
+
+func evalCommand(helper credentials.Helper) {
+	server, err := parseArgs(helper)
+	if err == nil {
+		var user, token string
+		user, token, err = helper.Get(server)
+		if err == nil {
+			fmt.Printf("docker login -e none -u %s -p %s %s\n", user, token, server)
+		}
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func parseArgs(helper credentials.Helper) (string, error) {
+	if len(os.Args) > 2 {
+		return os.Args[2], nil
+	}
+	servers, err := helper.List()
+	if err == nil {
+		for k := range servers {
+			return k, nil
+		}
+		return "", fmt.Errorf("No default ECR servers found")
+	}
+	return "", err
 }

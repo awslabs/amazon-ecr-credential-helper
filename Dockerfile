@@ -25,3 +25,4 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /go/bin/docker-credential-ecr-login /usr/local/bin/docker-credential-ecr-login
 
 ENTRYPOINT [ "/usr/local/bin/docker-credential-ecr-login" ]
+CMD [ "eval" ]
