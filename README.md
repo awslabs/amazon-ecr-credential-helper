@@ -29,7 +29,7 @@ The credentials must have a policy applied that
 
 ## Installing
 
-To build and install the Amazon ECR Docker Credential Helper, we suggest golang 
+To build and install the Amazon ECR Docker Credential Helper, we suggest golang
 1.6+ and `git` and `make` installed on your system.
 
 You can install this via `go get` with:
@@ -40,12 +40,12 @@ go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-c
 
 
 If you already have Docker environment, just clone this repository anywhere
-and run `make docker`. This command builds the binary by Go inside the Docker 
-container and output it to local directory. 
+and run `make docker`. This command builds the binary by Go inside the Docker
+container and output it to local directory.
 
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.
 
-Place the `docker-credential-ecr-login` binary on your `PATH` and set the contents 
+Place the `docker-credential-ecr-login` binary on your `PATH` and set the contents
 of your `~/.docker/config.json` file to be:
 
 ```json
@@ -70,7 +70,7 @@ ECR registry:
 }
 ```
 
-This is useful if you use `docker` to operate on registries that use different 
+This is useful if you use `docker` to operate on registries that use different
 authentication credentials.
 
 ## Usage
@@ -80,16 +80,6 @@ authentication credentials.
 `docker push 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
-
-### Usage with Docker Compose
-
-Note that the current version of Docker Compose (1.14.0 at the time of writing)
-does not support `credHelpers`. See
-[docker/compose#4948](https://github.com/docker/compose/issues/4948) for more
-information. Until this is supported, you need to specify
-`"credsStore": "ecr-login"` as described above. Alternatively, you can manually
-pull your images with `docker pull <your image>`, before running
-`docker-compose up`.
 
 ## Troubleshooting
 
