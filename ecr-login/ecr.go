@@ -46,7 +46,7 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 
 	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
-		log.Errorf("Error parsing the serverURL: %v", err)
+		log.Errorf("Error parsing the serverURL: %s, error: %v", serverURL, err)
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
@@ -70,11 +70,10 @@ func (self ECRHelper) List() (map[string]string, error) {
 	}
 
 	result := map[string]string{}
-	
+
 	for _, auth := range auths {
-	        serverURL := auth.ProxyEndpoint
-	        result[serverURL] = auth.Username
+		serverURL := auth.ProxyEndpoint
+		result[serverURL] = auth.Username
 	}
 	return result, nil
 }
-
