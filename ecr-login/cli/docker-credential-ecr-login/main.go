@@ -36,12 +36,25 @@ func main() {
 }
 
 func evalCommand(helper credentials.Helper) {
-	server, err := parseArgs(helper)
+	server, email, passwordStdin, err := parseArgs(helper)
 	if err == nil {
 		var user, token string
 		user, token, err = helper.Get(server)
 		if err == nil {
-			fmt.Printf("docker login -u %s -p %s %s\n", user, token, server)
+			var emailOpt string
+			if email {
+				emailOpt = " -e none"
+			}
+			var echoPassword, passwordOpt string
+			if passwordStdin {
+				echoPassword = fmt.Sprintf("echo %s|", token)
+				passwordOpt = "--password-stdin"
+			} else {
+				passwordOpt = fmt.Sprintf("-p %s", token)
+			}
+
+			fmt.Printf("%sdocker login%s -u %s %s %s\n",
+				echoPassword, emailOpt, user, passwordOpt, server)
 		}
 	}
 	if err != nil {
@@ -50,16 +63,30 @@ func evalCommand(helper credentials.Helper) {
 	}
 }
 
-func parseArgs(helper credentials.Helper) (string, error) {
-	if len(os.Args) > 2 {
-		return os.Args[2], nil
-	}
-	servers, err := helper.List()
-	if err == nil {
-		for k := range servers {
-			return k, nil
+func parseArgs(helper credentials.Helper) (string, bool, bool, error) {
+	var err error
+	var email, passwordStdin bool
+	for i := 2; i < len(os.Args); i += 1 {
+		switch os.Args[i] {
+		case "-e":
+			email = true
+		case "--password-stdin":
+			passwordStdin = true
+		default:
+			err = fmt.Errorf("Usage: %s [-e] [--password-stdin]", os.Args[0])
+			break
 		}
-		return "", fmt.Errorf("No default ECR servers found")
 	}
-	return "", err
+	if err == nil {
+		var servers map[string]string
+		servers, err = helper.List()
+		if err == nil {
+			// Return any server in the map
+			for k := range servers {
+				return k, email, passwordStdin, nil
+			}
+			err = fmt.Errorf("No default ECR servers found")
+		}
+	}
+	return "", false, false, err
 }
