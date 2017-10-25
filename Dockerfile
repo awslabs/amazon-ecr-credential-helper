@@ -18,11 +18,22 @@ COPY ecr-login /go/src/github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 RUN env CGO_ENABLED=0 go install -installsuffix "static" \
     github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
 
-FROM alpine:3.6
+# Taken from https://github.com/aws/amazon-ecs-agent/blob/ecda8a686200643081fe7de498b61b1c023b2c25/misc/certs/Dockerfile
+FROM debian:latest as certs
 
-RUN apk add --no-cache ca-certificates
+RUN apt-get update &&  \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# If anyone has a better idea for how to trim undesired certs or a better ca list to use, I'm all ears
+RUN cp /etc/ca-certificates.conf /tmp/caconf && \
+  cat /tmp/caconf | grep -v "mozilla/CNNIC_ROOT\.crt" > /etc/ca-certificates.conf && \
+  update-ca-certificates --fresh
+
+FROM scratch
 
 COPY --from=builder /go/bin/docker-credential-ecr-login /usr/local/bin/docker-credential-ecr-login
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 ENTRYPOINT [ "/usr/local/bin/docker-credential-ecr-login" ]
 CMD [ "eval" ]
