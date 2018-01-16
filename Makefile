@@ -81,3 +81,4 @@ get-deps:
 .PHONY: clean
 clean:
 	rm -rf ./bin ||:
+	docker rm $(CONTAINER_NAME) 2>/dev/null ||:
