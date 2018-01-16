@@ -24,13 +24,18 @@ LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
 DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
+CONTAINER_NAME=build-$(BINARY_NAME)
+
 .PHONY: docker
 docker: Dockerfile
-	docker run --rm \
-	-e TARGET_GOOS=$(TARGET_GOOS) \
-	-e TARGET_GOARCH=$(TARGET_GOARCH) \
-	-v $(shell pwd)/bin:/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
-	$(shell docker build -q .)
+	docker run \
+		--name $(CONTAINER_NAME) \
+		-e TARGET_GOOS=$(TARGET_GOOS) \
+		-e TARGET_GOARCH=$(TARGET_GOARCH) \
+		$(shell docker build -q .)
+	mkdir -p bin/local
+	docker cp $(CONTAINER_NAME):/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin/local/$(BINARY_NAME) $(LOCAL_BINARY)
+	docker rm $(CONTAINER_NAME)
 
 .PHONY: build
 build: $(LOCAL_BINARY)
