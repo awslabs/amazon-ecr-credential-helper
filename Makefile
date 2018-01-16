@@ -28,6 +28,7 @@ CONTAINER_NAME=build-$(BINARY_NAME)
 
 .PHONY: docker
 docker: Dockerfile
+	docker rm $(CONTAINER_NAME) 2>/dev/null ||:
 	docker run \
 		--name $(CONTAINER_NAME) \
 		-e TARGET_GOOS=$(TARGET_GOOS) \
@@ -35,7 +36,6 @@ docker: Dockerfile
 		$(shell docker build -q .)
 	mkdir -p bin/local
 	docker cp $(CONTAINER_NAME):/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin/local/$(BINARY_NAME) $(LOCAL_BINARY)
-	docker rm $(CONTAINER_NAME)
 
 .PHONY: build
 build: $(LOCAL_BINARY)
