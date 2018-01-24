@@ -35,6 +35,58 @@ const (
 	expectedPassword = "password"
 )
 
+func TestExtractRegistry(t *testing.T) {
+	testCases := []struct {
+		serverURL string
+		registry  *Registry
+		hasError  bool
+	}{
+		{
+			serverURL: "https://123456789012.dkr.ecr.us-east-1.amazonaws.com/v2/blah/blah",
+			registry: &Registry{
+				ID:     "123456789012",
+				Region: "us-east-1",
+			},
+			hasError: false,
+		},
+		{
+			serverURL: "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+			registry: &Registry{
+				ID:     "123456789012",
+				Region: "us-west-2",
+			},
+			hasError: false,
+		},
+		{
+			serverURL: "210987654321.dkr.ecr.cn-north-1.amazonaws.com.cn/foo",
+			registry: &Registry{
+				ID:     "210987654321",
+				Region: "cn-north-1",
+			},
+			hasError: false,
+		},
+		{
+			serverURL: ".dkr.ecr.not-real.amazonaws.com",
+			hasError:  true,
+		},
+		{
+			serverURL: "not.ecr.io",
+			hasError:  true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.serverURL, func(t *testing.T) {
+			registry, err := ExtractRegistry(tc.serverURL)
+			if !tc.hasError {
+				assert.NoError(t, err, "No error expected")
+				assert.EqualValues(t, tc.registry, registry, "Registry should be equal")
+			} else {
+				assert.Error(t, err, "Expected error")
+			}
+		})
+	}
+}
+
 func TestGetAuthConfigSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -389,7 +441,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
-		ecrClient: ecrClient,
+		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
@@ -399,7 +451,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 	emptyCache := []*cache.AuthEntry{}
 	credentialCache.EXPECT().List().Return(emptyCache)
 
-        ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
+	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
 		func(input *ecr.GetAuthorizationTokenInput) {
 			if input == nil {
 				t.Fatal("Called with nil input")
@@ -411,7 +463,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 		AuthorizationData: []*ecr.AuthorizationData{
 			&ecr.AuthorizationData{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
-				ExpiresAt:	    aws.Time(expiresAt),
+				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalid:token"),
 			},
 		},
@@ -430,7 +482,7 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
-		ecrClient: ecrClient,
+		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
@@ -440,7 +492,7 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 	emptyCache := []*cache.AuthEntry{}
 	credentialCache.EXPECT().List().Return(emptyCache)
 
-        ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
+	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
 		func(input *ecr.GetAuthorizationTokenInput) {
 			if input == nil {
 				t.Fatal("Called with nil input")
@@ -452,7 +504,7 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 		AuthorizationData: []*ecr.AuthorizationData{
 			&ecr.AuthorizationData{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
-				ExpiresAt:	    aws.Time(expiresAt),
+				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalidtoken"),
 			},
 		},
