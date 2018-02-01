@@ -17,6 +17,32 @@ type Credentials struct {
 	Secret    string
 }
 
+// isValid checks the integrity of Credentials object such that no credentials lack
+// a server URL or a username.
+// It returns whether the credentials are valid and the error if it isn't.
+// error values can be errCredentialsMissingServerURL or errCredentialsMissingUsername
+func (c *Credentials) isValid() (bool, error) {
+	if len(c.ServerURL) == 0 {
+		return false, NewErrCredentialsMissingServerURL()
+	}
+
+	if len(c.Username) == 0 {
+		return false, NewErrCredentialsMissingUsername()
+	}
+
+	return true, nil
+}
+
+// CredsLabel holds the way Docker credentials should be labeled as such in credentials stores that allow labelling.
+// That label allows to filter out non-Docker credentials too at lookup/search in macOS keychain,
+// Windows credentials manager and Linux libsecret. Default value is "Docker Credentials"
+var CredsLabel = "Docker Credentials"
+
+// SetCredsLabel is a simple setter for CredsLabel
+func SetCredsLabel(label string) {
+	CredsLabel = label
+}
+
 // Serve initializes the credentials helper and parses the action argument.
 // This function is designed to be called from a command line interface.
 // It uses os.Args[1] as the key for the action.
@@ -25,7 +51,7 @@ type Credentials struct {
 func Serve(helper Helper) {
 	var err error
 	if len(os.Args) != 2 {
-		err = fmt.Errorf("Usage: %s <store|get|erase|list>", os.Args[0])
+		err = fmt.Errorf("Usage: %s <store|get|erase|list|version>", os.Args[0])
 	}
 
 	if err == nil {
@@ -49,6 +75,8 @@ func HandleCommand(helper Helper, key string, in io.Reader, out io.Writer) error
 		return Erase(helper, in)
 	case "list":
 		return List(helper, out)
+	case "version":
+		return PrintVersion(out)
 	}
 	return fmt.Errorf("Unknown credential action `%s`", key)
 }
@@ -72,6 +100,10 @@ func Store(helper Helper, reader io.Reader) error {
 		return err
 	}
 
+	if ok, err := creds.isValid(); !ok {
+		return err
+	}
+
 	return helper.Add(&creds)
 }
 
@@ -91,6 +123,9 @@ func Get(helper Helper, reader io.Reader, writer io.Writer) error {
 	}
 
 	serverURL := strings.TrimSpace(buffer.String())
+	if len(serverURL) == 0 {
+		return NewErrCredentialsMissingServerURL()
+	}
 
 	username, secret, err := helper.Get(serverURL)
 	if err != nil {
@@ -98,8 +133,9 @@ func Get(helper Helper, reader io.Reader, writer io.Writer) error {
 	}
 
 	resp := Credentials{
-		Username: username,
-		Secret:   secret,
+		ServerURL: serverURL,
+		Username:  username,
+		Secret:    secret,
 	}
 
 	buffer.Reset()
@@ -126,6 +162,9 @@ func Erase(helper Helper, reader io.Reader) error {
 	}
 
 	serverURL := strings.TrimSpace(buffer.String())
+	if len(serverURL) == 0 {
+		return NewErrCredentialsMissingServerURL()
+	}
 
 	return helper.Delete(serverURL)
 }
@@ -138,4 +177,10 @@ func List(helper Helper, writer io.Writer) error {
 		return err
 	}
 	return json.NewEncoder(writer).Encode(accts)
+}
+
+//PrintVersion outputs the current version.
+func PrintVersion(writer io.Writer) error {
+	fmt.Fprintln(writer, Version)
+	return nil
 }

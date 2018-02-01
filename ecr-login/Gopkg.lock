@@ -50,8 +50,8 @@
 [[projects]]
   name = "github.com/docker/docker-credential-helpers"
   packages = ["credentials"]
-  revision = "1057cf7f8685ff7a2809aed88f6bdd2b60af7319"
-  version = "v0.4.2"
+  revision = "d68f9aeca33f5fd3f08eeae5e9d175edf4e731d1"
+  version = "v0.6.0"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -91,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "33deaa365a03e46769afcaaca413edcb5394609fe68f8ba66d674b48d0726643"
+  inputs-digest = "9d80b8a2217f752ca61dac807e33a44d308a6991465f734f90e8bea32becc578"
   solver-name = "gps-cdcl"
   solver-version = 1
