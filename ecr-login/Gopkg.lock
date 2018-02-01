@@ -32,44 +32,49 @@
     "service/ecr/ecriface",
     "service/sts"
   ]
-  revision = "7e79586ad292b9bbd4daf21eb73deedef74e08d4"
+  revision = "1b176c5c6b57adb03bb982c21930e708ebca5a77"
+  version = "v1.12.70"
 
 [[projects]]
   name = "github.com/cihub/seelog"
   packages = ["."]
-  revision = "a98235bd6d927ba8379ef4f0050c32c9a2ea17b8"
+  revision = "d2c6e5aa9fbfdd1c624e140287063c7730654115"
+  version = "v2.6"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/docker/docker-credential-helpers"
   packages = ["credentials"]
-  revision = "b7c53e02cd1a9a01500a58f22d83c6e964bc59db"
-  version = "v0.4.1"
+  revision = "1057cf7f8685ff7a2809aed88f6bdd2b60af7319"
+  version = "v0.4.2"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "060d7da055ba6ec5ea7a31f116332fe5efa04ce0"
+  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
+  version = "v1.32.0"
 
 [[projects]]
   name = "github.com/golang/mock"
   packages = ["gomock"]
-  revision = "15f8b22550555c0d3edf5afa97d74001bda2208b"
+  revision = "13f360950a79f5864a972c786a10a50e44b69541"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
-  revision = "53d419364047eb08a64c29471db23c60ea585b85"
-  version = "0.2.1"
+  revision = "0b12d6b5"
 
 [[projects]]
+  branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
-  revision = "981ab348d865cf048eb7d17e78ac7192632d8415"
+  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -80,7 +85,8 @@
 [[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert"]
-  revision = "6cb3b85ef5a0efef77caef88363ec4d4b5c0976d"
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
