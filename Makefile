@@ -29,7 +29,7 @@ docker: Dockerfile
 	docker run --rm \
 	-e TARGET_GOOS=$(TARGET_GOOS) \
 	-e TARGET_GOARCH=$(TARGET_GOARCH) \
-	-v $(shell pwd)/bin:/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
+	-v '$(shell pwd)/bin':/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
 	$(shell docker build -q .)
 
 .PHONY: build
