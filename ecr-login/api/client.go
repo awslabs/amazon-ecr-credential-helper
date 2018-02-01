@@ -43,9 +43,9 @@ func ExtractRegistry(serverURL string) (*Registry, error) {
 	}
 	matches := ecrPattern.FindStringSubmatch(serverURL)
 	if len(matches) == 0 {
-		return nil, fmt.Errorf(programName + " can only be used with Amazon EC2 Container Registry.")
+		return nil, fmt.Errorf(programName + " can only be used with Amazon Elastic Container Registry.")
 	} else if len(matches) < 3 {
-		return nil, fmt.Errorf(serverURL + "is not a valid repository URI for Amazon EC2 Container Registry.")
+		return nil, fmt.Errorf(serverURL + "is not a valid repository URI for Amazon Elastic Container Registry.")
 	}
 	registry := &Registry{
 		ID:	matches[1],
