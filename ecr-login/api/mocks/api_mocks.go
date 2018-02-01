@@ -234,6 +234,44 @@ func (_mr *_MockECRAPIRecorder) CreateRepositoryWithContext(arg0, arg1 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateRepositoryWithContext", _s...)
 }
 
+func (_m *MockECRAPI) DeleteLifecyclePolicy(_param0 *ecr.DeleteLifecyclePolicyInput) (*ecr.DeleteLifecyclePolicyOutput, error) {
+	ret := _m.ctrl.Call(_m, "DeleteLifecyclePolicy", _param0)
+	ret0, _ := ret[0].(*ecr.DeleteLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) DeleteLifecyclePolicy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteLifecyclePolicy", arg0)
+}
+
+func (_m *MockECRAPI) DeleteLifecyclePolicyRequest(_param0 *ecr.DeleteLifecyclePolicyInput) (*request.Request, *ecr.DeleteLifecyclePolicyOutput) {
+	ret := _m.ctrl.Call(_m, "DeleteLifecyclePolicyRequest", _param0)
+	ret0, _ := ret[0].(*request.Request)
+	ret1, _ := ret[1].(*ecr.DeleteLifecyclePolicyOutput)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) DeleteLifecyclePolicyRequest(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteLifecyclePolicyRequest", arg0)
+}
+
+func (_m *MockECRAPI) DeleteLifecyclePolicyWithContext(_param0 aws.Context, _param1 *ecr.DeleteLifecyclePolicyInput, _param2 ...request.Option) (*ecr.DeleteLifecyclePolicyOutput, error) {
+	_s := []interface{}{_param0, _param1}
+	for _, _x := range _param2 {
+		_s = append(_s, _x)
+	}
+	ret := _m.ctrl.Call(_m, "DeleteLifecyclePolicyWithContext", _s...)
+	ret0, _ := ret[0].(*ecr.DeleteLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) DeleteLifecyclePolicyWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	_s := append([]interface{}{arg0, arg1}, arg2...)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteLifecyclePolicyWithContext", _s...)
+}
+
 func (_m *MockECRAPI) DeleteRepository(_param0 *ecr.DeleteRepositoryInput) (*ecr.DeleteRepositoryOutput, error) {
 	ret := _m.ctrl.Call(_m, "DeleteRepository", _param0)
 	ret0, _ := ret[0].(*ecr.DeleteRepositoryOutput)
@@ -512,6 +550,82 @@ func (_mr *_MockECRAPIRecorder) GetDownloadUrlForLayerWithContext(arg0, arg1 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDownloadUrlForLayerWithContext", _s...)
 }
 
+func (_m *MockECRAPI) GetLifecyclePolicy(_param0 *ecr.GetLifecyclePolicyInput) (*ecr.GetLifecyclePolicyOutput, error) {
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicy", _param0)
+	ret0, _ := ret[0].(*ecr.GetLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicy", arg0)
+}
+
+func (_m *MockECRAPI) GetLifecyclePolicyPreview(_param0 *ecr.GetLifecyclePolicyPreviewInput) (*ecr.GetLifecyclePolicyPreviewOutput, error) {
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicyPreview", _param0)
+	ret0, _ := ret[0].(*ecr.GetLifecyclePolicyPreviewOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicyPreview(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicyPreview", arg0)
+}
+
+func (_m *MockECRAPI) GetLifecyclePolicyPreviewRequest(_param0 *ecr.GetLifecyclePolicyPreviewInput) (*request.Request, *ecr.GetLifecyclePolicyPreviewOutput) {
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicyPreviewRequest", _param0)
+	ret0, _ := ret[0].(*request.Request)
+	ret1, _ := ret[1].(*ecr.GetLifecyclePolicyPreviewOutput)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicyPreviewRequest(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicyPreviewRequest", arg0)
+}
+
+func (_m *MockECRAPI) GetLifecyclePolicyPreviewWithContext(_param0 aws.Context, _param1 *ecr.GetLifecyclePolicyPreviewInput, _param2 ...request.Option) (*ecr.GetLifecyclePolicyPreviewOutput, error) {
+	_s := []interface{}{_param0, _param1}
+	for _, _x := range _param2 {
+		_s = append(_s, _x)
+	}
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicyPreviewWithContext", _s...)
+	ret0, _ := ret[0].(*ecr.GetLifecyclePolicyPreviewOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicyPreviewWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	_s := append([]interface{}{arg0, arg1}, arg2...)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicyPreviewWithContext", _s...)
+}
+
+func (_m *MockECRAPI) GetLifecyclePolicyRequest(_param0 *ecr.GetLifecyclePolicyInput) (*request.Request, *ecr.GetLifecyclePolicyOutput) {
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicyRequest", _param0)
+	ret0, _ := ret[0].(*request.Request)
+	ret1, _ := ret[1].(*ecr.GetLifecyclePolicyOutput)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicyRequest(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicyRequest", arg0)
+}
+
+func (_m *MockECRAPI) GetLifecyclePolicyWithContext(_param0 aws.Context, _param1 *ecr.GetLifecyclePolicyInput, _param2 ...request.Option) (*ecr.GetLifecyclePolicyOutput, error) {
+	_s := []interface{}{_param0, _param1}
+	for _, _x := range _param2 {
+		_s = append(_s, _x)
+	}
+	ret := _m.ctrl.Call(_m, "GetLifecyclePolicyWithContext", _s...)
+	ret0, _ := ret[0].(*ecr.GetLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) GetLifecyclePolicyWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	_s := append([]interface{}{arg0, arg1}, arg2...)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLifecyclePolicyWithContext", _s...)
+}
+
 func (_m *MockECRAPI) GetRepositoryPolicy(_param0 *ecr.GetRepositoryPolicyInput) (*ecr.GetRepositoryPolicyOutput, error) {
 	ret := _m.ctrl.Call(_m, "GetRepositoryPolicy", _param0)
 	ret0, _ := ret[0].(*ecr.GetRepositoryPolicyOutput)
@@ -689,6 +803,44 @@ func (_mr *_MockECRAPIRecorder) PutImageWithContext(arg0, arg1 interface{}, arg2
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutImageWithContext", _s...)
 }
 
+func (_m *MockECRAPI) PutLifecyclePolicy(_param0 *ecr.PutLifecyclePolicyInput) (*ecr.PutLifecyclePolicyOutput, error) {
+	ret := _m.ctrl.Call(_m, "PutLifecyclePolicy", _param0)
+	ret0, _ := ret[0].(*ecr.PutLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) PutLifecyclePolicy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutLifecyclePolicy", arg0)
+}
+
+func (_m *MockECRAPI) PutLifecyclePolicyRequest(_param0 *ecr.PutLifecyclePolicyInput) (*request.Request, *ecr.PutLifecyclePolicyOutput) {
+	ret := _m.ctrl.Call(_m, "PutLifecyclePolicyRequest", _param0)
+	ret0, _ := ret[0].(*request.Request)
+	ret1, _ := ret[1].(*ecr.PutLifecyclePolicyOutput)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) PutLifecyclePolicyRequest(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutLifecyclePolicyRequest", arg0)
+}
+
+func (_m *MockECRAPI) PutLifecyclePolicyWithContext(_param0 aws.Context, _param1 *ecr.PutLifecyclePolicyInput, _param2 ...request.Option) (*ecr.PutLifecyclePolicyOutput, error) {
+	_s := []interface{}{_param0, _param1}
+	for _, _x := range _param2 {
+		_s = append(_s, _x)
+	}
+	ret := _m.ctrl.Call(_m, "PutLifecyclePolicyWithContext", _s...)
+	ret0, _ := ret[0].(*ecr.PutLifecyclePolicyOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) PutLifecyclePolicyWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	_s := append([]interface{}{arg0, arg1}, arg2...)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutLifecyclePolicyWithContext", _s...)
+}
+
 func (_m *MockECRAPI) SetRepositoryPolicy(_param0 *ecr.SetRepositoryPolicyInput) (*ecr.SetRepositoryPolicyOutput, error) {
 	ret := _m.ctrl.Call(_m, "SetRepositoryPolicy", _param0)
 	ret0, _ := ret[0].(*ecr.SetRepositoryPolicyOutput)
@@ -725,6 +877,44 @@ func (_m *MockECRAPI) SetRepositoryPolicyWithContext(_param0 aws.Context, _param
 func (_mr *_MockECRAPIRecorder) SetRepositoryPolicyWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	_s := append([]interface{}{arg0, arg1}, arg2...)
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRepositoryPolicyWithContext", _s...)
+}
+
+func (_m *MockECRAPI) StartLifecyclePolicyPreview(_param0 *ecr.StartLifecyclePolicyPreviewInput) (*ecr.StartLifecyclePolicyPreviewOutput, error) {
+	ret := _m.ctrl.Call(_m, "StartLifecyclePolicyPreview", _param0)
+	ret0, _ := ret[0].(*ecr.StartLifecyclePolicyPreviewOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) StartLifecyclePolicyPreview(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "StartLifecyclePolicyPreview", arg0)
+}
+
+func (_m *MockECRAPI) StartLifecyclePolicyPreviewRequest(_param0 *ecr.StartLifecyclePolicyPreviewInput) (*request.Request, *ecr.StartLifecyclePolicyPreviewOutput) {
+	ret := _m.ctrl.Call(_m, "StartLifecyclePolicyPreviewRequest", _param0)
+	ret0, _ := ret[0].(*request.Request)
+	ret1, _ := ret[1].(*ecr.StartLifecyclePolicyPreviewOutput)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) StartLifecyclePolicyPreviewRequest(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "StartLifecyclePolicyPreviewRequest", arg0)
+}
+
+func (_m *MockECRAPI) StartLifecyclePolicyPreviewWithContext(_param0 aws.Context, _param1 *ecr.StartLifecyclePolicyPreviewInput, _param2 ...request.Option) (*ecr.StartLifecyclePolicyPreviewOutput, error) {
+	_s := []interface{}{_param0, _param1}
+	for _, _x := range _param2 {
+		_s = append(_s, _x)
+	}
+	ret := _m.ctrl.Call(_m, "StartLifecyclePolicyPreviewWithContext", _s...)
+	ret0, _ := ret[0].(*ecr.StartLifecyclePolicyPreviewOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockECRAPIRecorder) StartLifecyclePolicyPreviewWithContext(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	_s := append([]interface{}{arg0, arg1}, arg2...)
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "StartLifecyclePolicyPreviewWithContext", _s...)
 }
 
 func (_m *MockECRAPI) UploadLayerPart(_param0 *ecr.UploadLayerPartInput) (*ecr.UploadLayerPartOutput, error) {
