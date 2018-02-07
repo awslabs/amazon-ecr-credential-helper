@@ -32,8 +32,8 @@
     "service/ecr/ecriface",
     "service/sts"
   ]
-  revision = "1b176c5c6b57adb03bb982c21930e708ebca5a77"
-  version = "v1.12.70"
+  revision = "586c9ba6027a527800564282bb843d7e6e7985c9"
+  version = "v1.12.72"
 
 [[projects]]
   name = "github.com/cihub/seelog"
