@@ -105,8 +105,9 @@ func TestListSuccess(t *testing.T) {
 
 	serverList, err := helper.List()
 	assert.NoError(t, err)
-	assert.Len(t, serverList, 1)
+	assert.Len(t, serverList, 2)
 	assert.Equal(t, expectedUsername, serverList[proxyEndpointUrl])
+	assert.Equal(t, expectedUsername, serverList[proxyEndpoint])
 }
 
 func TestListFailure(t *testing.T) {

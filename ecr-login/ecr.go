@@ -16,6 +16,7 @@ package ecr
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	log "github.com/cihub/seelog"
@@ -74,6 +75,9 @@ func (self ECRHelper) List() (map[string]string, error) {
 	for _, auth := range auths {
 		serverURL := auth.ProxyEndpoint
 		result[serverURL] = auth.Username
+		// Add an element without scheme
+		// because "docker build" fails if the base image is an image in ECR
+		result[strings.TrimPrefix(serverURL, "https://")] = auth.Username
 	}
 	return result, nil
 }
