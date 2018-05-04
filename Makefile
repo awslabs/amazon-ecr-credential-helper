@@ -62,8 +62,7 @@ $(DARWIN_AMD64_BINARY): $(SOURCES)
 windows-amd64: $(WINDOWS_AMD64_BINARY)
 $(WINDOWS_AMD64_BINARY): $(SOURCES)
 	./scripts/build_variant.sh windows amd64 $(VERSION) $(GITCOMMIT_SHA)
-	@mv ./bin/windows-amd64/$(BINARY_NAME)
-	.$(WINDOWS_AMD64_BINARY)
+	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
 
 .PHONY: gogenerate
 gogenerate:
