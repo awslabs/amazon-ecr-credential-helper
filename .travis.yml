@@ -4,10 +4,12 @@ os:
     - linux
     - osx
 go:
-    - 1.7.x
-    - 1.8.x
-    - 1.9
+    - "1.7.x"
+    - "1.8.x"
+    - "1.9"
+    - "1.10"
 go_import_path: github.com/awslabs/amazon-ecr-credential-helper
 install: make get-deps
 script:
+    - make all-variants
     - make test
