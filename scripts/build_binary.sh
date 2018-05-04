@@ -19,18 +19,20 @@ cd "${ROOT}"
 # Builds the ecr-login binary from source in the specified destination paths.
 mkdir -p $1
 
-# TODO!!!
-# Versioning stuff. We run the generator to setup the version and then always
-# restore ourselves to a clean state
-#cp ecs-cli/modules/version/version.go ecs-cli/modules/version/_version.go
-#trap "cd \"${ROOT}\"; mv ecs-cli/modules/version/_version.go ecs-cli/modules/version/version.go" EXIT SIGHUP SIGINT SIGTERM
-
-#cd ./ecs-cli/modules/version/
-#go run gen/version-gen.go
-
 cd "${ROOT}"
 
+package_root="github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
+
+version_ldflags=""
+if [[ -n "${2}" ]]; then
+  version_ldflags="-X ${package_root}/version.Version=${2}"
+fi
+
+if [[ -n "${3}" ]]; then
+  version_ldflags="$version_ldflags -X ${package_root}/version.GitCommitSHA=${3}"
+fi
+
 GOOS=$TARGET_GOOS GOARCH=$TARGET_GOARCH CGO_ENABLED=0 \
-       	go build -installsuffix cgo -a -ldflags '-s' \
+       	go build -installsuffix cgo -a -ldflags "-s ${version_ldflags}" \
        	-o $1/docker-credential-ecr-login \
 	./ecr-login/cli/docker-credential-ecr-login

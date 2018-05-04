@@ -26,6 +26,9 @@ source ./scripts/shared_env
 # Export variables
 export TARGET_GOOS="$1"
 export TARGET_GOARCH="$2"
+ECR_LOGIN_VERSION="$3"
+ECR_LOGIN_GITCOMMIT_SHA="$4"
 
-./scripts/build_binary.sh "./bin/${TARGET_GOOS}-${TARGET_GOARCH}"
-echo "Built ecr-login for ${TARGET_GOOS}-${TARGET_GOARCH}"
+./scripts/build_binary.sh "./bin/${TARGET_GOOS}-${TARGET_GOARCH}" $ECR_LOGIN_VERSION $ECR_LOGIN_GITCOMMIT_SHA
+
+echo "Built ecr-login for ${TARGET_GOOS}-${TARGET_GOARCH}-${ECR_LOGIN_VERSION}"
