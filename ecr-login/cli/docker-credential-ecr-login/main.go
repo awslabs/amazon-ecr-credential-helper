@@ -27,7 +27,8 @@ import (
 )
 
 const banner = `amazon-ecr-credential-helper
-version: %s, commitsha: %s
+Version:    %s
+Git commit: %s
 `
 
 func main() {
