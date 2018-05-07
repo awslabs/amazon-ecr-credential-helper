@@ -17,6 +17,8 @@ all: build
 
 SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
+VERSION := $(shell cat VERSION)
+GITCOMMIT_SHA := $(shell git rev-parse --short HEAD)
 BINARY_NAME=docker-credential-ecr-login
 LOCAL_BINARY=bin/local/$(BINARY_NAME)
 
@@ -29,14 +31,14 @@ docker: Dockerfile
 	docker run --rm \
 	-e TARGET_GOOS=$(TARGET_GOOS) \
 	-e TARGET_GOARCH=$(TARGET_GOARCH) \
-	-v $(shell pwd)/bin:/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
+	-v '$(shell pwd)/bin':/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
 	$(shell docker build -q .)
 
 .PHONY: build
 build: $(LOCAL_BINARY)
 
 $(LOCAL_BINARY): $(SOURCES)
-	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local
+	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local $(VERSION) $(GITCOMMIT_SHA)
 	@echo "Built ecr-login"
 
 .PHONY: test
@@ -49,18 +51,18 @@ all-variants: linux-amd64 darwin-amd64 windows-amd64
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
 $(LINUX_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh linux amd64
+	./scripts/build_variant.sh linux amd64 $(VERSION) $(GITCOMMIT_SHA)
 
 .PHONY: darwin-amd64
 darwin-amd64: $(DARWIN_AMD64_BINARY)
 $(DARWIN_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh darwin amd64
+	./scripts/build_variant.sh darwin amd64 $(VERSION) $(GITCOMMIT_SHA)
 
 .PHONY: windows-amd64
 windows-amd64: $(WINDOWS_AMD64_BINARY)
 $(WINDOWS_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh windows amd64
-	@mv ./bin/windows-amd64/docker-credential-ecr-login ./bin/windows-amd64/docker-credential-ecr-login.exe
+	./scripts/build_variant.sh windows amd64 $(VERSION) $(GITCOMMIT_SHA)
+	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
 
 .PHONY: gogenerate
 gogenerate:

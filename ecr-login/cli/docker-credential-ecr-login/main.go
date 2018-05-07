@@ -14,17 +14,34 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/version"
 	log "github.com/cihub/seelog"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
+const banner = `amazon-ecr-credential-helper
+Version:    %s
+Git commit: %s
+`
+
 func main() {
+	var versionFlag bool
+	flag.BoolVar(&versionFlag, "v", false, "print version and exit")
+	flag.Parse()
+
+	// Exit safely when version is used
+	if versionFlag {
+		fmt.Printf(banner, version.Version, version.GitCommitSHA)
+		os.Exit(0)
+	}
+
 	defer log.Flush()
 	config.SetupLogger()
 	helper := ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}}

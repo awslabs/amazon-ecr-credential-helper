@@ -1,17 +1,14 @@
 package seelog
 
 import (
-	"archive/tar"
 	"archive/zip"
 	"bytes"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 // File and directory permitions.
@@ -381,13 +378,7 @@ func createZip(archiveName string, files map[string][]byte) error {
 
 	// Write files
 	for fpath, fcont := range files {
-		header := &zip.FileHeader{
-			Name:   fpath,
-			Method: zip.Deflate,
-		}
-		header.SetModTime(time.Now())
-
-		f, err := w.CreateHeader(header)
+		f, err := w.Create(fpath)
 		if err != nil {
 			return err
 		}
@@ -409,117 +400,4 @@ func createZip(archiveName string, files map[string][]byte) error {
 	}
 
 	return nil
-}
-
-func createTar(files map[string][]byte) ([]byte, error) {
-
-	// Create a buffer to write our archive to.
-	tarBuffer := new(bytes.Buffer)
-	tarWriter := tar.NewWriter(tarBuffer)
-
-	for fpath, fcont := range files {
-
-		header := &tar.Header{
-			Name:    fpath,
-			Size:    int64(len(fcont)),
-			Mode:    defaultFilePermissions,
-			ModTime: time.Now(),
-		}
-
-		err := tarWriter.WriteHeader(header)
-
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = tarWriter.Write(fcont)
-		if err != nil {
-			return nil, err
-		}
-	}
-	tarWriter.Close()
-
-	return tarBuffer.Bytes(), nil
-}
-
-func unTar(data []byte) (map[string][]byte, error) {
-	tarReader := tar.NewReader(bytes.NewReader(data))
-	files := make(map[string][]byte)
-
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-
-		info := header.FileInfo()
-		if info.IsDir() {
-			continue
-		}
-		buffer := new(bytes.Buffer)
-		_, err = io.Copy(buffer, tarReader)
-		files[header.Name] = buffer.Bytes()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return files, nil
-
-}
-
-func createGzip(archiveName string, content []byte) error {
-
-	// Create a buffer to write our archive to.
-	// Make sure to check the error on Close.
-	gzipBuffer := new(bytes.Buffer)
-	gzipWriter := gzip.NewWriter(gzipBuffer)
-
-	_, err := gzipWriter.Write(content)
-	if err != nil {
-		return err
-	}
-	err = gzipWriter.Close()
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(archiveName, gzipBuffer.Bytes(), defaultFilePermissions)
-
-}
-
-func unGzip(filename string) ([]byte, error) {
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	reader, err := gzip.NewReader(file)
-	if err != nil {
-		return nil, err
-	}
-
-	content := new(bytes.Buffer)
-	byteBuffer := make([]byte, 1000)
-	byteRead := 0
-	for {
-		byteRead, err = reader.Read(byteBuffer)
-		if err == io.EOF {
-			break
-		}
-		content.Write(byteBuffer[0:byteRead])
-
-	}
-	reader.Close()
-	return content.Bytes(), nil
-
-}
-
-func isTar(data []byte) bool {
-	tarMagicNumbers := []byte{'\x75', '\x73', '\x74', '\x61', '\x72'}
-	return bytes.Equal(data[257:262], tarMagicNumbers)
 }

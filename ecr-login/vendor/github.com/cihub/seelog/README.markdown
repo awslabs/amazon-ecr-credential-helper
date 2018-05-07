@@ -69,10 +69,7 @@ Feel free to push issues that could make Seelog better: https://github.com/cihub
 
 Changelog
 ---------------
-* **v2.6** : Config using code and custom formatters
-    * Configuration using code in addition to xml (All internal receiver/dispatcher/logger types are now exported).
-    * Custom formatters. Check [wiki](https://github.com/cihub/seelog/wiki/Custom-formatters)
-    * Bugfixes and internal improvements.
+
 * **v2.5** : Interaction with other systems. Part 2: custom receivers
     * Finished custom receivers feature. Check [wiki](https://github.com/cihub/seelog/wiki/custom-receivers)
     * Added 'LoggerFromCustomReceiver'
