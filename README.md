@@ -77,9 +77,9 @@ authentication credentials.
 
 ## Usage
 
-`docker pull 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
-`docker push 123457689012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
 
