@@ -28,6 +28,7 @@ WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
 .PHONY: docker
 docker: Dockerfile
+	mkdir -p bin
 	docker run --rm \
 	-e TARGET_GOOS=$(TARGET_GOOS) \
 	-e TARGET_GOARCH=$(TARGET_GOARCH) \
