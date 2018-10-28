@@ -2,3 +2,16 @@
 GITCOMMIT_SHA
 *.tar.gz
 *.tar
+
+
+# Amazon Linux RPM
+*.swp
+/BUILDROOT/
+/BUILD/
+/RPMS/
+/SRPMS/
+/SOURCES
+/SPECS/
+/.rpm-done
+/sources.tgz
+/*.rpm

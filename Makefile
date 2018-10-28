@@ -26,6 +26,8 @@ LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
 DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
+include Makefile.amazonlinux
+
 .PHONY: docker
 docker: Dockerfile
 	mkdir -p bin
@@ -96,7 +98,7 @@ get-deps:
 	go get golang.org/x/tools/cmd/goimports
 
 .PHONY: clean
-clean:
+clean: .clean-amazonlinux
 	- rm -rf ./bin
 	- rm -f GITCOMMIT_SHA
 	- rm -f release.tar.gz
