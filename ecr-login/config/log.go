@@ -15,26 +15,18 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
-	log "github.com/cihub/seelog"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
 )
 
 func SetupLogger() {
-	SetupLoggerWithConfig(loggerConfig())
+	logrusConfig()
 }
 
-func SetupLoggerWithConfig(config string) {
-	logger, err := log.LoggerFromConfigAsString(config)
-	if err == nil {
-		log.ReplaceLogger(logger)
-	} else {
-		log.Error(err)
-	}
-}
-
-func loggerConfig() string {
+func logrusConfig() {
 	logfile, err := homedir.Expand(GetCacheDir() + "/log/ecr-login.log")
 	if err != nil {
 		fmt.Errorf("%v", err)
@@ -42,19 +34,10 @@ func loggerConfig() string {
 	}
 	// Clean the path to replace with OS-specific separators
 	logfile = filepath.Clean(logfile)
-	config := `
-	<seelog type="asyncloop" minlevel="debug">
-		<outputs formatid="main">
-			<rollingfile filename="` + logfile + `" type="date"
-			 datepattern="2006-01-02-15" archivetype="none" maxrolls="2" />
-			<filter levels="warn,error,critical">
-				<console />
-			</filter>
-		</outputs>
-		<formats>
-			<format id="main" format="%UTCDate(2006-01-02T15:04:05Z07:00) [%LEVEL] %Msg%n" />
-		</formats>
-	</seelog>
-`
-	return config
+	file, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
+	if err != nil {
+		return
+	}
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetOutput(file)
 }

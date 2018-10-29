@@ -22,13 +22,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
-	log "github.com/cihub/seelog"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
 )
 
 func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir string) CredentialsCache {
 	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
-		log.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
+		logrus.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
 		return NewNullCredentialsCache()
 	}
 
@@ -39,8 +39,7 @@ func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir 
 
 	cacheDir, err := homedir.Expand(cacheDir)
 	if err != nil {
-		log.Debugf("Could not expand cache path: %s", err)
-		log.Debug("Disabling cache")
+		logrus.WithError(err).Debug("Could not expand cache path, disabling cache")
 		return NewNullCredentialsCache()
 	}
 
@@ -48,8 +47,7 @@ func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir 
 
 	credentials, err := awsSession.Config.Credentials.Get()
 	if err != nil {
-		log.Debugf("Could not fetch credentials for cache prefix: %s", err)
-		log.Debug("Disabling cache")
+		logrus.WithError(err).Debug("Could not fetch credentials for cache prefix, disabling cache")
 		return NewNullCredentialsCache()
 	}
 
