@@ -1,0 +1,22 @@
+#!/bin/bash
+set -x
+# Normalize to working directory being build root (up one level from ./debian)
+SOURCES=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
+VERSION="$(cat ${SOURCES}/VERSION)"
+
+ROOT=$(mktemp -d)
+trap "rm -rf ${ROOT}" EXIT
+
+mkdir "${ROOT}/amazon-ecr-credential-helper"
+git clone "${SOURCES}" "${ROOT}/amazon-ecr-credential-helper"
+
+cd "${ROOT}/amazon-ecr-credential-helper"
+git checkout "v${VERSION}"
+make release-tarball-no-vendor
+git checkout debian
+mv release-novendor.tar.gz "${ROOT}/amazon-ecr-credential-helper_${VERSION}.orig.tar.gz"
+
+docker build -t localhost/docker-deb:builder --network=host -f "$ROOT/amazon-ecr-credential-helper/debian/Dockerfile" .
+docker run --rm --user=$UID -v $ROOT:/sources localhost/docker-deb:builder
+cp "${ROOT}"/amazon-ecr-credential-helper_* "${SOURCES}"
+cp "${ROOT}/amazon-ecr-credential-helper_${VERSION}.orig.tar.gz" "${SOURCES}"

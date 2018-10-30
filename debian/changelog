@@ -1,0 +1,6 @@
+amazon-ecr-credential-helper (0.2.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #916982)
+
+ -- Samuel Karp <skarp@amazon.com>  Mon, 24 Dec 2018 21:52:31 -0700
+

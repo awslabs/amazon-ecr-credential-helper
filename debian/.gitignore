@@ -1,0 +1,4 @@
+/amazon-ecr-credential-helper/
+/*.log
+/.debhelper
+/files

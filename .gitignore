@@ -2,3 +2,13 @@
 GITCOMMIT_SHA
 *.tar.gz
 *.tar
+
+
+# Debian
+/obj-*linux-gnu/
+*.tar.xz
+*.dsc
+*.changes
+*.deb
+*.buildinfo
+*.build
