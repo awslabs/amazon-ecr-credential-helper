@@ -16,9 +16,9 @@ package ecr
 import (
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
-	log "github.com/cihub/seelog"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
@@ -42,31 +42,32 @@ func (ECRHelper) Delete(serverURL string) error {
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
-	defer log.Flush()
-
 	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
-		log.Errorf("Error parsing the serverURL: %s, error: %v", serverURL, err)
+		logrus.
+			WithError(err).
+			WithField("serverURL", serverURL).
+			Error("Error parsing the serverURL")
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
 	client := self.ClientFactory.NewClientFromRegion(registry.Region)
 	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
-		log.Errorf("Error retrieving credentials: %v", err)
+		logrus.WithError(err).Error("Error retrieving credentials")
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 	return auth.Username, auth.Password, nil
 }
 
 func (self ECRHelper) List() (map[string]string, error) {
-	log.Debug("Listing credentials")
+	logrus.Debug("Listing credentials")
 	client := self.ClientFactory.NewClientWithDefaults()
 
 	auths, err := client.ListCredentials()
 	if err != nil {
-		log.Errorf("Error listing credentials: %v", err)
-		return nil, fmt.Errorf("Could not list credentials: %v:", err)
+		logrus.WithError(err).Error("Error listing credentials")
+		return nil, fmt.Errorf("ecr: could not list credentials: %v", err)
 	}
 
 	result := map[string]string{}

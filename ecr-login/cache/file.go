@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	log "github.com/cihub/seelog"
+	"github.com/sirupsen/logrus"
 )
 
 const registryCacheVersion = "1.0"
@@ -58,20 +58,20 @@ func NewFileCredentialsCache(path string, filename string, cachePrefixKey string
 }
 
 func (f *fileCredentialCache) Get(registry string) *AuthEntry {
-	log.Debugf("Checking file cache for %s", registry)
+	logrus.WithField("registry", registry).Debug("Checking file cache")
 	registryCache := f.init()
 	return registryCache.Registries[f.cachePrefixKey+registry]
 }
 
 func (f *fileCredentialCache) Set(registry string, entry *AuthEntry) {
-	log.Debugf("Saving credentials to file cache for %s", registry)
+	logrus.WithField("registry", registry).Debug("Saving credentials to file cache")
 	registryCache := f.init()
 
 	registryCache.Registries[f.cachePrefixKey+registry] = entry
 
 	err := f.save(registryCache)
 	if err != nil {
-		log.Infof("Could not save cache: %s", err)
+		logrus.WithError(err).Infof("Could not save cache")
 	}
 }
 
@@ -92,7 +92,7 @@ func (f *fileCredentialCache) List() []*AuthEntry {
 func (f *fileCredentialCache) Clear() {
 	err := os.Remove(f.fullFilePath())
 	if err != nil {
-		log.Infof("Could not clear cache: %s")
+		logrus.WithError(err).Info("Could not clear cache")
 	}
 }
 
@@ -101,11 +101,9 @@ func (f *fileCredentialCache) fullFilePath() string {
 }
 
 // Saves credential cache to disk. This writes to a temporary file first, then moves the file to the config location.
-// This elminates from reading partially written credential files, and reduces (but does not eliminate) concurrent
+// This eliminates from reading partially written credential files, and reduces (but does not eliminate) concurrent
 // file access. There is not guarantee here for handling multiple writes at once since there is no out of process locking.
 func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
-	defer log.Flush()
-
 	file, err := ioutil.TempFile(f.path, ".config.json.tmp")
 	if err != nil {
 		return err
@@ -135,7 +133,7 @@ func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
 func (f *fileCredentialCache) init() *RegistryCache {
 	registryCache, err := f.load()
 	if err != nil {
-		log.Infof("Could not load existing cache: %v", err)
+		logrus.WithError(err).Info("Could not load existing cache")
 		f.Clear()
 		registryCache = newRegistryCache()
 	}
@@ -162,7 +160,7 @@ func (f *fileCredentialCache) load() (*RegistryCache, error) {
 	}
 
 	if registryCache.Version != registryCacheVersion {
-		return nil, fmt.Errorf("Registry cache version %#v is not compatible with %#v. Ignoring existing cache.",
+		return nil, fmt.Errorf("ecr: Registry cache version %#v is not compatible with %#v, ignoring existing cache",
 			registryCache.Version,
 			registryCacheVersion)
 	}

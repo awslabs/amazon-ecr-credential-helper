@@ -22,7 +22,6 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/version"
-	log "github.com/cihub/seelog"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
@@ -42,7 +41,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	defer log.Flush()
 	config.SetupLogger()
 	credentials.Serve(ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}})
 }
