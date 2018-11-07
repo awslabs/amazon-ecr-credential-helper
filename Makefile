@@ -65,6 +65,16 @@ $(WINDOWS_AMD64_BINARY): $(SOURCES)
 	./scripts/build_variant.sh windows amd64 $(VERSION) $(GITCOMMIT_SHA)
 	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
 
+.PHONY: release-tarball
+release-tarball: release.tar.gz
+release.tar.gz:
+	git archive -o release.tar.gz HEAD
+
+.PHONY: release-tarball-no-vendor
+release-tarball-no-vendor: release-novendor.tar.gz
+release-novendor.tar.gz:
+	git archive HEAD | tar -f - --wildcards --delete 'ecr-login/vendor/*' | gzip > release-novendor.tar.gz
+
 .PHONY: gogenerate
 gogenerate:
 	./scripts/gogenerate
@@ -78,4 +88,6 @@ get-deps:
 
 .PHONY: clean
 clean:
-	rm -rf ./bin ||:
+	- rm -rf ./bin
+	- rm -f release.tar.gz
+	- rm -f release-novendor.tar.gz
