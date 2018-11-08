@@ -16,6 +16,7 @@ package ecr
 import (
 	"errors"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
@@ -51,7 +52,13 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
-	client := self.ClientFactory.NewClientFromRegion(registry.Region)
+	var client api.Client
+	if registry.FIPS {
+		client = self.ClientFactory.NewClientWithFipsEndpoint(registry.Region)
+	} else {
+		client = self.ClientFactory.NewClientFromRegion(registry.Region)
+	}
+
 	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
 		logrus.WithError(err).Error("Error retrieving credentials")

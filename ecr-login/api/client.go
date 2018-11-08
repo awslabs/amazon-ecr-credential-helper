@@ -32,10 +32,11 @@ import (
 const proxyEndpointScheme = "https://"
 const programName = "docker-credential-ecr-login"
 
-var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
+var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 
 type Registry struct {
 	ID     string
+	FIPS   bool
 	Region string
 }
 
@@ -51,7 +52,8 @@ func ExtractRegistry(serverURL string) (*Registry, error) {
 	}
 	registry := &Registry{
 		ID:     matches[1],
-		Region: matches[2],
+		FIPS:   matches[2] == "-fips",
+		Region: matches[3],
 	}
 	return registry, nil
 }

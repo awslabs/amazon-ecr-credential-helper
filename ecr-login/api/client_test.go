@@ -45,6 +45,7 @@ func TestExtractRegistry(t *testing.T) {
 			serverURL: "https://123456789012.dkr.ecr.us-east-1.amazonaws.com/v2/blah/blah",
 			registry: &Registry{
 				ID:     "123456789012",
+				FIPS:   false,
 				Region: "us-east-1",
 			},
 			hasError: false,
@@ -53,6 +54,7 @@ func TestExtractRegistry(t *testing.T) {
 			serverURL: "123456789012.dkr.ecr.us-west-2.amazonaws.com",
 			registry: &Registry{
 				ID:     "123456789012",
+				FIPS:   false,
 				Region: "us-west-2",
 			},
 			hasError: false,
@@ -61,7 +63,17 @@ func TestExtractRegistry(t *testing.T) {
 			serverURL: "210987654321.dkr.ecr.cn-north-1.amazonaws.com.cn/foo",
 			registry: &Registry{
 				ID:     "210987654321",
+				FIPS:   false,
 				Region: "cn-north-1",
+			},
+			hasError: false,
+		},
+		{
+			serverURL: "123456789012.dkr.ecr-fips.us-gov-west-1.amazonaws.com",
+			registry: &Registry{
+				ID:     "123456789012",
+				FIPS:   true,
+				Region: "us-gov-west-1",
 			},
 			hasError: false,
 		},
