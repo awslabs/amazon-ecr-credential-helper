@@ -18,7 +18,7 @@ all: build
 SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 VERSION := $(shell cat VERSION)
-GITCOMMIT_SHA := $(shell git rev-parse --short HEAD)
+GITFILES := $(shell find ".git/")
 BINARY_NAME=docker-credential-ecr-login
 LOCAL_BINARY=bin/local/$(BINARY_NAME)
 
@@ -38,8 +38,8 @@ docker: Dockerfile
 .PHONY: build
 build: $(LOCAL_BINARY)
 
-$(LOCAL_BINARY): $(SOURCES)
-	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local $(VERSION) $(GITCOMMIT_SHA)
+$(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
+	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@echo "Built ecr-login"
 
 .PHONY: test
@@ -51,19 +51,38 @@ all-variants: linux-amd64 darwin-amd64 windows-amd64
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
-$(LINUX_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh linux amd64 $(VERSION) $(GITCOMMIT_SHA)
+$(LINUX_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh linux amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 
 .PHONY: darwin-amd64
 darwin-amd64: $(DARWIN_AMD64_BINARY)
-$(DARWIN_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh darwin amd64 $(VERSION) $(GITCOMMIT_SHA)
+$(DARWIN_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh darwin amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 
 .PHONY: windows-amd64
 windows-amd64: $(WINDOWS_AMD64_BINARY)
-$(WINDOWS_AMD64_BINARY): $(SOURCES)
-	./scripts/build_variant.sh windows amd64 $(VERSION) $(GITCOMMIT_SHA)
+$(WINDOWS_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh windows amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
+
+GITCOMMIT_SHA: $(GITFILES)
+	git rev-parse --short=7 HEAD > GITCOMMIT_SHA
+
+release.tar: GITCOMMIT_SHA
+	git archive -o release.tar HEAD
+	tar -f release.tar --append GITCOMMIT_SHA --owner 0 --group 0
+
+.PHONY: release-tarball
+release-tarball: release.tar.gz
+release.tar.gz: release.tar
+	gzip release.tar
+
+.PHONY: release-tarball-no-vendor
+release-tarball-no-vendor: release-novendor.tar.gz
+release-novendor.tar.gz: release.tar
+	mv release.tar release-novendor.tar
+	tar -f release-novendor.tar --wildcards --delete 'ecr-login/vendor/*'
+	gzip release-novendor.tar
 
 .PHONY: gogenerate
 gogenerate:
@@ -78,4 +97,7 @@ get-deps:
 
 .PHONY: clean
 clean:
-	rm -rf ./bin ||:
+	- rm -rf ./bin
+	- rm -f GITCOMMIT_SHA
+	- rm -f release.tar.gz
+	- rm -f release-novendor.tar.gz

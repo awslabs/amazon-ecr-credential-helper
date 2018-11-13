@@ -1,1 +1,4 @@
 /bin/
+GITCOMMIT_SHA
+*.tar.gz
+*.tar
