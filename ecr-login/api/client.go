@@ -32,13 +32,16 @@ import (
 const proxyEndpointScheme = "https://"
 const programName = "docker-credential-ecr-login"
 
-var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
+var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
 
+// Registry in ECR
 type Registry struct {
 	ID     string
+	FIPS   bool
 	Region string
 }
 
+// ExtractRegistry returns the ECR registry behind a given service endpoint
 func ExtractRegistry(serverURL string) (*Registry, error) {
 	if strings.HasPrefix(serverURL, proxyEndpointScheme) {
 		serverURL = strings.TrimPrefix(serverURL, proxyEndpointScheme)
@@ -51,11 +54,13 @@ func ExtractRegistry(serverURL string) (*Registry, error) {
 	}
 	registry := &Registry{
 		ID:     matches[1],
-		Region: matches[2],
+		FIPS:   matches[2] == "-fips",
+		Region: matches[3],
 	}
 	return registry, nil
 }
 
+// Client used for calling ECR service
 type Client interface {
 	GetCredentials(serverURL string) (*Auth, error)
 	GetCredentialsByRegistryID(registryID string) (*Auth, error)
@@ -66,6 +71,7 @@ type defaultClient struct {
 	credentialCache cache.CredentialsCache
 }
 
+// Auth credentials returned by ECR service to allow docker login
 type Auth struct {
 	ProxyEndpoint string
 	Username      string
@@ -73,7 +79,7 @@ type Auth struct {
 }
 
 // GetCredentials returns username, password, and proxyEndpoint
-func (self *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
+func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 	registry, err := ExtractRegistry(serverURL)
 	if err != nil {
 		return nil, err
@@ -83,12 +89,12 @@ func (self *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 		WithField("region", registry.Region).
 		WithField("serverURL", serverURL).
 		Debug("Retrieving credentials")
-	return self.GetCredentialsByRegistryID(registry.ID)
+	return c.GetCredentialsByRegistryID(registry.ID)
 }
 
 // GetCredentials returns username, password, and proxyEndpoint
-func (self *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
-	cachedEntry := self.credentialCache.Get(registryID)
+func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
+	cachedEntry := c.credentialCache.Get(registryID)
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
 			logrus.WithField("registry", registryID).Debug("Using cached token")
@@ -100,7 +106,7 @@ func (self *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth,
 			Debug("Cached token is no longer valid")
 	}
 
-	auth, err := self.getAuthorizationToken(registryID)
+	auth, err := c.getAuthorizationToken(registryID)
 
 	// if we have a cached token, fall back to avoid failing the request. This may result an expired token
 	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
@@ -112,9 +118,9 @@ func (self *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth,
 	return auth, err
 }
 
-func (self *defaultClient) ListCredentials() ([]*Auth, error) {
+func (c *defaultClient) ListCredentials() ([]*Auth, error) {
 	auths := []*Auth{}
-	for _, authEntry := range self.credentialCache.List() {
+	for _, authEntry := range c.credentialCache.List() {
 		auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
 		if err != nil {
 			logrus.WithError(err).Debug("Could not extract token")
@@ -126,7 +132,7 @@ func (self *defaultClient) ListCredentials() ([]*Auth, error) {
 	// If cache is empty, get authorization token of default registry
 	if len(auths) == 0 {
 		logrus.Debug("No credential cache")
-		auth, err := self.getAuthorizationToken("")
+		auth, err := c.getAuthorizationToken("")
 		if err != nil {
 			logrus.WithError(err).Debugf("Couldn't get authorization token")
 		} else {
@@ -138,7 +144,7 @@ func (self *defaultClient) ListCredentials() ([]*Auth, error) {
 	return auths, nil
 }
 
-func (self *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
+func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
 	var input *ecr.GetAuthorizationTokenInput
 	if registryID == "" {
 		logrus.Debug("Calling ECR.GetAuthorizationToken for default registry")
@@ -150,7 +156,7 @@ func (self *defaultClient) getAuthorizationToken(registryID string) (*Auth, erro
 		}
 	}
 
-	output, err := self.ecrClient.GetAuthorizationToken(input)
+	output, err := c.ecrClient.GetAuthorizationToken(input)
 	if err != nil || output == nil {
 		if err == nil {
 			if registryID == "" {
@@ -178,21 +184,20 @@ func (self *defaultClient) getAuthorizationToken(registryID string) (*Auth, erro
 			if err != nil {
 				return nil, err
 			}
-			self.credentialCache.Set(registry.ID, &authEntry)
+			c.credentialCache.Set(registry.ID, &authEntry)
 			return auth, nil
 		}
 	}
 	if registryID == "" {
 		return nil, fmt.Errorf("No AuthorizationToken found for default registry")
-	} else {
-		return nil, fmt.Errorf("No AuthorizationToken found for %s", registryID)
 	}
+	return nil, fmt.Errorf("No AuthorizationToken found for %s", registryID)
 }
 
 func extractToken(token string, proxyEndpoint string) (*Auth, error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid token: %v:", err)
+		return nil, fmt.Errorf("Invalid token: %v", err)
 	}
 
 	parts := strings.SplitN(string(decodedToken), ":", 2)
