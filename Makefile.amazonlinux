@@ -1,0 +1,48 @@
+# Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+# 	http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+
+# Hook to perform preparation steps prior to the sources target.
+prepare-sources::
+
+sources: prepare-sources release.tar.gz
+
+.srpm-done: release.tar.gz
+	test -e SOURCES || ln -s . SOURCES
+	rpmbuild --define "%_topdir $(PWD)" -bs amazon-ecr-credential-helper.spec
+	find SRPMS/ -type f -exec cp {} . \;
+	touch .srpm-done
+
+srpm: .srpm-done
+
+.rpm-done: release.tar.gz
+	test -e SOURCES || ln -s . SOURCES
+	chown ${UID}.${UID} SOURCES/release.tar.gz
+	rpmbuild --define "%_topdir $(PWD)" -bb amazon-ecr-credential-helper.spec
+	find RPMS/ -type f -exec cp {} . \;
+	touch .rpm-done
+
+rpm: .rpm-done
+
+.PHONY: docker-rpm
+docker-rpm:
+	docker run --rm \
+	-v '$(shell pwd)':/sources \
+	$(shell docker build --network=host -f packaging/amazon-linux/Dockerfile.rpm -q .)
+
+.PHONY: .clean-amazonlinux
+.clean-amazonlinux:
+	-rm -f ./sources.tgz
+	-rm -rf ./BUILDROOT BUILD RPMS SRPMS SOURCES SPECS
+	-rm -rf ./x86_64
+	-rm -f amazon-ecr-credential-helper-*.rpm
+	-rm -f .srpm-done .rpm-done
