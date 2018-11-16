@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and
 # limitations under the License.
 Name:           amazon-ecr-credential-helper
-Version:        0.1.0
-Release:        0%{?dist}
+Version:        0.2.0
+Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -113,6 +113,5 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
-* Fri Nov 2 2018 Samuel Karp <skarp@amazon.com> - 0.1.0-0
+* Fri Nov 16 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-1
 - Initial packaging
-- Contains changes unreleased in 0.1.0, should not be published as-is
