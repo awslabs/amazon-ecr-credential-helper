@@ -13,12 +13,12 @@
 # limitations under the License.
 Name:           amazon-ecr-credential-helper
 Version:        0.2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
 Summary:        Amazon ECR Docker Credential Helper
-BuildArch:      x86_64
+BuildArch:      x86_64 aarch64
 BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
@@ -113,5 +113,7 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Dec 4 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-2
+- Add aarch64 support
 * Fri Nov 16 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-1
 - Initial packaging
