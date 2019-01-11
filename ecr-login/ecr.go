@@ -54,7 +54,11 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 
 	var client api.Client
 	if registry.FIPS {
-		client = self.ClientFactory.NewClientWithFipsEndpoint(registry.Region)
+		client, err = self.ClientFactory.NewClientWithFipsEndpoint(registry.Region)
+		if err != nil {
+			logrus.WithError(err).Error("Error resolving FIPS endpoint")
+			return "", "", credentials.NewErrCredentialsNotFound()
+		}
 	} else {
 		client = self.ClientFactory.NewClientFromRegion(registry.Region)
 	}
