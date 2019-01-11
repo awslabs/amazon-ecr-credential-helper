@@ -63,7 +63,6 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(regio
 	awsSession := session.New()
 	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
 
-	// UnknownServiceError is expected for "ecr-fips", but resolver should still generate correct FIPs endpoint
 	endpoint, _ := getServiceEndpoint("ecr-fips", region)
 
 	awsConfig := awsSession.Config.WithEndpoint(endpoint).WithRegion(region)
@@ -102,6 +101,8 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Optio
 
 func getServiceEndpoint(service, region string) (string, error) {
 	resolver := endpoints.DefaultResolver()
-	endpoint, err := resolver.EndpointFor(service, region)
+	endpoint, err := resolver.EndpointFor(service, region, func(opts *endpoints.Options) {
+		opts.ResolveUnknownService = true
+	})
 	return endpoint.URL, err
 }
