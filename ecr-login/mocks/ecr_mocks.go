@@ -86,10 +86,11 @@ func (mr *MockClientFactoryMockRecorder) NewClientWithDefaults() *gomock.Call {
 }
 
 // NewClientWithFipsEndpoint mocks base method
-func (m *MockClientFactory) NewClientWithFipsEndpoint(arg0 string) api.Client {
+func (m *MockClientFactory) NewClientWithFipsEndpoint(arg0 string) (api.Client, error) {
 	ret := m.ctrl.Call(m, "NewClientWithFipsEndpoint", arg0)
 	ret0, _ := ret[0].(api.Client)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // NewClientWithFipsEndpoint indicates an expected call of NewClientWithFipsEndpoint
