@@ -31,6 +31,31 @@ The credentials must have a policy applied that
 
 ## Installing
 
+### Amazon Linux 2
+You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
+extras](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-linux-ami-basics.html#extras-library).
+
+```bash
+$ sudo amazon-linux-extras enable docker
+$ sudo yum install amazon-ecr-credential-helper
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Mac OS
+A community-maintained Homebrew formula is available in the core tap.
+
+```bash
+$ brew install docker-credential-helper-ecr
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
 1.9+, `git` and `make` installed on your system.
 
@@ -46,6 +71,12 @@ and run `make docker`. This command builds the binary with Go inside the Docker
 container and output it to local directory.
 
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+## Configuration
 
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the
 contents of your `~/.docker/config.json` file to be:
