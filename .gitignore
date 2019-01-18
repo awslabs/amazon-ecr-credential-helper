@@ -12,3 +12,4 @@ GITCOMMIT_SHA
 *.deb
 *.buildinfo
 *.build
+/.pc
