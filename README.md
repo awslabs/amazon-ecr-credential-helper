@@ -55,6 +55,19 @@ Once you have installed the credential helper, see the
 [Configuration section](#Configuration) for instructions on how to configure
 Docker to work with the helper.
 
+### Arch Linux
+A community-maintained package is available in the Arch User Repository.
+
+```bash
+$ git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
+$ cd amazon-ecr-credential-helper
+$ makepkg -si
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
 1.9+, `git` and `make` installed on your system.
