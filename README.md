@@ -47,8 +47,25 @@ Docker to work with the helper.
 ### Mac OS
 A community-maintained Homebrew formula is available in the core tap.
 
+[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/docker-credential-helper-ecr.svg)](https://repology.org/metapackage/docker-credential-helper-ecr/versions)
+
 ```bash
 $ brew install docker-credential-helper-ecr
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Arch Linux
+A community-maintained package is available in the Arch User Repository.
+
+[![AUR package](https://repology.org/badge/version-for-repo/aur/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+
+```bash
+$ git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
+$ cd amazon-ecr-credential-helper
+$ makepkg -si
 ```
 
 Once you have installed the credential helper, see the
