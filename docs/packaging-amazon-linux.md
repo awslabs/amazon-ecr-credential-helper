@@ -1,7 +1,7 @@
 # Packaging for Amazon Linux
 
 Packaging sources for Amazon Linux are contained in the
-(`amazonlinux` branch)[https://github.com/awslabs/amazon-ecr-credential-helper/tree/amazonlinux].
+[`amazonlinux` branch](https://github.com/awslabs/amazon-ecr-credential-helper/tree/amazonlinux).
 
 This branch is updated every time a release is prepared for Amazon Linux.
 
