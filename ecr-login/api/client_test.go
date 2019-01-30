@@ -102,7 +102,7 @@ func TestExtractRegistry(t *testing.T) {
 func TestGetAuthConfigSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -124,7 +124,7 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 			}
 		}).Return(&ecr.GetAuthorizationTokenOutput{
 		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+			{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
@@ -155,7 +155,7 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -190,7 +190,7 @@ func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -221,7 +221,7 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -281,7 +281,7 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 func TestGetAuthConfigBadBase64(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -317,7 +317,7 @@ func TestGetAuthConfigBadBase64(t *testing.T) {
 func TestGetAuthConfigMissingResponse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -346,7 +346,7 @@ func TestGetAuthConfigMissingResponse(t *testing.T) {
 func TestGetAuthConfigECRError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -375,7 +375,7 @@ func TestGetAuthConfigECRError(t *testing.T) {
 func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -449,7 +449,7 @@ func TestListCredentialsSuccess(t *testing.T) {
 func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{
@@ -490,7 +490,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 func TestListCredentialsInvalidAuthToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	ecrClient := mock_ecriface.NewMockECRAPI(ctrl)
+	ecrClient := mock_api.NewMockECRAPI(ctrl)
 	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
 
 	client := &defaultClient{

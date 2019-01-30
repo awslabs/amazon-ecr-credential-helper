@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:8bd893416d43197b487d4c42c8ab003653a81095e0e1692f39eb9103536a10eb"
+  digest = "1:3ef6ae9dad7ea61fe62535a2817dce21ae78a7009b6329a1450cb779400f7204"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -36,7 +36,6 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/ecr",
-    "service/ecr/ecriface",
     "service/sts",
   ]
   pruneopts = "UT"
@@ -159,7 +158,6 @@
     "github.com/aws/aws-sdk-go/aws/request",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/ecr",
-    "github.com/aws/aws-sdk-go/service/ecr/ecriface",
     "github.com/docker/docker-credential-helpers/credentials",
     "github.com/golang/mock/gomock",
     "github.com/mitchellh/go-homedir",
