@@ -1,4 +1,4 @@
-# Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the
 # "License"). You may not use this file except in compliance
@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and
 # limitations under the License.
 Name:           amazon-ecr-credential-helper
-Version:        0.2.0
-Release:        2%{?dist}
+Version:        0.3.0
+Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -23,7 +23,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.7
+BuildRequires: golang >= 1.9
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -32,7 +32,7 @@ BuildRequires: golang >= 1.7
 # You can use this to generate a list of the appropriate Provides
 # statements by reading out the vendor directory:
 #
-# find ../../ecr-login/vendor -name \*.go -exec dirname {} \; | sort | uniq | sed 's,^.*ecr-login/vendor/,,; s/^/bundled(golang(/; s/$/))/;' | sed 's/^/Provides:\t/' | expand -
+# find ecr-login/vendor -name \*.go -exec dirname {} \; | sort | uniq | sed 's,^.*ecr-login/vendor/,,; s/^/bundled(golang(/; s/$/))/;' | sed 's/^/Provides:\t/' | expand -
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/awserr))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/awsutil))
@@ -42,6 +42,7 @@ Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/corehandlers))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/credentials))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/endpointcreds))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/processcreds))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/stscreds))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/csm))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/defaults))
@@ -113,6 +114,8 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Jan 29 2019 Samuel Karp <skarp@amazon.com> - 0.3.0-1
+- Added support for PrivateLink endpoints
 * Tue Dec 4 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-2
 - Add aarch64 support
 * Fri Nov 16 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-1
