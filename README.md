@@ -57,6 +57,37 @@ Once you have installed the credential helper, see the
 [Configuration section](#Configuration) for instructions on how to configure
 Docker to work with the helper.
 
+### Debian Buster (and future versions)
+You can install the Amazon ECR Credential Helper from the Debian Buster
+archives.  This package will also be included in future releases of Debian.
+
+[![Debian Testing package](https://repology.org/badge/version-for-repo/debian_testing/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+[![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+
+```bash
+$ sudo apt update
+$ sudo apt install amazon-ecr-credential-helper
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Ubuntu 19.04 Disco Dingo and newer
+You can install the Amazon ECR Credential Helper from the Ubuntu 19.04 Disco
+Dingo (and newer) archives.
+
+[![Ubuntu 19.04 package](https://repology.org/badge/version-for-repo/ubuntu_19_04/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+
+```bash
+$ sudo apt update
+$ sudo apt install amazon-ecr-credential-helper
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
 ### Arch Linux
 A community-maintained package is available in the Arch User Repository.
 

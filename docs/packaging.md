@@ -6,6 +6,11 @@ operating systems:
 * Amazon Linux 2
   ([source](https://github.com/awslabs/amazon-ecr-credential-helper/tree/amazonlinux),
   [packaging documentation](https://github.com/awslabs/amazon-ecr-credential-helper/blob/amazonlinux/docs/packaging-amazon-linux.md))
+* Debian
+  ([source](https://github.com/awslabs/amazon-ecr-credential-helper/tree/debian))
+  (note: the packages in derivatives of Debian like Devuan, Ubuntu 19.04 Disco
+  Dingo, and PureOS are derived from the Debian package with no additional
+  modifications)
   
 There are community-maintained packages for the Amazon ECR Credential Helper on
 the following operating systems:
