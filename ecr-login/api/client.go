@@ -94,7 +94,7 @@ func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 	return c.GetCredentialsByRegistryID(registry.ID)
 }
 
-// GetCredentials returns username, password, and proxyEndpoint
+// GetCredentialsByRegistryID returns username, password, and proxyEndpoint
 func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
 	cachedEntry := c.credentialCache.Get(registryID)
 	if cachedEntry != nil {
