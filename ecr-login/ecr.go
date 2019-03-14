@@ -14,7 +14,6 @@
 package ecr
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -22,8 +21,6 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
-
-var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
 	ClientFactory api.ClientFactory
@@ -34,12 +31,12 @@ var _ credentials.Helper = (*ECRHelper)(nil)
 
 func (ECRHelper) Add(creds *credentials.Credentials) error {
 	// This does not seem to get called
-	return notImplemented
+	return nil
 }
 
 func (ECRHelper) Delete(serverURL string) error {
 	// This does not seem to get called
-	return notImplemented
+	return nil
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
