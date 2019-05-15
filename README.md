@@ -169,6 +169,10 @@ Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
 For more information about Amazon ECR, see the the
 [Amazon Elastic Container Registry User Guide](http://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html).
 
+## Security disclosures
+
+If you think you’ve found a potential security issue, please do not post it in the Issues.  Instead, please follow the instructions [here](https://aws.amazon.com/security/vulnerability-reporting/) or [email AWS security directly](mailto:aws-security@amazon.com).
+
 ## License
 
 The Amazon ECR Docker Credential Helper is licensed under the Apache 2.0
