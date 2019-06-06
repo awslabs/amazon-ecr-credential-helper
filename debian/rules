@@ -13,6 +13,7 @@ package_root := "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
 %:
 	dh $@ --buildsystem=golang --with=golang
 
+DEB_HOST_GNU_TYPE?=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 override_dh_auto_build:
 	dh_auto_build -- -ldflags "-X $(package_root)/version.Version=$(VERSION) -X $(package_root)/version.GitCommitSHA=$(GITCOMMIT_SHA)"
 	mkdir -p bin/local
