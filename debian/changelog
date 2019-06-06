@@ -1,3 +1,10 @@
+amazon-ecr-credential-helper (0.2.0-2) UNRELEASED; urgency=medium
+
+  * Ensure that DEB_HOST_GNU_TYPE is initialized in debian/rules
+    (Closes: #930104)
+
+ -- Noah Meyerhans <noahm@debian.org>  Thu, 06 Jun 2019 16:28:27 -0700
+
 amazon-ecr-credential-helper (0.2.0-1) unstable; urgency=low
 
   * Initial release (Closes: #916982)
