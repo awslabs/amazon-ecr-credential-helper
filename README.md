@@ -107,6 +107,24 @@ Docker to work with the helper.
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
 1.9+, `git` and `make` installed on your system.
 
+If you just installed Go, make sure you also have added it to your PATH or 
+Environment Vars (Windows). For example:
+
+```
+$ export GOPATH=$HOME/go
+$ export PATH=$PATH:$GOPATH/bin
+```
+
+Or in Windows:
+
+```
+setx GOPATH %USERPROFILE%\go
+<your existing PATH definitions>;%USERPROFILE%\go\bin
+```
+
+If you haven't defined the PATH, the command below will fail silently, and
+running `docker-credential-ecr-login` will output: `command not found`
+
 You can install this via `go get` with:
 
 ```
