@@ -178,6 +178,14 @@ authentication credentials.
 
 `docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
+If you have configured additional profiles for use with the AWS CLI, you can use
+those profiles by specifying the `AWS_PROFILE` environment variable when
+invoking `docker`.  If your profiles use assumed roles or additional credential
+providing processes, you will also need to specify `AWS_SDK_LOAD_CONFIG=true`.
+For example:
+
+`AWS_SDK_LOAD_CONFIG=true AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+
 There is no need to use `docker login` or `docker logout`.
 
 ## Troubleshooting
