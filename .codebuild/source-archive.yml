@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - ./scripts/hack/codepipeline-source-archive.sh
+      - ./scripts/hack/version-changelog.sh | tee archive/VERSION_CHANGELOG.md
+  post_build:
+    commands:
+      - echo "Archive completed on $(date)"
+artifacts:
+  files:
+    - 'release.tar.gz'
+    - 'release-novendor.tar.gz'
+    - 'VERSION'
+    - 'GITCOMMIT_SHA'
+    - 'VERSION_CHANGELOG.md'
+  base-directory: 'archive'
