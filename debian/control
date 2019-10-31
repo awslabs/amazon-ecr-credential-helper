@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Samuel Karp <skarp@amazon.com>
 Build-Depends:
- debhelper (>= 8.0.0),
+ debhelper (>= 9~),
  dh-golang (>= 1.1),
  golang-go (>= 1.7),
  git,
