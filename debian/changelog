@@ -6,6 +6,7 @@ amazon-ecr-credential-helper (0.2.0-2) UNRELEASED; urgency=medium
 
   [ Debian Janitor ]
   * Trim trailing whitespace.
+  * Update standards version to 4.4.1, no changes needed.
 
  -- Noah Meyerhans <noahm@debian.org>  Thu, 06 Jun 2019 16:28:27 -0700
 
