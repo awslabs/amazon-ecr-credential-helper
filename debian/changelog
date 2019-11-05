@@ -1,7 +1,17 @@
 amazon-ecr-credential-helper (0.2.0-2) UNRELEASED; urgency=medium
 
+  [ Noah Meyerhans ]
   * Ensure that DEB_HOST_GNU_TYPE is initialized in debian/rules
     (Closes: #930104)
+
+  [ Debian Janitor ]
+  * Trim trailing whitespace.
+  * Update standards version to 4.4.1, no changes needed.
+  * Bump debhelper dependency to >= 9, since that's what is used in
+    debian/compat.
+  * Bump debhelper from old 9 to 12.
+  * Set upstream metadata fields: Repository.
+  * Rely on pre-initialized dpkg-architecture variables.
 
  -- Noah Meyerhans <noahm@debian.org>  Thu, 06 Jun 2019 16:28:27 -0700
 
@@ -10,4 +20,3 @@ amazon-ecr-credential-helper (0.2.0-1) unstable; urgency=low
   * Initial release (Closes: #916982)
 
  -- Samuel Karp <skarp@amazon.com>  Mon, 24 Dec 2018 21:52:31 -0700
-
