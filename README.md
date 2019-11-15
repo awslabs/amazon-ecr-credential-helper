@@ -29,6 +29,12 @@ in the *AWS Command Line Interface User Guide*.
 The credentials must have a policy applied that
 [allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
 
+If you are using a yet unreleased version of the plugin with web identity credentials support using
+AssumeRoleWithWebIdentity in your k8s containers, you would need to set `AWS_SDK_LOAD_CONFIG=true` before
+your invocation to `docker push`. Also, due to a current bug in k8s as discussed 
+[here](https://github.com/kubernetes-sigs/external-dns/pull/1185), for containers that don't run as root, you
+would need the workaround mentioned there with `securityContext` of `nobody / 65534` on your k8s pod, otherwise, the token file is unreadable, and the plugin silently errors with a 401.
+
 ## Installing
 
 ### Amazon Linux 2
