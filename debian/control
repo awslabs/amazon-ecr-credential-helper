@@ -7,7 +7,7 @@ Build-Depends:
  dh-golang (>= 1.1),
  golang-go (>= 1.7),
  git,
- golang-github-aws-aws-sdk-go-dev,
+ golang-github-aws-aws-sdk-go-dev (>= 1.16.26),
  golang-github-docker-docker-credential-helpers-dev,
  golang-github-mitchellh-go-homedir-dev,
  golang-github-sirupsen-logrus-dev,

@@ -1,22 +1,34 @@
 #!/bin/bash
-set -x
+set -ex
 # Normalize to working directory being build root (up one level from ./debian)
 SOURCES=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 VERSION="$(cat ${SOURCES}/VERSION)"
+URL="$(cat ${SOURCES}/debian/ORIG_URL)"
+SHA256="$(cat ${SOURCES}/debian/ORIG_SHA256)"
 
 ROOT=$(mktemp -d)
 trap "rm -rf ${ROOT}" EXIT
 
 mkdir "${ROOT}/amazon-ecr-credential-helper"
+ORIG_TAR="${ROOT}/amazon-ecr-credential-helper_${VERSION}.orig.tar.gz"
+curl -fsSL -o "${ORIG_TAR}" "${URL}"
+sha256sum --check <<< "${SHA256} ${ORIG_TAR}"
+
 git clone "${SOURCES}" "${ROOT}/amazon-ecr-credential-helper"
 
-cd "${ROOT}/amazon-ecr-credential-helper"
-git checkout "v${VERSION}"
-make release-tarball-no-vendor
-git checkout debian
-mv release-novendor.tar.gz "${ROOT}/amazon-ecr-credential-helper_${VERSION}.orig.tar.gz"
+cd "${ROOT}/amazon-ecr-credential-helper" || exit 1
 
-docker build -t localhost/docker-deb:builder --network=host -f "$ROOT/amazon-ecr-credential-helper/debian/Dockerfile" .
-docker run --rm --user=$UID -v $ROOT:/sources localhost/docker-deb:builder
+if [[ $1 = "test" ]]; then
+  # For developing locally with an unreleased tag
+  git checkout "v${VERSION}"
+  make release-tarball-no-vendor
+  mv release-novendor.tar.gz "${ORIG_TAR}"
+fi
+
+git checkout debian
+tar xvzf "${ORIG_TAR}" GITCOMMIT_SHA
+
+docker build -t localhost/docker-deb:builder --network=host -f "${ROOT}/amazon-ecr-credential-helper/debian/Dockerfile" .
+docker run --rm --user=$UID -v "${ROOT}:/sources" localhost/docker-deb:builder
 cp "${ROOT}"/amazon-ecr-credential-helper_* "${SOURCES}"
 cp "${ROOT}/amazon-ecr-credential-helper_${VERSION}.orig.tar.gz" "${SOURCES}"

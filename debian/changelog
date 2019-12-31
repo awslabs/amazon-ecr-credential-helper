@@ -1,4 +1,4 @@
-amazon-ecr-credential-helper (0.2.0-2) UNRELEASED; urgency=medium
+amazon-ecr-credential-helper (0.3.1-1) UNRELEASED; urgency=low
 
   [ Noah Meyerhans ]
   * Ensure that DEB_HOST_GNU_TYPE is initialized in debian/rules
@@ -15,8 +15,9 @@ amazon-ecr-credential-helper (0.2.0-2) UNRELEASED; urgency=medium
 
   [ Samuel Karp ]
   * Set upstream metadata fields: Security-Contact.
+  * New upstream release.
 
- -- Noah Meyerhans <noahm@debian.org>  Thu, 06 Jun 2019 16:28:27 -0700
+ -- Samuel Karp <skarp@amazon.com>  Mon, 30 Dec 2019 22:29:27 -0700
 
 amazon-ecr-credential-helper (0.2.0-1) unstable; urgency=low
 
