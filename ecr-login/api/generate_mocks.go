@@ -13,4 +13,4 @@
 
 package api
 
-//go:generate mockgen.sh github.com/aws/aws-sdk-go/service/ecr/ecriface ECRAPI mocks/api_mocks.go
+//go:generate mockgen.sh github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api ECRAPI mocks/api_mocks.go

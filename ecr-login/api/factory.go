@@ -35,7 +35,7 @@ type ClientFactory interface {
 	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
 	NewClientWithOptions(opts Options) Client
 	NewClientFromRegion(region string) Client
-	NewClientWithFipsEndpoint(region string) Client
+	NewClientWithFipsEndpoint(region string) (Client, error)
 	NewClientWithDefaults() Client
 }
 
@@ -59,18 +59,20 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client 
 }
 
 // NewClientWithFipsEndpoint overrides the default ECR service endpoint in a given region to use the FIPS endpoint
-func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(region string) Client {
+func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(region string) (Client, error) {
 	awsSession := session.New()
 	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
 
-	// UnknownServiceError is expected for "ecr-fips", but resolver should still generate correct FIPs endpoint
-	endpoint, _ := getServiceEndpoint("ecr-fips", region)
+	endpoint, err := getServiceEndpoint("ecr-fips", region)
+	if err != nil {
+		return nil, err
+	}
 
 	awsConfig := awsSession.Config.WithEndpoint(endpoint).WithRegion(region)
 	return defaultClientFactory.NewClientWithOptions(Options{
 		Session: awsSession,
 		Config:  awsConfig,
-	})
+	}), nil
 }
 
 // NewClientFromRegion uses the region to create the client
@@ -102,6 +104,8 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Optio
 
 func getServiceEndpoint(service, region string) (string, error) {
 	resolver := endpoints.DefaultResolver()
-	endpoint, err := resolver.EndpointFor(service, region)
+	endpoint, err := resolver.EndpointFor(service, region, func(opts *endpoints.Options) {
+		opts.ResolveUnknownService = true
+	})
 	return endpoint.URL, err
 }

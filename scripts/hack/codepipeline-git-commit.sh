@@ -12,11 +12,11 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-# This script is meant to make the package available in the 'canonical' location
-# for execution in AWS CodeBuild in the golang container image.
+# This script populates the GITCOMMIT_SHA file when built inside AWS CodeBuild
+# and invoked from AWS CodePipeline.
 
+set -ex
 
-if [[ ! -d "/go/src/github.com/awslabs/amazon-ecr-credential-helper" ]]; then
-	mkdir -p "/go/src/github.com/awslabs"
-	ln -s "$(pwd)" "/go/src/github.com/awslabs/amazon-ecr-credential-helper"
-fi
+[[ -z "${CODEBUILD_RESOLVED_SOURCE_VERSION}" ]] && exit 1
+echo "${CODEBUILD_RESOLVED_SOURCE_VERSION}" > GITCOMMIT_SHA
+cat GITCOMMIT_SHA

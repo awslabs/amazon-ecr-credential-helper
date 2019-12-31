@@ -24,7 +24,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecr/ecriface"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 	"github.com/sirupsen/logrus"
 )
@@ -67,8 +66,11 @@ type Client interface {
 	ListCredentials() ([]*Auth, error)
 }
 type defaultClient struct {
-	ecrClient       ecriface.ECRAPI
+	ecrClient       ECRAPI
 	credentialCache cache.CredentialsCache
+}
+type ECRAPI interface {
+	GetAuthorizationToken(*ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
 // Auth credentials returned by ECR service to allow docker login
@@ -92,7 +94,7 @@ func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 	return c.GetCredentialsByRegistryID(registry.ID)
 }
 
-// GetCredentials returns username, password, and proxyEndpoint
+// GetCredentialsByRegistryID returns username, password, and proxyEndpoint
 func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
 	cachedEntry := c.credentialCache.Get(registryID)
 	if cachedEntry != nil {

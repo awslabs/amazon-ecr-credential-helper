@@ -27,14 +27,19 @@ func SetupLogger() {
 }
 
 func logrusConfig() {
-	logfile, err := homedir.Expand(GetCacheDir() + "/log/ecr-login.log")
+	logdir, err := homedir.Expand(GetCacheDir() + "/log")
 	if err != nil {
-		fmt.Errorf("%v", err)
-		logfile = "/tmp/.ecr/log/ecr-login.log"
+		fmt.Fprintf(os.Stderr, "log: failed to find directory: %v", err)
+		logdir = os.TempDir()
 	}
 	// Clean the path to replace with OS-specific separators
-	logfile = filepath.Clean(logfile)
-	file, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
+	logdir = filepath.Clean(logdir)
+	err = os.MkdirAll(logdir, os.ModeDir|0700)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "log: failed to create directory: %v", err)
+		logdir = os.TempDir()
+	}
+	file, err := os.OpenFile(filepath.Join(logdir, "ecr-login.log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 	if err != nil {
 		return
 	}
