@@ -2,8 +2,6 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: amazon-ecr-credential-helper
 Upstream-Contact: Samuel Karp <skarp@amazon.com>
 Source: https://github.com/awslabs/amazon-ecr-credential-helper
-Files-Excluded:
-  vendor
 
 Files: *
 Copyright: 2016-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
