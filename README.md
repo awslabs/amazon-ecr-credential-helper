@@ -13,27 +13,8 @@ for the Docker daemon that makes it easier to use
 
 You must have at least Docker 1.11 installed on your system.
 
-You also must have AWS credentials available in one of the standard locations:
-
-* The `~/.aws/credentials` file
-* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
-* An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
-* If you are working with an assumed role please set the environment variable: `AWS_SDK_LOAD_CONFIG=true` also.
-
-The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
-CLI and the AWS SDKs. For more information about configuring AWS credentials,
-see
-[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
-in the *AWS Command Line Interface User Guide*.
-
-The credentials must have a policy applied that
-[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
-
-If you are using a yet unreleased version of the plugin with web identity credentials support using
-AssumeRoleWithWebIdentity in your k8s containers, you would need to set `AWS_SDK_LOAD_CONFIG=true` before
-your invocation to `docker push`. Also, due to a current bug in k8s as discussed 
-[here](https://github.com/kubernetes-sigs/external-dns/pull/1185), for containers that don't run as root, you
-would need the workaround mentioned there with `securityContext` of `nobody / 65534` on your k8s pod, otherwise, the token file is unreadable, and the plugin silently errors with a 401.
+You also must have AWS credentials available.  See the [AWS credentials section](#aws-credentials) for details on how to
+use different AWS credentials.
 
 ## Installing
 
@@ -150,6 +131,8 @@ Docker to work with the helper.
 
 ## Configuration
 
+### Docker
+
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the
 contents of your `~/.docker/config.json` file to be:
 
@@ -177,6 +160,40 @@ ECR registry:
 
 This is useful if you use `docker` to operate on registries that use different
 authentication credentials.
+
+### AWS credentials
+
+The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations.  Standard ones
+include:
+
+* The shared credentials file (`~/.aws/credentials`)
+* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
+* An [IAM role for an Amazon ECS task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html)
+* An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+
+To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
+may set the `AWS_PROFILE` environment variable. 
+
+The Amazon ECR Docker Credential Helper can optionally read and support some configuration options specified in the AWS
+shared configuration file (`~/.aws/config`).  To use these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
+variable to `true`.  The supported options include:
+
+* Assumed roles specified with `role_arn` and `source_profile`
+* External credential processes specified with `credential_process`
+* Web Identities like [IAM Roles for Service Accounts in
+  Kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) (*Note: Kubernetes
+  users using containers with a non-root user may encounter permission issues described in [this
+  bug](https://github.com/kubernetes-sigs/external-dns/pull/1185) and may need to employ a workaround adjusting the
+  Kubernetes `securityContext`.*)
+
+The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
+CLI and the AWS SDKs. For more information about configuring AWS credentials,
+see
+[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+in the *AWS Command Line Interface User Guide*.
+
+The credentials must have a policy applied that
+[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
 
 ## Usage
 
