@@ -1,4 +1,4 @@
-# Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the
 # "License"). You may not use this file except in compliance
@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and
 # limitations under the License.
 Name:           amazon-ecr-credential-helper
-Version:        0.3.0
+Version:        0.4.0
 Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
@@ -23,7 +23,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.9
+BuildRequires: golang >= 1.10
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -53,6 +53,7 @@ Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/session))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/signer/v4))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/ini))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkio))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkmath))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkrand))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkuri))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/shareddefaults))
@@ -64,8 +65,8 @@ Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query/
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/rest))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/ecr))
-Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/ecr/ecriface))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/sts))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/sts/stsiface))
 Provides:       bundled(golang(github.com/davecgh/go-spew/spew))
 Provides:       bundled(golang(github.com/docker/docker-credential-helpers/credentials))
 Provides:       bundled(golang(github.com/golang/mock/gomock))
@@ -76,10 +77,7 @@ Provides:       bundled(golang(github.com/pkg/errors))
 Provides:       bundled(golang(github.com/pmezard/go-difflib/difflib))
 Provides:       bundled(golang(github.com/sirupsen/logrus))
 Provides:       bundled(golang(github.com/stretchr/testify/assert))
-Provides:       bundled(golang(golang.org/x/crypto/ssh/terminal))
-Provides:       bundled(golang(golang.org/x/net/context))
 Provides:       bundled(golang(golang.org/x/sys/unix))
-Provides:       bundled(golang(golang.org/x/sys/windows))
 
 %description
 The Amazon ECR Docker Credential Helper is a credential helper for the Docker
@@ -114,6 +112,11 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Jan 7 2020 Samuel Karp <skarp@amazon.com> - 0.4.0-1
+- Added support for chaining assumed roles in the shared config file
+- Added support for Web Identities and IAM Roles for Service Accounts (IRSA)
+  with Kubernetes
+- Log directory is now automatically created when the helper runs
 * Tue Jan 29 2019 Samuel Karp <skarp@amazon.com> - 0.3.0-1
 - Added support for PrivateLink endpoints
 * Tue Dec 4 2018 Samuel Karp <skarp@amazon.com> - 0.2.0-2

@@ -15,7 +15,8 @@ FROM amazonlinux:2
 
 WORKDIR /sources
 
-RUN yum install -y rpm-build make golang git
+RUN amazon-linux-extras enable golang1.11 \
+ && yum install -y rpm-build make golang git
 
 COPY . .
 
