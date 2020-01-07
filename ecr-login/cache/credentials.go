@@ -29,7 +29,7 @@ type AuthEntry struct {
 	ProxyEndpoint      string
 }
 
-// Checks if AuthEntry is still valid at testTime. AuthEntries expire at 1/2 of their original
+// IsValid checks if AuthEntry is still valid at testTime. AuthEntries expire at 1/2 of their original
 // requested window.
 func (authEntry *AuthEntry) IsValid(testTime time.Time) bool {
 	validWindow := authEntry.ExpiresAt.Sub(authEntry.RequestedAt)

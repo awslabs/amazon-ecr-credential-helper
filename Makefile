@@ -23,13 +23,14 @@ BINARY_NAME=docker-credential-ecr-login
 LOCAL_BINARY=bin/local/$(BINARY_NAME)
 
 LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
+LINUX_ARM64_BINARY=bin/linux-arm64/$(BINARY_NAME)
 DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
 include Makefile.amazonlinux
 
 .PHONY: docker
-docker: Dockerfile
+docker: Dockerfile GITCOMMIT_SHA
 	mkdir -p bin
 	docker run --rm \
 	-e TARGET_GOOS=$(TARGET_GOOS) \
@@ -49,12 +50,17 @@ test:
 	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
 
 .PHONY: all-variants
-all-variants: linux-amd64 darwin-amd64 windows-amd64
+all-variants: linux-amd64 linux-arm64 darwin-amd64 windows-amd64
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
 $(LINUX_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh linux amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
+
+.PHONY: linux-arm64
+linux-arm64: $(LINUX_ARM64_BINARY)
+$(LINUX_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh linux arm64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 
 .PHONY: darwin-amd64
 darwin-amd64: $(DARWIN_AMD64_BINARY)

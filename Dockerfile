@@ -11,7 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-FROM golang:1.9
+FROM golang:1.13
 
 WORKDIR /go/src/github.com/awslabs/amazon-ecr-credential-helper
 
