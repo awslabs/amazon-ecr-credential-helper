@@ -174,9 +174,9 @@ include:
 To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
 may set the `AWS_PROFILE` environment variable. 
 
-The Amazon ECR Docker Credential Helper can optionally read and support some configuration options specified in the AWS
-shared configuration file (`~/.aws/config`).  To use these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
-variable to `true`.  The supported options include:
+The Amazon ECR Docker Credential Helper reads and supports some configuration options specified in the AWS
+shared configuration file (`~/.aws/config`).  To disable these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
+variable to `false`.  The supported options include:
 
 * Assumed roles specified with `role_arn` and `source_profile`
 * External credential processes specified with `credential_process`
@@ -202,12 +202,10 @@ The credentials must have a policy applied that
 `docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 If you have configured additional profiles for use with the AWS CLI, you can use
-those profiles by specifying the `AWS_PROFILE` environment variable when
-invoking `docker`.  If your profiles use assumed roles or additional credential
-providing processes, you will also need to specify `AWS_SDK_LOAD_CONFIG=true`.
+those profiles by specifying the `AWS_PROFILE` environment variable when invoking `docker`.
 For example:
 
-`AWS_SDK_LOAD_CONFIG=true AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
 
