@@ -1,3 +1,6 @@
+# Unreleased
+* Enhancement - The AWS shared config file (`~/.aws/config`) is now enabled by default.  This can be disabled by setting the environment variable `AWS_SDK_LOAD_CONFIG` to `false` ([#201](https://github.com/awslabs/amazon-ecr-credential-helper/pull/201))
+
 # 0.4.0
 
 * Feature - Added support for chaining assumed roles in the shared config file (`~/.aws/config`) defined by `source_profile` and `credential_source` ([#177](https://github.com/awslabs/amazon-ecr-credential-helper/pull/177))
