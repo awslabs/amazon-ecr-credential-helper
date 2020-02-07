@@ -34,7 +34,7 @@ Docker to work with the helper.
 ### Mac OS
 A community-maintained Homebrew formula is available in the core tap.
 
-[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/docker-credential-helper-ecr.svg)](https://repology.org/metapackage/docker-credential-helper-ecr/versions)
+[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ brew install docker-credential-helper-ecr
@@ -48,6 +48,7 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Debian Buster
 archives.  This package will also be included in future releases of Debian.
 
+[![Debian Stable package](https://repology.org/badge/version-for-repo/debian_stable/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian Testing package](https://repology.org/badge/version-for-repo/debian_testing/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
@@ -65,6 +66,8 @@ You can install the Amazon ECR Credential Helper from the Ubuntu 19.04 Disco
 Dingo (and newer) archives.
 
 [![Ubuntu 19.04 package](https://repology.org/badge/version-for-repo/ubuntu_19_04/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+[![Ubuntu 19.10 package](https://repology.org/badge/version-for-repo/ubuntu_19_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ sudo apt update
