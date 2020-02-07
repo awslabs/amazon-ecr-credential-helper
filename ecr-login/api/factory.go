@@ -14,6 +14,9 @@
 package api
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -49,7 +52,10 @@ var userAgentHandler = request.NamedHandler{
 
 // NewClientWithDefaults creates the client and defaults region
 func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client {
-	awsSession := session.New()
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
+
 	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
 	awsConfig := awsSession.Config
 	return defaultClientFactory.NewClientWithOptions(Options{
@@ -60,7 +66,10 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client 
 
 // NewClientWithFipsEndpoint overrides the default ECR service endpoint in a given region to use the FIPS endpoint
 func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(region string) (Client, error) {
-	awsSession := session.New()
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
+
 	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
 
 	endpoint, err := getServiceEndpoint("ecr-fips", region)
@@ -77,7 +86,9 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(regio
 
 // NewClientFromRegion uses the region to create the client
 func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
-	awsSession := session.New()
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
 	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
 	awsConfig := &aws.Config{Region: aws.String(region)}
 	return defaultClientFactory.NewClientWithOptions(Options{
@@ -108,4 +119,15 @@ func getServiceEndpoint(service, region string) (string, error) {
 		opts.ResolveUnknownService = true
 	})
 	return endpoint.URL, err
+}
+
+func loadSharedConfigState() session.SharedConfigState {
+	loadConfig := os.Getenv("AWS_SDK_LOAD_CONFIG")
+	if loadConfig == "" {
+		return session.SharedConfigEnable
+	}
+	if enable, err := strconv.ParseBool(loadConfig); err == nil && !enable {
+		return session.SharedConfigDisable
+	}
+	return session.SharedConfigEnable
 }
