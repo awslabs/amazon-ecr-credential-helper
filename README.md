@@ -214,9 +214,13 @@ There is no need to use `docker login` or `docker logout`.
 
 ## Troubleshooting
 
-Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
+Logs from the Amazon ECR Docker Credential Helper are stored inside you cache
+files directory (e.g.: `~/.cache/ecr/log` on Linux, `~/Library/Caches/ecr/log`
+on MacOS, or `%LocalAppData%/ecr/log` on Windows).  If you upgraded from an
+older version of the Amazon ECR Docker Credential Helper, logs may be inside
+the old cache directory located at `~/.ecr/log` instead.
 
-For more information about Amazon ECR, see the the
+For more information about Amazon ECR, see the
 [Amazon Elastic Container Registry User Guide](http://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html).
 
 ## Security disclosures
