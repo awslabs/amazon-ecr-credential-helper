@@ -1,2 +1,5 @@
-Repository: https://github.com/awslabs/amazon-ecr-credential-helper
+Bug-Database: https://github.com/awslabs/amazon-ecr-credential-helper/issues
+Bug-Submit: https://github.com/awslabs/amazon-ecr-credential-helper/issues/new
+Repository: https://github.com/awslabs/amazon-ecr-credential-helper.git
+Repository-Browse: https://github.com/awslabs/amazon-ecr-credential-helper
 Security-Contact: aws-security@amazon.com
