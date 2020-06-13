@@ -95,15 +95,15 @@ Docker to work with the helper.
 
 ### Windows
 
-Installing on Windows requires installing Go. If you already have the [Chocolatey](https://chocolatey.org) package manager installed, you can use the command below to install Go (aka Golang).
+Installing on Windows requires installing Go (aka "Golang"). First install the [Chocolatey](https://chocolatey.org) package manager, and then you can use the command below to install Go:
 
-```
+```cmd
 choco install golang
 ```
 
-Once Go is installed:
+Once Go is installed, you can install the ECR credential manager with:
 
-```
+```cmd
 go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
 ```
 
