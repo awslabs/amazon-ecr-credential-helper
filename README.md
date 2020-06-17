@@ -128,6 +128,18 @@ container and output it to local directory.
 
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.
 
+You can also build your OS by docker with the command below:
+
+```
+docker run --rm \
+    -v $(pwd):/go/src/github.com/awslabs/amazon-ecr-credential-helper \
+    -w /go/src/github.com/awslabs/amazon-ecr-credential-helper \
+    golang:1.13 \
+    make "$(uname|tr A-Z a-z)"-amd64
+
+sudo mv ./bin/$(uname|tr A-Z a-z)-amd64/docker-credential-ecr-login /usr/local/bin/
+```
+
 Once you have installed the credential helper, see the
 [Configuration section](#Configuration) for instructions on how to configure
 Docker to work with the helper.
