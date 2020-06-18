@@ -13,10 +13,10 @@ Build-Depends:
  golang-github-sirupsen-logrus-dev,
  golang-github-golang-mock-dev,
  golang-github-pkg-errors-dev
-Standards-Version: 4.4.1
+Standards-Version: 4.5.0
 Homepage: https://github.com/awslabs/amazon-ecr-credential-helper
 Vcs-Browser: https://github.com/awslabs/amazon-ecr-credential-helper
-Vcs-Git: https://github.com/awslabs/amazon-ecr-credential-helper
+Vcs-Git: https://github.com/awslabs/amazon-ecr-credential-helper.git
 XS-Go-Import-Path: github.com/awslabs/amazon-ecr-credential-helper
 
 Package: amazon-ecr-credential-helper
