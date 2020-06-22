@@ -1,4 +1,4 @@
-module github.com/awslabs/amazon-ecr-credential-helper
+module github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 
 require (
 	github.com/aws/aws-sdk-go v1.24.1
