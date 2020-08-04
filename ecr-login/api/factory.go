@@ -39,6 +39,7 @@ type ClientFactory interface {
 	NewClientWithOptions(opts Options) Client
 	NewClientFromRegion(region string) Client
 	NewClientWithFipsEndpoint(region string) (Client, error)
+	NewClientWithExplicitProfile(profile string) (Client, error)
 	NewClientWithDefaults() Client
 }
 
@@ -82,6 +83,23 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(regio
 		Session: awsSession,
 		Config:  awsConfig,
 	}), nil
+}
+
+// NewClientWithExplicitProfile creates a session with a custom profile set
+func (defaultClientFactory DefaultClientFactory) NewClientWithExplicitProfile(profile string) (Client, error) {
+       awsSession, err := session.NewSessionWithOptions(session.Options{
+               Profile: profile,
+               SharedConfigState: loadSharedConfigState(),
+       })
+       if err != nil {
+               return nil, err
+       }
+       awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
+       awsConfig := awsSession.Config
+       return defaultClientFactory.NewClientWithOptions(Options{
+               Session: awsSession,
+               Config:  awsConfig,
+       }), nil
 }
 
 // NewClientFromRegion uses the region to create the client

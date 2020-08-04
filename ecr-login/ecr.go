@@ -16,6 +16,7 @@ package ecr
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 
@@ -52,6 +53,8 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
+	profile, profile_exists := os.LookupEnv("AWS_PROFILE")
+
 	var client api.Client
 	if registry.FIPS {
 		client, err = self.ClientFactory.NewClientWithFipsEndpoint(registry.Region)
@@ -59,6 +62,12 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 			logrus.WithError(err).Error("Error resolving FIPS endpoint")
 			return "", "", credentials.NewErrCredentialsNotFound()
 		}
+	} else if profile_exists {
+		client, err = self.ClientFactory.NewClientWithExplicitProfile(profile)
+		if err != nil {
+            logrus.WithError(err).Error("Error creating client with explicit profile")
+            return "", "", credentials.NewErrCredentialsNotFound()
+        }
 	} else {
 		client = self.ClientFactory.NewClientFromRegion(registry.Region)
 	}
