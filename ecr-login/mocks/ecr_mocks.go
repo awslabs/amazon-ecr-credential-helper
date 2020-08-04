@@ -85,6 +85,17 @@ func (_mr *_MockClientFactoryRecorder) NewClientWithFipsEndpoint(arg0 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithFipsEndpoint", arg0)
 }
 
+func (_m *MockClientFactory) NewClientWithExplicitProfile(_param0 string) (api.Client, error) {
+	ret := _m.ctrl.Call(_m, "NewClientWithExplicitProfile", _param0)
+	ret0, _ := ret[0].(api.Client)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockClientFactoryRecorder) NewClientWithExplicitProfile(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewClientWithExplicitProfile", arg0)
+}
+
 func (_m *MockClientFactory) NewClientWithOptions(_param0 api.Options) api.Client {
 	ret := _m.ctrl.Call(_m, "NewClientWithOptions", _param0)
 	ret0, _ := ret[0].(api.Client)
