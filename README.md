@@ -156,7 +156,7 @@ ECR registry:
 ```json
 {
 	"credHelpers": {
-		"aws_account_id.dkr.ecr.region.amazonaws.com": "ecr-login"
+		"<aws_account_id>.dkr.ecr.<region>.amazonaws.com": "ecr-login"
 	}
 }
 ```
