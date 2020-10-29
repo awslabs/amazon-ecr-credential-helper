@@ -11,6 +11,7 @@ Build-Depends:
  golang-github-docker-docker-credential-helpers-dev,
  golang-github-mitchellh-go-homedir-dev,
  golang-github-sirupsen-logrus-dev,
+ golang-github-stretchr-testify-dev,
  golang-github-golang-mock-dev,
  golang-github-pkg-errors-dev
 Standards-Version: 4.5.0
