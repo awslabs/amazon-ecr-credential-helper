@@ -1,2 +1,4 @@
 version=4
-opts=filenamemangle=s/.*\/v(\d\S+)\.tar\.gz/amazon-ecr-credential-helper-$1\.tar\.gz/ https://github.com/awslabs/amazon-ecr-credential-helper/tags .*\/v(\d\S+)\.tar\.gz
+opts=filenamemangle=s/.+\/(\d\S*)\/release-novendor\.tar\.gz/amazon-ecr-credential-helper_$1.orig.tar.gz/ \
+  https://github.com/awslabs/amazon-ecr-credential-helper/releases \
+  .*\/(\d\S+)/release-novendor\.tar\.gz

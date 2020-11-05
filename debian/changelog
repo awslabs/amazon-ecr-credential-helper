@@ -10,6 +10,11 @@ amazon-ecr-credential-helper (0.3.1-2) UNRELEASED; urgency=medium
   [ Noah Meyerhans ]
   * Install README.md to /usr/share/doc (Closes: #962304)
 
+  [ Tianon Gravi ]
+  * Update "Vcs-*" tags to point to debian branch
+  * Update debian/watch to match the novendor tarballs
+  * Add "golang-github-stretchr-testify-dev" to B-D (Closes: #973063)
+
  -- Debian Janitor <janitor@jelmer.uk>  Mon, 04 May 2020 18:33:54 +0000
 
 amazon-ecr-credential-helper (0.3.1-1) unstable; urgency=low
