@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        go: ['1.11', '1.12', '1.13', '1.14', '1.15']
+
+        # Intentionally use specific versions instead of "latest" to
+        # make this build reproducible.
+        os: ['ubuntu-18.04', 'macos-10.15']
+
+      # Build all variants regardless of failures
+      fail-fast: false
+    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - run: make get-deps
+      - run: make all-variants
+      - run: make test
