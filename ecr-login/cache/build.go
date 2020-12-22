@@ -22,7 +22,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
-	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,13 +33,12 @@ func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir 
 
 	if cacheDir == "" {
 		//Get cacheDir from env var "AWS_ECR_CACHE_DIR" or set to default
-		cacheDir = config.GetCacheDir()
-	}
-
-	cacheDir, err := homedir.Expand(cacheDir)
-	if err != nil {
-		logrus.WithError(err).Debug("Could not expand cache path, disabling cache")
-		return NewNullCredentialsCache()
+		var err error
+		cacheDir, err = config.GetCacheDir()
+		if err != nil {
+			logrus.WithError(err).Debug("Could not expand cache path, disabling cache")
+			return NewNullCredentialsCache()
+		}
 	}
 
 	cacheFilename := "cache.json"

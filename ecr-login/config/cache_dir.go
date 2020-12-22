@@ -13,11 +13,46 @@
 
 package config
 
-import "os"
+import (
+	"os"
+	"path/filepath"
 
-func GetCacheDir() string {
-	if cacheDir := os.Getenv("AWS_ECR_CACHE_DIR"); cacheDir != "" {
-		return cacheDir
+	"github.com/mitchellh/go-homedir"
+)
+
+// GetCacheDir returns the cache directory to use for the credential helper.
+// The cache directory is determined in this order:
+// 1. The location specified by the AWS_ECR_CACHE_DIR environment variable, if
+//    set and if expanded validly by homedir.Expand.
+// 2. ~/.ecr, if it already exists and is a directory, for
+//    backwards-compatibility.
+// 3. The /ecr directory under the value returned by os.UserCacheDir as the
+//    default value. os.UserCacheDir returns the OS-specific cache directory.
+func GetCacheDir() (string, error) {
+	var (
+		cacheDir string
+		userCacheDir string
+		err error
+	)
+
+	if cacheDir = os.Getenv("AWS_ECR_CACHE_DIR"); cacheDir != "" {
+		if cacheDir, err = homedir.Expand(cacheDir); err == nil {
+			return cacheDir, nil
+		}
 	}
-	return "~/.ecr"
+
+	cacheDir = "~/.ecr"
+	if cacheDir, err = homedir.Expand(cacheDir); err == nil {
+		if info, err := os.Stat(cacheDir); err == nil {
+			if info.IsDir() {
+				return cacheDir, nil
+			}
+		}
+	}
+
+	userCacheDir, err = os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(userCacheDir,"/ecr"), nil
 }
