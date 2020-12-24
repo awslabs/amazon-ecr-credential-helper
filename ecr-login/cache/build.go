@@ -51,13 +51,17 @@ func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir 
 		return NewNullCredentialsCache()
 	}
 
-	return NewFileCredentialsCache(cacheDir, cacheFilename, credentialsCachePrefix(region, &credentials))
+	return NewFileCredentialsCache(cacheDir, cacheFilename, credentialsCachePrefix(region, &credentials), credentialsPublicCacheKey(&credentials))
 }
 
 // Determine a key prefix for a credentials cache. Because auth tokens are scoped to an account and region, rely on provided
 // region, as well as hash of the access key.
 func credentialsCachePrefix(region string, credentials *credentials.Value) string {
 	return fmt.Sprintf("%s-%s-", region, checksum(credentials.AccessKeyID))
+}
+
+func credentialsPublicCacheKey(credentials *credentials.Value) string {
+	return fmt.Sprintf("%s-%s", ServiceECRPublic, checksum(credentials.AccessKeyID))
 }
 
 // Base64 encodes an MD5 checksum. Relied on for uniqueness, and not for cryptographic security.

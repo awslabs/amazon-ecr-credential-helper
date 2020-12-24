@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecrpublic"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/version"
 )
@@ -107,8 +108,11 @@ func (defaultClientFactory DefaultClientFactory) NewClient(awsSession *session.S
 
 // NewClientWithOptions Create new client with Options
 func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Options) Client {
+	// The ECR Public API is only available in us-east-1 today
+	publicConfig := opts.Config.Copy().WithRegion("us-east-1")
 	return &defaultClient{
 		ecrClient:       ecr.New(opts.Session, opts.Config),
+		ecrPublicClient: ecrpublic.New(opts.Session, publicConfig),
 		credentialCache: cache.BuildCredentialsCache(opts.Session, aws.StringValue(opts.Config.Region), opts.CacheDir),
 	}
 }

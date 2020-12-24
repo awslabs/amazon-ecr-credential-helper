@@ -19,16 +19,20 @@ func NewNullCredentialsCache() CredentialsCache {
 	return &nullCredentialsCache{}
 }
 
-func (nullCache *nullCredentialsCache) Get(registry string) *AuthEntry {
+func (n *nullCredentialsCache) Get(_ string) *AuthEntry {
 	return nil
 }
 
-func (nullCache *nullCredentialsCache) Set(registry string, entry *AuthEntry) {
+func (n *nullCredentialsCache) GetPublic() *AuthEntry {
+	return nil
 }
 
-func (nullCache *nullCredentialsCache) List() []*AuthEntry {
+func (n *nullCredentialsCache) Set(_ string, _ *AuthEntry) {
+}
+
+func (n *nullCredentialsCache) List() []*AuthEntry {
 	return []*AuthEntry{}
 }
 
-func (nullCache *nullCredentialsCache) Clear() {
+func (n *nullCredentialsCache) Clear() {
 }
