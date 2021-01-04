@@ -24,7 +24,6 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api/mocks"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -100,10 +99,8 @@ func TestExtractRegistry(t *testing.T) {
 }
 
 func TestGetAuthConfigSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -114,23 +111,17 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 	authorizationToken := base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))
 	expiresAt := time.Now().Add(12 * time.Hour)
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
 	authEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
@@ -139,11 +130,10 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 		AuthorizationToken: authorizationToken,
 	}
 
-	credentialCache.EXPECT().Get(registryID).Return(nil)
-	credentialCache.EXPECT().Set(registryID, gomock.Any()).Do(
-		func(_ string, actual *cache.AuthEntry) {
-			compareAuthEntry(t, actual, authEntry)
-		})
+	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
+	credentialCache.SetFn = func(_ string, actual *cache.AuthEntry) {
+		compareAuthEntry(t, actual, authEntry)
+	}
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.Nil(t, err)
@@ -153,34 +143,26 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 }
 
 func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(proxyEndpointScheme + "notproxy"),
 				AuthorizationToken: aws.String(base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
-	credentialCache.EXPECT().Get(registryID).Return(nil)
+	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.NotNil(t, err)
@@ -188,10 +170,8 @@ func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 }
 
 func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -208,8 +188,10 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 		RequestedAt:        time.Now(),
 		AuthorizationToken: authorizationToken,
 	}
-
-	credentialCache.EXPECT().Get(registryID).Return(authEntry)
+	credentialCache.GetFn = func(r string) *cache.AuthEntry {
+		assert.Equal(t, registryID, r, "get from cache")
+		return authEntry
+	}
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.Nil(t, err)
@@ -219,10 +201,8 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 }
 
 func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -233,23 +213,17 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 	authorizationToken := base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))
 	expiresAt := time.Now().Add(12 * time.Hour)
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
 	expiredAuthEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
@@ -265,11 +239,13 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 		AuthorizationToken: authorizationToken,
 	}
 
-	credentialCache.EXPECT().Get(registryID).Return(expiredAuthEntry)
-	credentialCache.EXPECT().Set(registryID, gomock.Any()).Do(
-		func(_ string, actual *cache.AuthEntry) {
-			compareAuthEntry(t, actual, authEntry)
-		})
+	credentialCache.GetFn = func(r string) *cache.AuthEntry {
+		assert.Equal(t, registryID, r, "get from cache")
+		return expiredAuthEntry
+	}
+	credentialCache.SetFn = func(_ string, actual *cache.AuthEntry) {
+		compareAuthEntry(t, actual, authEntry)
+	}
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.Nil(t, err)
@@ -279,34 +255,26 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 }
 
 func TestGetAuthConfigBadBase64(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(proxyEndpointScheme + proxyEndpoint),
 				AuthorizationToken: aws.String(expectedUsername + ":" + expectedPassword),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
-	credentialCache.EXPECT().Get(registryID).Return(nil)
+	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.NotNil(t, err)
@@ -315,27 +283,21 @@ func TestGetAuthConfigBadBase64(t *testing.T) {
 }
 
 func TestGetAuthConfigMissingResponse(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		})
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return nil, nil
+	}
 
-	credentialCache.EXPECT().Get(registryID).Return(nil)
+	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.NotNil(t, err)
@@ -344,27 +306,21 @@ func TestGetAuthConfigMissingResponse(t *testing.T) {
 }
 
 func TestGetAuthConfigECRError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
 		credentialCache: credentialCache,
 	}
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(nil, errors.New("test error"))
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return nil, errors.New("test error")
+	}
 
-	credentialCache.EXPECT().Get(registryID).Return(nil)
+	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.NotNil(t, err)
@@ -373,10 +329,8 @@ func TestGetAuthConfigECRError(t *testing.T) {
 }
 
 func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -386,15 +340,11 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 	testProxyEndpoint := proxyEndpointScheme + proxyEndpoint
 	authorizationToken := base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 1 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 1 but got %d", len(input.RegistryIds))
-			}
-		}).Return(nil, errors.New("Service eror"))
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
+		return nil, errors.New("service error")
+	}
 
 	expiredAuthEntry := &cache.AuthEntry{
 		ProxyEndpoint:      testProxyEndpoint,
@@ -403,7 +353,10 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 		AuthorizationToken: authorizationToken,
 	}
 
-	credentialCache.EXPECT().Get(registryID).Return(expiredAuthEntry)
+	credentialCache.GetFn = func(r string) *cache.AuthEntry {
+		assert.Equal(t, registryID, r, "get from cache")
+		return expiredAuthEntry
+	}
 
 	auth, err := client.GetCredentials(proxyEndpoint)
 	assert.Nil(t, err)
@@ -413,9 +366,7 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 }
 
 func TestListCredentialsSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		credentialCache: credentialCache,
@@ -433,7 +384,7 @@ func TestListCredentialsSuccess(t *testing.T) {
 	}
 	authEntries := []*cache.AuthEntry{authEntry}
 
-	credentialCache.EXPECT().List().Return(authEntries)
+	credentialCache.ListFn = func() []*cache.AuthEntry { return authEntries }
 
 	auths, err := client.ListCredentials()
 	assert.NoError(t, err)
@@ -447,10 +398,8 @@ func TestListCredentialsSuccess(t *testing.T) {
 }
 
 func TestListCredentialsBadBase64AuthToken(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -461,25 +410,19 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 	expiresAt := time.Now().Add(12 * time.Hour)
 
 	emptyCache := []*cache.AuthEntry{}
-	credentialCache.EXPECT().List().Return(emptyCache)
+	credentialCache.ListFn = func() []*cache.AuthEntry { return emptyCache }
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 0 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 0 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 0, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalid:token"),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
 	auths, err := client.ListCredentials()
 	assert.Error(t, err)
@@ -488,10 +431,8 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 }
 
 func TestListCredentialsInvalidAuthToken(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	ecrClient := mock_api.NewMockECRAPI(ctrl)
-	credentialCache := mock_cache.NewMockCredentialsCache(ctrl)
+	ecrClient := &mock_api.MockECRAPI{}
+	credentialCache := &mock_cache.MockCredentialsCache{}
 
 	client := &defaultClient{
 		ecrClient:       ecrClient,
@@ -502,25 +443,19 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 	expiresAt := time.Now().Add(12 * time.Hour)
 
 	emptyCache := []*cache.AuthEntry{}
-	credentialCache.EXPECT().List().Return(emptyCache)
+	credentialCache.ListFn = func() []*cache.AuthEntry { return emptyCache }
 
-	ecrClient.EXPECT().GetAuthorizationToken(gomock.Any()).Do(
-		func(input *ecr.GetAuthorizationTokenInput) {
-			if input == nil {
-				t.Fatal("Called with nil input")
-			}
-			if len(input.RegistryIds) != 0 {
-				t.Fatalf("Unexpected number of RegistryIds, expected 0 but got %d", len(input.RegistryIds))
-			}
-		}).Return(&ecr.GetAuthorizationTokenOutput{
-		AuthorizationData: []*ecr.AuthorizationData{
-			&ecr.AuthorizationData{
+	ecrClient.GetAuthorizationTokenFn = func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+		assert.NotNil(t, input, "GetAuthorizationToken input")
+		assert.Len(t, input.RegistryIds, 0, "GetAuthorizationToken registry IDs len")
+		return &ecr.GetAuthorizationTokenOutput{
+			AuthorizationData: []*ecr.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalidtoken"),
-			},
-		},
-	}, nil)
+			}},
+		}, nil
+	}
 
 	auths, err := client.ListCredentials()
 	assert.Error(t, err)

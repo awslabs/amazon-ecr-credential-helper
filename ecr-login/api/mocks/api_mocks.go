@@ -18,37 +18,12 @@ package mock_api
 
 import (
 	ecr "github.com/aws/aws-sdk-go/service/ecr"
-	gomock "github.com/golang/mock/gomock"
 )
 
-// Mock of ECRAPI interface
 type MockECRAPI struct {
-	ctrl     *gomock.Controller
-	recorder *_MockECRAPIRecorder
+	GetAuthorizationTokenFn func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
-// Recorder for MockECRAPI (not exported)
-type _MockECRAPIRecorder struct {
-	mock *MockECRAPI
-}
-
-func NewMockECRAPI(ctrl *gomock.Controller) *MockECRAPI {
-	mock := &MockECRAPI{ctrl: ctrl}
-	mock.recorder = &_MockECRAPIRecorder{mock}
-	return mock
-}
-
-func (_m *MockECRAPI) EXPECT() *_MockECRAPIRecorder {
-	return _m.recorder
-}
-
-func (_m *MockECRAPI) GetAuthorizationToken(_param0 *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
-	ret := _m.ctrl.Call(_m, "GetAuthorizationToken", _param0)
-	ret0, _ := ret[0].(*ecr.GetAuthorizationTokenOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockECRAPIRecorder) GetAuthorizationToken(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthorizationToken", arg0)
+func (m MockECRAPI) GetAuthorizationToken(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+	return m.GetAuthorizationTokenFn(input)
 }

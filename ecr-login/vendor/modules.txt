@@ -40,8 +40,6 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/davecgh/go-spew/spew
 # github.com/docker/docker-credential-helpers v0.6.3
 github.com/docker/docker-credential-helpers/credentials
-# github.com/golang/mock v1.3.1-0.20190508161146-9fa652df1129
-github.com/golang/mock/gomock
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
