@@ -1,3 +1,10 @@
+amazon-ecr-credential-helper (0.5.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update minimum Go dependency to 1.12.
+
+ -- Samuel Karp <skarp@amazon.com>  Mon, 15 Feb 2021 17:21:51 -0800
+
 amazon-ecr-credential-helper (0.3.1-2) unstable; urgency=medium
 
   [ Debian Janitor ]

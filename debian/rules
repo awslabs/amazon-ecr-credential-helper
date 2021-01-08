@@ -30,4 +30,5 @@ override_dh_clean:
 	rm -rf ./debian/amazon-ecr-credential-helper
 	rm -rf ./debian/.debhelper
 	rm -rf ./debian/files
+	rm -rf ./bin
 	rm -f ./amazon-ecr-credential-helper_*

@@ -5,14 +5,13 @@ Maintainer: Samuel Karp <skarp@amazon.com>
 Build-Depends:
  debhelper-compat (= 12),
  dh-golang (>= 1.1),
- golang-go (>= 1.7),
+ golang-go (>= 1.12),
  git,
- golang-github-aws-aws-sdk-go-dev (>= 1.16.26),
+ golang-github-aws-aws-sdk-go-dev (>= 1.36.0),
  golang-github-docker-docker-credential-helpers-dev,
  golang-github-mitchellh-go-homedir-dev,
  golang-github-sirupsen-logrus-dev,
  golang-github-stretchr-testify-dev,
- golang-github-golang-mock-dev,
  golang-github-pkg-errors-dev
 Standards-Version: 4.5.0
 Homepage: https://github.com/awslabs/amazon-ecr-credential-helper
