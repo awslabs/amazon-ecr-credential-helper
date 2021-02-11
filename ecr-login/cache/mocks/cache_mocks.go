@@ -18,16 +18,21 @@ import (
 )
 
 type MockCredentialsCache struct {
-	GetFn   func(registry string) *cache.AuthEntry
-	SetFn   func(registry string, entry *cache.AuthEntry)
-	ListFn  func() []*cache.AuthEntry
-	ClearFn func()
+	GetFn       func(registry string) *cache.AuthEntry
+	GetPublicFn func() *cache.AuthEntry
+	SetFn       func(registry string, entry *cache.AuthEntry)
+	ListFn      func() []*cache.AuthEntry
+	ClearFn     func()
 }
 
 var _ cache.CredentialsCache = (*MockCredentialsCache)(nil)
 
 func (m MockCredentialsCache) Get(registry string) *cache.AuthEntry {
 	return m.GetFn(registry)
+}
+
+func (m MockCredentialsCache) GetPublic() *cache.AuthEntry {
+	return m.GetPublicFn()
 }
 
 func (m MockCredentialsCache) Set(registry string, entry *cache.AuthEntry) {

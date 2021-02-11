@@ -156,6 +156,7 @@ ECR registry:
 ```json
 {
 	"credHelpers": {
+		"public.ecr.aws": "ecr-login",
 		"<aws_account_id>.dkr.ecr.<region>.amazonaws.com": "ecr-login"
 	}
 }
@@ -203,6 +204,8 @@ The credentials must have a policy applied that
 `docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 `docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+
+`docker pull public.ecr.aws/amazonlinux/amazonlinux:latest`
 
 If you have configured additional profiles for use with the AWS CLI, you can use
 those profiles by specifying the `AWS_PROFILE` environment variable when invoking `docker`.
