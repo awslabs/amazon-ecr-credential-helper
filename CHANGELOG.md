@@ -1,5 +1,8 @@
-# Unreleased
+# 0.5.0
+* Feature - Added support for [ECR Public](https://gallery.ecr.aws) ([#253](https://github.com/awslabs/amazon-ecr-credential-helper/pull/253))
+* Feature - Added support for [EC2 IMDSv2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html) ([#240](https://github.com/awslabs/amazon-ecr-credential-helper/pull/240))
 * Enhancement - The AWS shared config file (`~/.aws/config`) is now enabled by default.  This can be disabled by setting the environment variable `AWS_SDK_LOAD_CONFIG` to `false` ([#201](https://github.com/awslabs/amazon-ecr-credential-helper/pull/201))
+* Bug - Fixed an issue where output from a `credential_process` was sometimes too big for the default buffer ([#240](https://github.com/awslabs/amazon-ecr-credential-helper/pull/240))
 
 # 0.4.0
 
