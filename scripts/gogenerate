@@ -18,6 +18,4 @@ set -e
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
 
-source ./scripts/shared_env
-
 go generate -x $(go list ./ecr-login/... | grep -v '/vendor/')
