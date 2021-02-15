@@ -16,47 +16,70 @@ package api
 import (
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
+	"github.com/aws/aws-sdk-go/service/ecrpublic"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 )
 
-const proxyEndpointScheme = "https://"
-const programName = "docker-credential-ecr-login"
+const (
+	proxyEndpointScheme = "https://"
+	programName         = "docker-credential-ecr-login"
+	ecrPublicName       = "public.ecr.aws"
+	ecrPublicEndpoint   = proxyEndpointScheme + ecrPublicName
+)
 
-var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?`)
+var ecrPattern = regexp.MustCompile(`(^[a-zA-Z0-9][a-zA-Z0-9-_]*)\.dkr\.ecr(-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.amazonaws\.com(\.cn)?$`)
+
+type Service string
+
+const (
+	ServiceECR       Service = "ecr"
+	ServiceECRPublic Service = "ecr-public"
+)
 
 // Registry in ECR
 type Registry struct {
-	ID     string
-	FIPS   bool
-	Region string
+	Service Service
+	ID      string
+	FIPS    bool
+	Region  string
 }
 
 // ExtractRegistry returns the ECR registry behind a given service endpoint
-func ExtractRegistry(serverURL string) (*Registry, error) {
-	if strings.HasPrefix(serverURL, proxyEndpointScheme) {
-		serverURL = strings.TrimPrefix(serverURL, proxyEndpointScheme)
+func ExtractRegistry(input string) (*Registry, error) {
+	if strings.HasPrefix(input, proxyEndpointScheme) {
+		input = strings.TrimPrefix(input, proxyEndpointScheme)
 	}
-	matches := ecrPattern.FindStringSubmatch(serverURL)
+	serverURL, err := url.Parse(proxyEndpointScheme + input)
+	if err != nil {
+		return nil, err
+	}
+	if serverURL.Hostname() == ecrPublicName {
+		return &Registry{
+			Service: ServiceECRPublic,
+		}, nil
+	}
+	matches := ecrPattern.FindStringSubmatch(serverURL.Hostname())
 	if len(matches) == 0 {
 		return nil, fmt.Errorf(programName + " can only be used with Amazon Elastic Container Registry.")
 	} else if len(matches) < 3 {
-		return nil, fmt.Errorf(serverURL + "is not a valid repository URI for Amazon Elastic Container Registry.")
+		return nil, fmt.Errorf("%q is not a valid repository URI for Amazon Elastic Container Registry.", input)
 	}
-	registry := &Registry{
-		ID:     matches[1],
-		FIPS:   matches[2] == "-fips",
-		Region: matches[3],
-	}
-	return registry, nil
+	return &Registry{
+		Service: ServiceECR,
+		ID:      matches[1],
+		FIPS:    matches[2] == "-fips",
+		Region:  matches[3],
+	}, nil
 }
 
 // Client used for calling ECR service
@@ -64,13 +87,6 @@ type Client interface {
 	GetCredentials(serverURL string) (*Auth, error)
 	GetCredentialsByRegistryID(registryID string) (*Auth, error)
 	ListCredentials() ([]*Auth, error)
-}
-type defaultClient struct {
-	ecrClient       ECRAPI
-	credentialCache cache.CredentialsCache
-}
-type ECRAPI interface {
-	GetAuthorizationToken(*ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
 // Auth credentials returned by ECR service to allow docker login
@@ -80,6 +96,20 @@ type Auth struct {
 	Password      string
 }
 
+type defaultClient struct {
+	ecrClient       ECRAPI
+	ecrPublicClient ECRPublicAPI
+	credentialCache cache.CredentialsCache
+}
+
+type ECRAPI interface {
+	GetAuthorizationToken(*ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
+}
+
+type ECRPublicAPI interface {
+	GetAuthorizationToken(*ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error)
+}
+
 // GetCredentials returns username, password, and proxyEndpoint
 func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 	registry, err := ExtractRegistry(serverURL)
@@ -87,11 +117,18 @@ func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 		return nil, err
 	}
 	logrus.
+		WithField("service", registry.Service).
 		WithField("registry", registry.ID).
 		WithField("region", registry.Region).
 		WithField("serverURL", serverURL).
 		Debug("Retrieving credentials")
-	return c.GetCredentialsByRegistryID(registry.ID)
+	switch registry.Service {
+	case ServiceECR:
+		return c.GetCredentialsByRegistryID(registry.ID)
+	case ServiceECRPublic:
+		return c.GetPublicCredentials()
+	}
+	return nil, fmt.Errorf("unknown service %q", registry.Service)
 }
 
 // GetCredentialsByRegistryID returns username, password, and proxyEndpoint
@@ -120,8 +157,42 @@ func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, er
 	return auth, err
 }
 
+func (c *defaultClient) GetPublicCredentials() (*Auth, error) {
+	cachedEntry := c.credentialCache.GetPublic()
+	if cachedEntry != nil {
+		if cachedEntry.IsValid(time.Now()) {
+			logrus.WithField("registry", ecrPublicName).Debug("Using cached token")
+			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+		}
+		logrus.
+			WithField("requestedAt", cachedEntry.RequestedAt).
+			WithField("expiresAt", cachedEntry.ExpiresAt).
+			Debug("Cached token is no longer valid")
+	}
+
+	auth, err := c.getPublicAuthorizationToken()
+	// if we have a cached token, fall back to avoid failing the request. This may result an expired token
+	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
+	// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
+	if err != nil && cachedEntry != nil {
+		logrus.WithError(err).Info("Got error fetching authorization token. Falling back to cached token.")
+		return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+	}
+	return auth, err
+}
+
 func (c *defaultClient) ListCredentials() ([]*Auth, error) {
-	auths := []*Auth{}
+	// prime the cache with default authorization tokens
+	_, err := c.GetCredentialsByRegistryID("")
+	if err != nil {
+		logrus.WithError(err).Debug("couldn't get authorization token for default registry")
+	}
+	_, err = c.GetPublicCredentials()
+	if err != nil {
+		logrus.WithError(err).Debug("couldn't get authorization token for public registry")
+	}
+
+	auths := make([]*Auth, 0)
 	for _, authEntry := range c.credentialCache.List() {
 		auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
 		if err != nil {
@@ -129,18 +200,6 @@ func (c *defaultClient) ListCredentials() ([]*Auth, error) {
 		} else {
 			auths = append(auths, auth)
 		}
-	}
-
-	// If cache is empty, get authorization token of default registry
-	if len(auths) == 0 {
-		logrus.Debug("No credential cache")
-		auth, err := c.getAuthorizationToken("")
-		if err != nil {
-			logrus.WithError(err).Debugf("Couldn't get authorization token")
-		} else {
-			auths = append(auths, auth)
-		}
-		return auths, err
 	}
 
 	return auths, nil
@@ -177,6 +236,7 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 				RequestedAt:        time.Now(),
 				ExpiresAt:          aws.TimeValue(authData.ExpiresAt),
 				ProxyEndpoint:      aws.StringValue(authData.ProxyEndpoint),
+				Service:            cache.ServiceECR,
 			}
 			registry, err := ExtractRegistry(authEntry.ProxyEndpoint)
 			if err != nil {
@@ -196,15 +256,41 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 	return nil, fmt.Errorf("No AuthorizationToken found for %s", registryID)
 }
 
+func (c *defaultClient) getPublicAuthorizationToken() (*Auth, error) {
+	var input *ecrpublic.GetAuthorizationTokenInput
+
+	output, err := c.ecrPublicClient.GetAuthorizationToken(input)
+	if err != nil {
+		return nil, errors.Wrap(err, "ecr: failed to get authorization token")
+	}
+	if output == nil || output.AuthorizationData == nil {
+		return nil, fmt.Errorf("ecr: missing AuthorizationData in ECR Public response")
+	}
+	authData := output.AuthorizationData
+	token, err := extractToken(aws.StringValue(authData.AuthorizationToken), ecrPublicEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	authEntry := cache.AuthEntry{
+		AuthorizationToken: aws.StringValue(authData.AuthorizationToken),
+		RequestedAt:        time.Now(),
+		ExpiresAt:          aws.TimeValue(authData.ExpiresAt),
+		ProxyEndpoint:      ecrPublicEndpoint,
+		Service:            cache.ServiceECRPublic,
+	}
+	c.credentialCache.Set(ecrPublicName, &authEntry)
+	return token, nil
+}
+
 func extractToken(token string, proxyEndpoint string) (*Auth, error) {
 	decodedToken, err := base64.StdEncoding.DecodeString(token)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid token: %v", err)
+		return nil, errors.Wrap(err, "invalid token")
 	}
 
 	parts := strings.SplitN(string(decodedToken), ":", 2)
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("Invalid token: expected two parts, got %d", len(parts))
+		return nil, fmt.Errorf("invalid token: expected two parts, got %d", len(parts))
 	}
 
 	return &Auth{

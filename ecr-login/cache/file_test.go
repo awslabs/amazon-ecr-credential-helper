@@ -22,19 +22,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testAuthEntry = AuthEntry{
-	AuthorizationToken: "testToken",
-	RequestedAt:        time.Now().Add(-5 * time.Hour),
-	ExpiresAt:          time.Now().Add(7 * time.Hour),
-	ProxyEndpoint:      "testEndpoint",
-}
+const (
+	testRegistryName   = "testRegistry"
+	testCachePrefixKey = "prefix-"
+	testPublicCacheKey = "public-"
+	testFilename       = "test.json"
+)
 
-var testRegistryName = "testRegistry"
-
-var testCachePrefixKey = "prefix-"
-var testPath = os.TempDir() + "/ecr"
-var testFilename = "test.json"
-var testFullFillename = filepath.Join(testPath, testFilename)
+var (
+	testAuthEntry = AuthEntry{
+		AuthorizationToken: "testToken",
+		RequestedAt:        time.Now().Add(-5 * time.Hour),
+		ExpiresAt:          time.Now().Add(7 * time.Hour),
+		ProxyEndpoint:      "testEndpoint",
+		Service:            ServiceECR,
+	}
+	testPublicAuthEntry = AuthEntry{
+		AuthorizationToken: "testToken",
+		RequestedAt:        time.Now().Add(-5 * time.Hour),
+		ExpiresAt:          time.Now().Add(7 * time.Hour),
+		ProxyEndpoint:      "testEndpoint",
+		Service:            ServiceECRPublic,
+	}
+	testPath          = os.TempDir() + "/ecr"
+	testFullFillename = filepath.Join(testPath, testFilename)
+)
 
 func TestAuthEntryValid(t *testing.T) {
 	assert.True(t, testAuthEntry.IsValid(time.Now()))
@@ -45,7 +57,7 @@ func TestAuthEntryInValid(t *testing.T) {
 }
 
 func TestCredentials(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
 
 	credentialCache.Set(testRegistryName, &testAuthEntry)
 
@@ -54,6 +66,7 @@ func TestCredentials(t *testing.T) {
 	assert.Equal(t, testAuthEntry.ProxyEndpoint, entry.ProxyEndpoint)
 	assert.WithinDuration(t, testAuthEntry.RequestedAt, entry.RequestedAt, 1*time.Second)
 	assert.WithinDuration(t, testAuthEntry.ExpiresAt, entry.ExpiresAt, 1*time.Second)
+	assert.Equal(t, testAuthEntry.Service, entry.Service)
 
 	entries := credentialCache.List()
 	assert.NotEmpty(t, entries)
@@ -66,8 +79,31 @@ func TestCredentials(t *testing.T) {
 	assert.Nil(t, entry)
 }
 
+func TestCredentialsPublic(t *testing.T) {
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
+
+	credentialCache.Set(testRegistryName, &testPublicAuthEntry)
+
+	entry := credentialCache.GetPublic()
+	assert.Equal(t, testPublicAuthEntry.AuthorizationToken, entry.AuthorizationToken)
+	assert.Equal(t, testPublicAuthEntry.ProxyEndpoint, entry.ProxyEndpoint)
+	assert.WithinDuration(t, testPublicAuthEntry.RequestedAt, entry.RequestedAt, 1*time.Second)
+	assert.WithinDuration(t, testPublicAuthEntry.ExpiresAt, entry.ExpiresAt, 1*time.Second)
+	assert.Equal(t, testPublicAuthEntry.Service, entry.Service)
+
+	entries := credentialCache.List()
+	assert.NotEmpty(t, entries)
+	assert.Len(t, entries, 1)
+	assert.Equal(t, entry, entries[0])
+
+	credentialCache.Clear()
+
+	entry = credentialCache.GetPublic()
+	assert.Nil(t, entry)
+}
+
 func TestPreviousVersionCache(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
 
 	registryCache := newRegistryCache()
 	registryCache.Version = "0.1"
@@ -83,7 +119,7 @@ func TestPreviousVersionCache(t *testing.T) {
 const testBadJson = "{nope not good json at all."
 
 func TestInvalidCache(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
 
 	file, err := os.Create(testFullFillename)
 	assert.NoError(t, err)

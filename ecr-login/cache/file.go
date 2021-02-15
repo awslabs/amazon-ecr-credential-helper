@@ -34,6 +34,7 @@ type fileCredentialCache struct {
 	path           string
 	filename       string
 	cachePrefixKey string
+	publicCacheKey string
 }
 
 func newRegistryCache() *RegistryCache {
@@ -50,11 +51,16 @@ func newRegistryCache() *RegistryCache {
 //
 // cachePrefixKey is used for scoping credentials for a given credential cache (i.e. region and
 // accessKey).
-func NewFileCredentialsCache(path string, filename string, cachePrefixKey string) CredentialsCache {
+func NewFileCredentialsCache(path string, filename string, cachePrefixKey string, publicCacheKey string) CredentialsCache {
 	if _, err := os.Stat(path); err != nil {
 		os.MkdirAll(path, 0700)
 	}
-	return &fileCredentialCache{path: path, filename: filename, cachePrefixKey: cachePrefixKey}
+	return &fileCredentialCache{
+		path:           path,
+		filename:       filename,
+		cachePrefixKey: cachePrefixKey,
+		publicCacheKey: publicCacheKey,
+	}
 }
 
 func (f *fileCredentialCache) Get(registry string) *AuthEntry {
@@ -63,15 +69,28 @@ func (f *fileCredentialCache) Get(registry string) *AuthEntry {
 	return registryCache.Registries[f.cachePrefixKey+registry]
 }
 
+func (f *fileCredentialCache) GetPublic() *AuthEntry {
+	logrus.Debug("Checking file cache for ECR Public")
+	registryCache := f.init()
+	return registryCache.Registries[f.publicCacheKey]
+}
+
 func (f *fileCredentialCache) Set(registry string, entry *AuthEntry) {
-	logrus.WithField("registry", registry).Debug("Saving credentials to file cache")
+	logrus.
+		WithField("registry", registry).
+		WithField("service", entry.Service).
+		Debug("Saving credentials to file cache")
 	registryCache := f.init()
 
-	registryCache.Registries[f.cachePrefixKey+registry] = entry
+	key := f.cachePrefixKey + registry
+	if entry.Service == ServiceECRPublic {
+		key = f.publicCacheKey
+	}
+	registryCache.Registries[key] = entry
 
 	err := f.save(registryCache)
 	if err != nil {
-		logrus.WithError(err).Infof("Could not save cache")
+		logrus.WithError(err).Info("Could not save cache")
 	}
 }
 
@@ -163,6 +182,13 @@ func (f *fileCredentialCache) load() (*RegistryCache, error) {
 		return nil, fmt.Errorf("ecr: Registry cache version %#v is not compatible with %#v, ignoring existing cache",
 			registryCache.Version,
 			registryCacheVersion)
+	}
+
+	// migrate entries
+	for key := range registryCache.Registries {
+		if registryCache.Registries[key].Service == "" {
+			registryCache.Registries[key].Service = ServiceECR
+		}
 	}
 
 	return registryCache, nil

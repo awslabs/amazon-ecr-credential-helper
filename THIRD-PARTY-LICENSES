@@ -1,7 +1,6 @@
 This Amazon ECR Docker Credential Helper includes the following third-party software/licensing:
 
 ** github.com/aws/aws-sdk-go/; version 1.21.2 -- https://github.com/aws/aws-sdk-go/
-** github.com/golang/mock; version v1.3.1 -- https://github.com/golang/mock
 ** github.com/jmespath/go-jmespath; version c2b33e84 -- https://github.com/jmespath/go-jmespath
 
 Apache License

@@ -34,7 +34,7 @@ Docker to work with the helper.
 ### Mac OS
 A community-maintained Homebrew formula is available in the core tap.
 
-[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/docker-credential-helper-ecr.svg)](https://repology.org/metapackage/docker-credential-helper-ecr/versions)
+[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ brew install docker-credential-helper-ecr
@@ -48,6 +48,7 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Debian Buster
 archives.  This package will also be included in future releases of Debian.
 
+[![Debian Stable package](https://repology.org/badge/version-for-repo/debian_stable/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian Testing package](https://repology.org/badge/version-for-repo/debian_testing/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
@@ -65,6 +66,8 @@ You can install the Amazon ECR Credential Helper from the Ubuntu 19.04 Disco
 Dingo (and newer) archives.
 
 [![Ubuntu 19.04 package](https://repology.org/badge/version-for-repo/ubuntu_19_04/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+[![Ubuntu 19.10 package](https://repology.org/badge/version-for-repo/ubuntu_19_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ sudo apt update
@@ -153,7 +156,8 @@ ECR registry:
 ```json
 {
 	"credHelpers": {
-		"aws_account_id.dkr.ecr.region.amazonaws.com": "ecr-login"
+		"public.ecr.aws": "ecr-login",
+		"<aws_account_id>.dkr.ecr.<region>.amazonaws.com": "ecr-login"
 	}
 }
 ```
@@ -174,9 +178,9 @@ include:
 To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
 may set the `AWS_PROFILE` environment variable. 
 
-The Amazon ECR Docker Credential Helper can optionally read and support some configuration options specified in the AWS
-shared configuration file (`~/.aws/config`).  To use these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
-variable to `true`.  The supported options include:
+The Amazon ECR Docker Credential Helper reads and supports some configuration options specified in the AWS
+shared configuration file (`~/.aws/config`).  To disable these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
+variable to `false`.  The supported options include:
 
 * Assumed roles specified with `role_arn` and `source_profile`
 * External credential processes specified with `credential_process`
@@ -201,13 +205,13 @@ The credentials must have a policy applied that
 
 `docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
+`docker pull public.ecr.aws/amazonlinux/amazonlinux:latest`
+
 If you have configured additional profiles for use with the AWS CLI, you can use
-those profiles by specifying the `AWS_PROFILE` environment variable when
-invoking `docker`.  If your profiles use assumed roles or additional credential
-providing processes, you will also need to specify `AWS_SDK_LOAD_CONFIG=true`.
+those profiles by specifying the `AWS_PROFILE` environment variable when invoking `docker`.
 For example:
 
-`AWS_SDK_LOAD_CONFIG=true AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
 
