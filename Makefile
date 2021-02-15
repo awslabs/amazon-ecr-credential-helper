@@ -45,7 +45,7 @@ $(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
 
 .PHONY: test
 test:
-	go test -v -timeout 30s -short -cover ./ecr-login/...
+	cd $(SOURCEDIR) && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
 all-variants: linux-amd64 linux-arm64 darwin-amd64 windows-amd64
