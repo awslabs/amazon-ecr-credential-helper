@@ -13,20 +13,31 @@
 
 package cache
 
-import "time"
+import (
+	"time"
+)
 
 type CredentialsCache interface {
 	Get(registry string) *AuthEntry
+	GetPublic() *AuthEntry
 	Set(registry string, entry *AuthEntry)
 	List() []*AuthEntry
 	Clear()
 }
+
+type Service string
+
+const (
+	ServiceECR       Service = "ecr"
+	ServiceECRPublic Service = "ecr-public"
+)
 
 type AuthEntry struct {
 	AuthorizationToken string
 	RequestedAt        time.Time
 	ExpiresAt          time.Time
 	ProxyEndpoint      string
+	Service            Service
 }
 
 // IsValid checks if AuthEntry is still valid at testTime. AuthEntries expire at 1/2 of their original

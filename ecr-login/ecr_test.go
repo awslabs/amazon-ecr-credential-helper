@@ -21,7 +21,6 @@ import (
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/mocks"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,21 +33,24 @@ const (
 )
 
 func TestGetSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	factory := mock_api.NewMockClientFactory(ctrl)
-	client := mock_api.NewMockClient(ctrl)
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
 
 	helper := &ECRHelper{
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientFromRegion(region).Return(client)
-	client.EXPECT().GetCredentials(proxyEndpoint).Return(&ecr.Auth{
-		Username:      expectedUsername,
-		Password:      expectedPassword,
-		ProxyEndpoint: proxyEndpointUrl,
-	}, nil)
+	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		if serverURL != proxyEndpoint {
+			return nil, fmt.Errorf("unexpected input: %s", serverURL)
+		}
+		return &ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: proxyEndpointUrl,
+		}, nil
+	}
 
 	username, password, err := helper.Get(proxyEndpoint)
 	assert.Nil(t, err)
@@ -57,17 +59,17 @@ func TestGetSuccess(t *testing.T) {
 }
 
 func TestGetError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	factory := mock_api.NewMockClientFactory(ctrl)
-	client := mock_api.NewMockClient(ctrl)
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
 
 	helper := &ECRHelper{
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientFromRegion(region).Return(client)
-	client.EXPECT().GetCredentials(proxyEndpoint).Return(nil, errors.New("test error"))
+	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		return nil, errors.New("test error")
+	}
 
 	username, password, err := helper.Get(proxyEndpoint)
 	assert.True(t, credentials.IsErrCredentialsNotFound(err))
@@ -85,23 +87,21 @@ func TestGetNoMatch(t *testing.T) {
 }
 
 func TestListSuccess(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	factory := mock_api.NewMockClientFactory(ctrl)
-	client := mock_api.NewMockClient(ctrl)
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
 
 	helper := &ECRHelper{
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientWithDefaults().Return(client)
-	client.EXPECT().ListCredentials().Return([]*ecr.Auth{
-		&ecr.Auth{
+	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
+	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {
+		return []*ecr.Auth{{
 			Username:      expectedUsername,
 			Password:      expectedPassword,
 			ProxyEndpoint: proxyEndpointUrl,
-		},
-	}, nil)
+		}}, nil
+	}
 
 	serverList, err := helper.List()
 	assert.NoError(t, err)
@@ -110,17 +110,17 @@ func TestListSuccess(t *testing.T) {
 }
 
 func TestListFailure(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	factory := mock_api.NewMockClientFactory(ctrl)
-	client := mock_api.NewMockClient(ctrl)
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
 
 	helper := &ECRHelper{
 		ClientFactory: factory,
 	}
 
-	factory.EXPECT().NewClientWithDefaults().Return(client)
-	client.EXPECT().ListCredentials().Return(nil, fmt.Errorf("nope"))
+	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
+	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {
+		return nil, errors.New("nope")
+	}
 
 	serverList, err := helper.List()
 	assert.Error(t, err)

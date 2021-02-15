@@ -13,21 +13,8 @@ for the Docker daemon that makes it easier to use
 
 You must have at least Docker 1.11 installed on your system.
 
-You also must have AWS credentials available in one of the standard locations:
-
-* The `~/.aws/credentials` file
-* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
-* An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
-* If you are working with an assumed role please set the environment variable: `AWS_SDK_LOAD_CONFIG=true` also.
-
-The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
-CLI and the AWS SDKs. For more information about configuring AWS credentials,
-see
-[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
-in the *AWS Command Line Interface User Guide*.
-
-The credentials must have a policy applied that
-[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+You also must have AWS credentials available.  See the [AWS credentials section](#aws-credentials) for details on how to
+use different AWS credentials.
 
 ## Installing
 
@@ -47,7 +34,7 @@ Docker to work with the helper.
 ### Mac OS
 A community-maintained Homebrew formula is available in the core tap.
 
-[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/docker-credential-helper-ecr.svg)](https://repology.org/metapackage/docker-credential-helper-ecr/versions)
+[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ brew install docker-credential-helper-ecr
@@ -61,6 +48,7 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Debian Buster
 archives.  This package will also be included in future releases of Debian.
 
+[![Debian Stable package](https://repology.org/badge/version-for-repo/debian_stable/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian Testing package](https://repology.org/badge/version-for-repo/debian_testing/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
@@ -78,6 +66,8 @@ You can install the Amazon ECR Credential Helper from the Ubuntu 19.04 Disco
 Dingo (and newer) archives.
 
 [![Ubuntu 19.04 package](https://repology.org/badge/version-for-repo/ubuntu_19_04/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+[![Ubuntu 19.10 package](https://repology.org/badge/version-for-repo/ubuntu_19_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ sudo apt update
@@ -105,7 +95,7 @@ Docker to work with the helper.
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
-1.9+, `git` and `make` installed on your system.
+1.12+, `git` and `make` installed on your system.
 
 If you just installed Go, make sure you also have added it to your PATH or 
 Environment Vars (Windows). For example:
@@ -144,6 +134,8 @@ Docker to work with the helper.
 
 ## Configuration
 
+### Docker
+
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the
 contents of your `~/.docker/config.json` file to be:
 
@@ -164,7 +156,8 @@ ECR registry:
 ```json
 {
 	"credHelpers": {
-		"aws_account_id.dkr.ecr.region.amazonaws.com": "ecr-login"
+		"public.ecr.aws": "ecr-login",
+		"<aws_account_id>.dkr.ecr.<region>.amazonaws.com": "ecr-login"
 	}
 }
 ```
@@ -172,19 +165,53 @@ ECR registry:
 This is useful if you use `docker` to operate on registries that use different
 authentication credentials.
 
+### AWS credentials
+
+The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations.  Standard ones
+include:
+
+* The shared credentials file (`~/.aws/credentials`)
+* The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
+* An [IAM role for an Amazon ECS task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html)
+* An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+
+To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
+may set the `AWS_PROFILE` environment variable. 
+
+The Amazon ECR Docker Credential Helper reads and supports some configuration options specified in the AWS
+shared configuration file (`~/.aws/config`).  To disable these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
+variable to `false`.  The supported options include:
+
+* Assumed roles specified with `role_arn` and `source_profile`
+* External credential processes specified with `credential_process`
+* Web Identities like [IAM Roles for Service Accounts in
+  Kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) (*Note: Kubernetes
+  users using containers with a non-root user may encounter permission issues described in [this
+  bug](https://github.com/kubernetes-sigs/external-dns/pull/1185) and may need to employ a workaround adjusting the
+  Kubernetes `securityContext`.*)
+
+The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
+CLI and the AWS SDKs. For more information about configuring AWS credentials,
+see
+[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+in the *AWS Command Line Interface User Guide*.
+
+The credentials must have a policy applied that
+[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+
 ## Usage
 
 `docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 `docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
+`docker pull public.ecr.aws/amazonlinux/amazonlinux:latest`
+
 If you have configured additional profiles for use with the AWS CLI, you can use
-those profiles by specifying the `AWS_PROFILE` environment variable when
-invoking `docker`.  If your profiles use assumed roles or additional credential
-providing processes, you will also need to specify `AWS_SDK_LOAD_CONFIG=true`.
+those profiles by specifying the `AWS_PROFILE` environment variable when invoking `docker`.
 For example:
 
-`AWS_SDK_LOAD_CONFIG=true AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
+`AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
 

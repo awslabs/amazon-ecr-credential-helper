@@ -28,7 +28,7 @@ DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
 .PHONY: docker
-docker: Dockerfile
+docker: Dockerfile GITCOMMIT_SHA
 	mkdir -p bin
 	docker run --rm \
 	-e TARGET_GOOS=$(TARGET_GOOS) \
@@ -45,7 +45,7 @@ $(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
 
 .PHONY: test
 test:
-	. ./scripts/shared_env && go test -v -timeout 30s -short -cover $(shell go list ./ecr-login/... | grep -v /vendor/)
+	. ./scripts/shared_env && cd ecr-login && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
 all-variants: linux-amd64 linux-arm64 darwin-amd64 windows-amd64
@@ -98,7 +98,6 @@ gogenerate:
 get-deps:
 	go get github.com/tools/godep
 	go get golang.org/x/tools/cmd/cover
-	go get github.com/golang/mock/mockgen
 	go get golang.org/x/tools/cmd/goimports
 
 .PHONY: clean
