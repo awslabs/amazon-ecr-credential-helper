@@ -36,7 +36,10 @@ rpm: .rpm-done
 .PHONY: docker-rpm
 docker-rpm:
 	docker run --rm \
-	-v '$(shell pwd)':/sources \
+	--volume '$(shell pwd)':/sources \
+	--net none \
+	--env GOCACHE=/tmp/.cache \
+	--user $(shell id -u) \
 	$(shell docker build --network=host -f packaging/amazon-linux/Dockerfile.rpm -q .)
 
 .PHONY: .clean-amazonlinux

@@ -11,12 +11,11 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-FROM amazonlinux:2
+FROM public.ecr.aws/amazonlinux/amazonlinux:2
 
 WORKDIR /sources
 
-RUN amazon-linux-extras enable golang1.11 \
- && yum install -y rpm-build make golang git
+RUN yum install -y rpm-build make golang git
 
 COPY . .
 

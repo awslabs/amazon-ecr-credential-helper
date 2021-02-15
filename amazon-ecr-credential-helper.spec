@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and
 # limitations under the License.
 Name:           amazon-ecr-credential-helper
-Version:        0.4.0
+Version:        0.5.0
 Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
@@ -23,7 +23,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.10
+BuildRequires: golang >= 1.11
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -51,12 +51,15 @@ Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/endpoints))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/request))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/session))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/aws/signer/v4))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/context))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/ini))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkio))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkmath))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkrand))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sdkuri))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/shareddefaults))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/strings))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/internal/sync/singleflight))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/json/jsonutil))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/jsonrpc))
@@ -65,11 +68,11 @@ Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query/
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/rest))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/ecr))
+Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/ecrpublic))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/sts))
 Provides:       bundled(golang(github.com/aws/aws-sdk-go/service/sts/stsiface))
 Provides:       bundled(golang(github.com/davecgh/go-spew/spew))
 Provides:       bundled(golang(github.com/docker/docker-credential-helpers/credentials))
-Provides:       bundled(golang(github.com/golang/mock/gomock))
 Provides:       bundled(golang(github.com/jmespath/go-jmespath))
 Provides:       bundled(golang(github.com/konsorten/go-windows-terminal-sequences))
 Provides:       bundled(golang(github.com/mitchellh/go-homedir))
@@ -77,7 +80,9 @@ Provides:       bundled(golang(github.com/pkg/errors))
 Provides:       bundled(golang(github.com/pmezard/go-difflib/difflib))
 Provides:       bundled(golang(github.com/sirupsen/logrus))
 Provides:       bundled(golang(github.com/stretchr/testify/assert))
+Provides:       bundled(golang(golang.org/x/sys/internal/unsafeheader))
 Provides:       bundled(golang(golang.org/x/sys/unix))
+
 
 %description
 The Amazon ECR Docker Credential Helper is a credential helper for the Docker
@@ -88,6 +93,7 @@ daemon that makes it easier to use Amazon Elastic Container Registry.
 
 %build
 export GOPATH="$(pwd)/_gopath"
+export GO111MODULE=off
 mkdir -p "_gopath/src/github.com/awslabs"
 ln -sv "$(pwd)" "_gopath/src/github.com/awslabs/amazon-ecr-credential-helper"
 cd "_gopath/src/github.com/awslabs/amazon-ecr-credential-helper"
@@ -112,6 +118,11 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Mon Feb 15 2021 Samuel Karp <skarp@amazon.com> - 0.5.0-1
+- Added support for ECR Public
+- Added support for EC2 IMDSv2
+- Enabled shared config file (~/.aws/config) by default
+- Fixed bug with long credential_process responses
 * Tue Jan 7 2020 Samuel Karp <skarp@amazon.com> - 0.4.0-1
 - Added support for chaining assumed roles in the shared config file
 - Added support for Web Identities and IAM Roles for Service Accounts (IRSA)
