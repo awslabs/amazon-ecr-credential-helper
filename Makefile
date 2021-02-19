@@ -18,7 +18,7 @@ all: build
 SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 VERSION := $(shell cat VERSION)
-GITFILES := $(shell find ".git/")
+GITFILES := $(shell test -d .git && find ".git/" -type f)
 BINARY_NAME=docker-credential-ecr-login
 LOCAL_BINARY=bin/local/$(BINARY_NAME)
 
