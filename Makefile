@@ -40,12 +40,12 @@ docker: Dockerfile GITCOMMIT_SHA
 build: $(LOCAL_BINARY)
 
 $(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
-	. ./scripts/shared_env && ./scripts/build_binary.sh ./bin/local $(VERSION) $(shell cat GITCOMMIT_SHA)
+	./scripts/build_binary.sh ./bin/local $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@echo "Built ecr-login"
 
 .PHONY: test
 test:
-	. ./scripts/shared_env && cd ecr-login && go test -v -timeout 30s -short -cover ./...
+	cd $(SOURCEDIR) && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
 all-variants: linux-amd64 linux-arm64 darwin-amd64 windows-amd64

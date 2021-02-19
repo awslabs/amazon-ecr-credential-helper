@@ -20,9 +20,6 @@
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
 
-# Source the shared environment
-source ./scripts/shared_env
-
 # Export variables
 export TARGET_GOOS="$1"
 export TARGET_GOARCH="$2"
