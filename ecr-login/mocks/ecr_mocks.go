@@ -14,21 +14,20 @@
 package mock_api
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 )
 
-type MockClientFactory struct{
-	NewClientFn func(awsSession *session.Session, awsConfig *aws.Config) api.Client
-	NewClientWithOptionsFn func(opts api.Options) api.Client
-	NewClientFromRegionFn func(region string) api.Client
+type MockClientFactory struct {
+	NewClientFn                 func(awsConfig *aws.Config) api.Client
+	NewClientWithOptionsFn      func(opts api.Options) api.Client
+	NewClientFromRegionFn       func(region string) api.Client
 	NewClientWithFipsEndpointFn func(region string) (api.Client, error)
-	NewClientWithDefaultsFn func() api.Client
+	NewClientWithDefaultsFn     func() api.Client
 }
 
-func (m MockClientFactory) NewClient(awsSession *session.Session, awsConfig *aws.Config) api.Client {
-	return m.NewClientFn(awsSession, awsConfig)
+func (m MockClientFactory) NewClient(awsConfig *aws.Config) api.Client {
+	return m.NewClientFn(awsConfig)
 }
 
 func (m MockClientFactory) NewClientWithOptions(opts api.Options) api.Client {
@@ -49,12 +48,10 @@ func (m MockClientFactory) NewClientWithDefaults() api.Client {
 
 var _ api.ClientFactory = (*MockClientFactory)(nil)
 
-
-
-type MockClient struct{
-	GetCredentialsFn func(serverURL string) (*api.Auth, error)
+type MockClient struct {
+	GetCredentialsFn             func(serverURL string) (*api.Auth, error)
 	GetCredentialsByRegistryIDFn func(registryID string) (*api.Auth, error)
-	ListCredentialsFn func() ([]*api.Auth, error)
+	ListCredentialsFn            func() ([]*api.Auth, error)
 }
 
 var _ api.Client = (*MockClient)(nil)

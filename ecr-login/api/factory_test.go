@@ -13,36 +13,28 @@
 
 package api
 
-import (
-	"os"
-	"testing"
-
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/stretchr/testify/assert"
-)
-
 const loadConfigEnvVar = "AWS_SDK_LOAD_CONFIG"
 
-func TestSharedConfigState(t *testing.T) {
-	defer func(value string) {
-		os.Setenv(loadConfigEnvVar, value)
-	}(os.Getenv(loadConfigEnvVar))
+// func TestSharedConfigState(t *testing.T) {
+// 	defer func(value string) {
+// 		os.Setenv(loadConfigEnvVar, value)
+// 	}(os.Getenv(loadConfigEnvVar))
 
-	cases := []struct {
-		envValue string
-		expected session.SharedConfigState
-	}{
-		{"", session.SharedConfigEnable},
-		{"true", session.SharedConfigEnable},
-		{"false", session.SharedConfigDisable},
-	}
+// 	cases := []struct {
+// 		envValue string
+// 		expected session.SharedConfigState
+// 	}{
+// 		{"", session.SharedConfigEnable},
+// 		{"true", session.SharedConfigEnable},
+// 		{"false", session.SharedConfigDisable},
+// 	}
 
-	for _, testCase := range cases {
-		t.Run(testCase.envValue, func(t *testing.T) {
-			os.Setenv(loadConfigEnvVar, testCase.envValue)
-			state := loadSharedConfigState()
-			assert.NotNil(t, state)
-			assert.Equal(t, testCase.expected, state)
-		})
-	}
-}
+// 	for _, testCase := range cases {
+// 		t.Run(testCase.envValue, func(t *testing.T) {
+// 			os.Setenv(loadConfigEnvVar, testCase.envValue)
+// 			state := loadSharedConfigState()
+// 			assert.NotNil(t, state)
+// 			assert.Equal(t, testCase.expected, state)
+// 		})
+// 	}
+// }

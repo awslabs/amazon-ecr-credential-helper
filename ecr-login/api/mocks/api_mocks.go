@@ -17,8 +17,8 @@
 package mock_api
 
 import (
-	ecr "github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 )
 
 type MockECRAPI struct {
