@@ -19,14 +19,14 @@ import (
 )
 
 type MockClientFactory struct {
-	NewClientFn                 func(awsConfig *aws.Config) api.Client
+	NewClientFn                 func(awsConfig aws.Config) api.Client
 	NewClientWithOptionsFn      func(opts api.Options) api.Client
 	NewClientFromRegionFn       func(region string) api.Client
 	NewClientWithFipsEndpointFn func(region string) (api.Client, error)
 	NewClientWithDefaultsFn     func() api.Client
 }
 
-func (m MockClientFactory) NewClient(awsConfig *aws.Config) api.Client {
+func (m MockClientFactory) NewClient(awsConfig aws.Config) api.Client {
 	return m.NewClientFn(awsConfig)
 }
 
