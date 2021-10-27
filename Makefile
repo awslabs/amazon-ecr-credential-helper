@@ -25,6 +25,7 @@ LOCAL_BINARY=bin/local/$(BINARY_NAME)
 LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
 LINUX_ARM64_BINARY=bin/linux-arm64/$(BINARY_NAME)
 DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
+DARWIN_ARM64_BINARY=bin/darwin-arm64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
 
 .PHONY: docker
@@ -48,7 +49,7 @@ test:
 	cd $(SOURCEDIR) && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
-all-variants: linux-amd64 linux-arm64 darwin-amd64 windows-amd64
+all-variants: linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
@@ -64,6 +65,11 @@ $(LINUX_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
 darwin-amd64: $(DARWIN_AMD64_BINARY)
 $(DARWIN_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh darwin amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
+
+.PHONY: darwin-arm64
+darwin-arm64: $(DARWIN_ARM64_BINARY)
+$(DARWIN_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh darwin arm64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 
 .PHONY: windows-amd64
 windows-amd64: $(WINDOWS_AMD64_BINARY)
