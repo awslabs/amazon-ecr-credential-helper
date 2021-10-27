@@ -207,6 +207,13 @@ in the *AWS Command Line Interface User Guide*.
 The credentials must have a policy applied that
 [allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
 
+### Amazon ECR Docker Credential Helper 
+
+| Environment Variable  | Sample Value  | Description                                                        |
+| --------------------- | ------------- | ------------------------------------------------------------------ |
+| AWS_ECR_DISABLE_CACHE | true          | Disables the local file auth cache if set to a non-empty value     |
+| AWS_ECR_CACHE_DIR     | ~/.ecr        | Specifies the local file auth cache directory location             |
+
 ## Usage
 
 `docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
