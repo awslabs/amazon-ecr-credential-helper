@@ -27,5 +27,14 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: make get-deps
-      - run: make all-variants
+
+      # Apple Silicon is not supported by Go < 1.16.
+      # https://go.dev/blog/go1.16
+      - name: Cross-compile all variants
+        run: make all-variants
+        if: ${{ matrix.go >= '1.16' }}
+      - name: Cross-compile all variants except for Apple Silicon
+        run: make linux-amd64 linux-arm64 darwin-amd64 windows-amd64
+        if: ${{ matrix.go < '1.16' }}
+
       - run: make test
