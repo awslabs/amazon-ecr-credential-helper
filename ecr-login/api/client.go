@@ -14,6 +14,7 @@
 package api
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/url"
@@ -21,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -103,11 +104,11 @@ type defaultClient struct {
 }
 
 type ECRAPI interface {
-	GetAuthorizationToken(*ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
+	GetAuthorizationToken(context.Context, *ecr.GetAuthorizationTokenInput, ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
 type ECRPublicAPI interface {
-	GetAuthorizationToken(*ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error)
+	GetAuthorizationToken(context.Context, *ecrpublic.GetAuthorizationTokenInput, ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
 }
 
 // GetCredentials returns username, password, and proxyEndpoint
@@ -213,11 +214,11 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 	} else {
 		logrus.WithField("registry", registryID).Debug("Calling ECR.GetAuthorizationToken")
 		input = &ecr.GetAuthorizationTokenInput{
-			RegistryIds: []*string{aws.String(registryID)},
+			RegistryIds: []string{registryID},
 		}
 	}
 
-	output, err := c.ecrClient.GetAuthorizationToken(input)
+	output, err := c.ecrClient.GetAuthorizationToken(context.TODO(), input)
 	if err != nil || output == nil {
 		if err == nil {
 			if registryID == "" {
@@ -232,10 +233,10 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 	for _, authData := range output.AuthorizationData {
 		if authData.ProxyEndpoint != nil && authData.AuthorizationToken != nil {
 			authEntry := cache.AuthEntry{
-				AuthorizationToken: aws.StringValue(authData.AuthorizationToken),
+				AuthorizationToken: aws.ToString(authData.AuthorizationToken),
 				RequestedAt:        time.Now(),
-				ExpiresAt:          aws.TimeValue(authData.ExpiresAt),
-				ProxyEndpoint:      aws.StringValue(authData.ProxyEndpoint),
+				ExpiresAt:          aws.ToTime(authData.ExpiresAt),
+				ProxyEndpoint:      aws.ToString(authData.ProxyEndpoint),
 				Service:            cache.ServiceECR,
 			}
 			registry, err := ExtractRegistry(authEntry.ProxyEndpoint)
@@ -259,7 +260,7 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 func (c *defaultClient) getPublicAuthorizationToken() (*Auth, error) {
 	var input *ecrpublic.GetAuthorizationTokenInput
 
-	output, err := c.ecrPublicClient.GetAuthorizationToken(input)
+	output, err := c.ecrPublicClient.GetAuthorizationToken(context.TODO(), input)
 	if err != nil {
 		return nil, errors.Wrap(err, "ecr: failed to get authorization token")
 	}
@@ -267,14 +268,14 @@ func (c *defaultClient) getPublicAuthorizationToken() (*Auth, error) {
 		return nil, fmt.Errorf("ecr: missing AuthorizationData in ECR Public response")
 	}
 	authData := output.AuthorizationData
-	token, err := extractToken(aws.StringValue(authData.AuthorizationToken), ecrPublicEndpoint)
+	token, err := extractToken(aws.ToString(authData.AuthorizationToken), ecrPublicEndpoint)
 	if err != nil {
 		return nil, err
 	}
 	authEntry := cache.AuthEntry{
-		AuthorizationToken: aws.StringValue(authData.AuthorizationToken),
+		AuthorizationToken: aws.ToString(authData.AuthorizationToken),
 		RequestedAt:        time.Now(),
-		ExpiresAt:          aws.TimeValue(authData.ExpiresAt),
+		ExpiresAt:          aws.ToTime(authData.ExpiresAt),
 		ProxyEndpoint:      ecrPublicEndpoint,
 		Service:            cache.ServiceECRPublic,
 	}
