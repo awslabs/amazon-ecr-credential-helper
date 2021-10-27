@@ -40,6 +40,14 @@ A community-maintained Homebrew formula is available in the core tap.
 $ brew install docker-credential-helper-ecr
 ```
 
+On macOS, another community-maintained installation method is to use MacPorts.
+
+[![MacPorts package](https://repology.org/badge/version-for-repo/macports/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+
+```bash
+$ sudo port install docker-credential-helper-ecr
+```
+
 Once you have installed the credential helper, see the
 [Configuration section](#Configuration) for instructions on how to configure
 Docker to work with the helper.
