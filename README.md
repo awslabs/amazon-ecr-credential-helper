@@ -126,7 +126,7 @@ running `docker-credential-ecr-login` will output: `command not found`
 You can install this via `go get` with:
 
 ```
-go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
+go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
 ```
 
 
