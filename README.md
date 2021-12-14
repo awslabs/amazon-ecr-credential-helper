@@ -123,7 +123,7 @@ setx GOPATH %USERPROFILE%\go
 If you haven't defined the PATH, the command below will fail silently, and
 running `docker-credential-ecr-login` will output: `command not found`
 
-You can install this via `go get` with:
+You can install this via `go install` with:
 
 ```
 go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
