@@ -14,20 +14,19 @@
 package cache
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
-
-	ecrconfig "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 )
 
-func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache {
+func BuildCredentialsCache(awsSession *session.Session, region string, cacheDir string) CredentialsCache {
 	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
 		logrus.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
 		return NewNullCredentialsCache()
@@ -35,7 +34,7 @@ func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache 
 
 	if cacheDir == "" {
 		//Get cacheDir from env var "AWS_ECR_CACHE_DIR" or set to default
-		cacheDir = ecrconfig.GetCacheDir()
+		cacheDir = config.GetCacheDir()
 	}
 
 	cacheDir, err := homedir.Expand(cacheDir)
@@ -46,22 +45,22 @@ func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache 
 
 	cacheFilename := "cache.json"
 
-	credentials, err := config.Credentials.Retrieve(context.TODO())
+	credentials, err := awsSession.Config.Credentials.Get()
 	if err != nil {
 		logrus.WithError(err).Debug("Could not fetch credentials for cache prefix, disabling cache")
 		return NewNullCredentialsCache()
 	}
 
-	return NewFileCredentialsCache(cacheDir, cacheFilename, credentialsCachePrefix(config.Region, credentials), credentialsPublicCacheKey(credentials))
+	return NewFileCredentialsCache(cacheDir, cacheFilename, credentialsCachePrefix(region, &credentials), credentialsPublicCacheKey(&credentials))
 }
 
 // Determine a key prefix for a credentials cache. Because auth tokens are scoped to an account and region, rely on provided
 // region, as well as hash of the access key.
-func credentialsCachePrefix(region string, credentials aws.Credentials) string {
+func credentialsCachePrefix(region string, credentials *credentials.Value) string {
 	return fmt.Sprintf("%s-%s-", region, checksum(credentials.AccessKeyID))
 }
 
-func credentialsPublicCacheKey(credentials aws.Credentials) string {
+func credentialsPublicCacheKey(credentials *credentials.Value) string {
 	return fmt.Sprintf("%s-%s", ServiceECRPublic, checksum(credentials.AccessKeyID))
 }
 

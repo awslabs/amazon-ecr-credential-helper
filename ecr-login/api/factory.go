@@ -14,27 +14,29 @@
 package api
 
 import (
-	"context"
+	"os"
+	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"github.com/aws/smithy-go/middleware"
-	"github.com/aws/smithy-go/transport/http"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecrpublic"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/version"
 )
 
 // Options makes the constructors more configurable
 type Options struct {
-	Config   aws.Config
+	Session  *session.Session
+	Config   *aws.Config
 	CacheDir string
 }
 
 // ClientFactory is a factory for creating clients to interact with ECR
 type ClientFactory interface {
-	NewClient(awsConfig aws.Config) Client
+	NewClient(awsSession *session.Session, awsConfig *aws.Config) Client
 	NewClientWithOptions(opts Options) Client
 	NewClientFromRegion(region string) Client
 	NewClientWithFipsEndpoint(region string) (Client, error)
@@ -44,64 +46,92 @@ type ClientFactory interface {
 // DefaultClientFactory is a default implementation of the ClientFactory
 type DefaultClientFactory struct{}
 
-var userAgentLoadOption = config.WithAPIOptions([]func(*middleware.Stack) error{
-	http.AddHeaderValue("User-Agent", "amazon-ecr-credential-helper/"+version.Version),
-})
+var userAgentHandler = request.NamedHandler{
+	Name: "ecr-login.UserAgentHandler",
+	Fn:   request.MakeAddToUserAgentHandler("amazon-ecr-credential-helper", version.Version),
+}
 
 // NewClientWithDefaults creates the client and defaults region
 func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client {
-	awsConfig, err := config.LoadDefaultConfig(context.TODO(), userAgentLoadOption)
-	if err != nil {
-		panic(err)
-	}
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
 
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig})
+	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
+	awsConfig := awsSession.Config
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	})
 }
 
 // NewClientWithFipsEndpoint overrides the default ECR service endpoint in a given region to use the FIPS endpoint
 func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(region string) (Client, error) {
-	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
-		userAgentLoadOption,
-		config.WithRegion(region),
-		config.WithEndpointDiscovery(aws.EndpointDiscoveryEnabled),
-	)
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
+
+	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
+
+	endpoint, err := getServiceEndpoint("ecr-fips", region)
 	if err != nil {
 		return nil, err
 	}
 
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig}), nil
+	awsConfig := awsSession.Config.WithEndpoint(endpoint).WithRegion(region)
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	}), nil
 }
 
 // NewClientFromRegion uses the region to create the client
 func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
-	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
-		userAgentLoadOption,
-		config.WithRegion(region),
-	)
-	if err != nil {
-		panic(err)
-	}
-
+	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: loadSharedConfigState(),
+	}))
+	awsSession.Handlers.Build.PushBackNamed(userAgentHandler)
+	awsConfig := &aws.Config{Region: aws.String(region)}
 	return defaultClientFactory.NewClientWithOptions(Options{
-		Config: awsConfig,
+		Session: awsSession,
+		Config:  awsConfig,
 	})
 }
 
 // NewClient Create new client with AWS Config
-func (defaultClientFactory DefaultClientFactory) NewClient(awsConfig aws.Config) Client {
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig})
+func (defaultClientFactory DefaultClientFactory) NewClient(awsSession *session.Session, awsConfig *aws.Config) Client {
+	return defaultClientFactory.NewClientWithOptions(Options{
+		Session: awsSession,
+		Config:  awsConfig,
+	})
 }
 
 // NewClientWithOptions Create new client with Options
 func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Options) Client {
 	// The ECR Public API is only available in us-east-1 today
-	publicConfig := opts.Config.Copy()
-	publicConfig.Region = "us-east-1"
+	publicConfig := opts.Config.Copy().WithRegion("us-east-1")
 	return &defaultClient{
-		ecrClient:       ecr.NewFromConfig(opts.Config),
-		ecrPublicClient: ecrpublic.NewFromConfig(publicConfig),
-		credentialCache: cache.BuildCredentialsCache(opts.Config, opts.CacheDir),
+		ecrClient:       ecr.New(opts.Session, opts.Config),
+		ecrPublicClient: ecrpublic.New(opts.Session, publicConfig),
+		credentialCache: cache.BuildCredentialsCache(opts.Session, aws.StringValue(opts.Config.Region), opts.CacheDir),
 	}
+}
+
+func getServiceEndpoint(service, region string) (string, error) {
+	resolver := endpoints.DefaultResolver()
+	endpoint, err := resolver.EndpointFor(service, region, func(opts *endpoints.Options) {
+		opts.ResolveUnknownService = true
+	})
+	return endpoint.URL, err
+}
+
+func loadSharedConfigState() session.SharedConfigState {
+	loadConfig := os.Getenv("AWS_SDK_LOAD_CONFIG")
+	if loadConfig == "" {
+		return session.SharedConfigEnable
+	}
+	if enable, err := strconv.ParseBool(loadConfig); err == nil && !enable {
+		return session.SharedConfigDisable
+	}
+	return session.SharedConfigEnable
 }

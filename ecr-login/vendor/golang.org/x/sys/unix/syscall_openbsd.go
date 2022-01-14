@@ -31,10 +31,6 @@ type SockaddrDatalink struct {
 	raw    RawSockaddrDatalink
 }
 
-func anyToSockaddrGOOS(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
-	return nil, EAFNOSUPPORT
-}
-
 func Syscall9(trap, a1, a2, a3, a4, a5, a6, a7, a8, a9 uintptr) (r1, r2 uintptr, err syscall.Errno)
 
 func nametomib(name string) (mib []_C_int, err error) {
@@ -92,7 +88,7 @@ func Pipe2(p []int, flags int) error {
 	return err
 }
 
-//sys	Getdents(fd int, buf []byte) (n int, err error)
+//sys Getdents(fd int, buf []byte) (n int, err error)
 func Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) {
 	n, err = Getdents(fd, buf)
 	if err != nil || basep == nil {
@@ -154,7 +150,7 @@ func setattrlistTimes(path string, times []Timespec, flags int) error {
 
 //sys	ioctl(fd int, req uint, arg uintptr) (err error)
 
-//sys	sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
+//sys   sysctl(mib []_C_int, old *byte, oldlen *uintptr, new *byte, newlen uintptr) (err error) = SYS___SYSCTL
 
 //sys	ppoll(fds *PollFd, nfds int, timeout *Timespec, sigmask *Sigset_t) (n int, err error)
 

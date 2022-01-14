@@ -17,17 +17,15 @@
 package mock_api
 
 import (
-	"context"
-
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	ecr "github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecrpublic"
 )
 
 type MockECRAPI struct {
 	GetAuthorizationTokenFn func(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error)
 }
 
-func (m MockECRAPI) GetAuthorizationToken(_ context.Context, input *ecr.GetAuthorizationTokenInput, _ ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
+func (m MockECRAPI) GetAuthorizationToken(input *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
 	return m.GetAuthorizationTokenFn(input)
 }
 
@@ -35,6 +33,6 @@ type MockECRPublicAPI struct {
 	GetAuthorizationTokenFn func(input *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error)
 }
 
-func (m MockECRPublicAPI) GetAuthorizationToken(_ context.Context, input *ecrpublic.GetAuthorizationTokenInput, _ ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+func (m MockECRPublicAPI) GetAuthorizationToken(input *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
 	return m.GetAuthorizationTokenFn(input)
 }

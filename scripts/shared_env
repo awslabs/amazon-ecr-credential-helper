@@ -1,0 +1,22 @@
+#!/bin/bash
+# Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+# 	http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+
+# This script should be sourced by bash or zsh prior to doing basically
+# anything
+export GO15VENDOREXPERIMENT=1
+
+# Include generate scripts and any binaries we might have installed with godep
+# (none at the time of writing this comment).
+# The existing PATH should have a recent 'go' binary on it, as well as basic posix tools
+export PATH="$(pwd)/scripts/generate:$(pwd)/agent/Godeps/_workspace/bin:${PATH}"
