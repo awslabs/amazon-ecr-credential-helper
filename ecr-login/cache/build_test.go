@@ -18,9 +18,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,12 +34,12 @@ const (
 )
 
 func TestFactoryBuildFileCache(t *testing.T) {
-	awsSession, _ := session.NewSession(&aws.Config{
-		Region:      aws.String(testRegion),
-		Credentials: awscredentials.NewStaticCredentials(testAccessKey, testSecretKey, testToken),
-	})
+	config := aws.Config{
+		Region:      testRegion,
+		Credentials: credentials.NewStaticCredentialsProvider(testAccessKey, testSecretKey, testToken),
+	}
 
-	cache := BuildCredentialsCache(awsSession, testRegion, "")
+	cache := BuildCredentialsCache(config, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)
@@ -51,12 +50,12 @@ func TestFactoryBuildFileCache(t *testing.T) {
 }
 
 func TestFactoryBuildNullCacheWithoutCredentials(t *testing.T) {
-	awsSession, _ := session.NewSession(&aws.Config{
-		Region:      aws.String(testRegion),
-		Credentials: awscredentials.AnonymousCredentials,
-	})
+	config := aws.Config{
+		Region:      testRegion,
+		Credentials: aws.AnonymousCredentials{},
+	}
 
-	cache := BuildCredentialsCache(awsSession, testRegion, "")
+	cache := BuildCredentialsCache(config, "")
 	assert.NotNil(t, cache)
 
 	_, ok := cache.(*nullCredentialsCache)
@@ -67,9 +66,9 @@ func TestFactoryBuildNullCache(t *testing.T) {
 	os.Setenv("AWS_ECR_DISABLE_CACHE", "1")
 	defer os.Setenv("AWS_ECR_DISABLE_CACHE", "1")
 
-	awsSession, _ := session.NewSession(&aws.Config{Region: aws.String(testRegion)})
+	config := aws.Config{Region: testRegion}
 
-	cache := BuildCredentialsCache(awsSession, testRegion, "")
+	cache := BuildCredentialsCache(config, "")
 	assert.NotNil(t, cache)
 	_, ok := cache.(*nullCredentialsCache)
 	assert.True(t, ok, "built cache is a nullCredentialsCache")
