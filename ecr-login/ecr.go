@@ -73,8 +73,8 @@ var _ credentials.Helper = (*ECRHelper)(nil)
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	self.logger.Warningf(
 		"Ignoring request to store credentials for %s@%s. "+
-			"This is not supported in the context of the docker ecr-login helper."+
-			creds.Username,
+			"This is not supported in the context of the docker ecr-login helper.",
+		creds.Username,
 		creds.ServerURL)
 	return nil
 }
