@@ -14,7 +14,6 @@
 package ecr
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
@@ -23,8 +22,6 @@ import (
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
-
-var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
 	clientFactory api.ClientFactory
@@ -70,14 +67,27 @@ func NewECRHelper(opts ...Option) *ECRHelper {
 // ensure ECRHelper adheres to the credentials.Helper interface
 var _ credentials.Helper = (*ECRHelper)(nil)
 
-func (ECRHelper) Add(creds *credentials.Credentials) error {
-	// This does not seem to get called
-	return notImplemented
+// Called when docker tries to store credentials. This usually happens during `docker login` calls. In our context,
+// storing arbitrary user given credentials makes no sense. To keep interoperability with applications that call `docker
+// login` during their execution, this is implemented as a nop.
+func (self ECRHelper) Add(creds *credentials.Credentials) error {
+	self.logger.Warningf(
+		"Ignoring request to store credentials for %s@%s. "+
+			"This is not supported in the context of the docker ecr-login helper."+
+			creds.Username,
+		creds.ServerURL)
+	return nil
 }
 
-func (ECRHelper) Delete(serverURL string) error {
-	// This does not seem to get called
-	return notImplemented
+// Called when docker tries to delete credentials. This usually happens during `docker logout` calls. In our context, we
+// don't store arbitrary user given credentials so deleting them makes no sense. To keep interoperability with
+// applications that call `docker logout` during their execution, this is implemented as a nop.
+func (self ECRHelper) Delete(serverURL string) error {
+	self.logger.Warningf(
+		"Ignoring request to delete credentials for %s. "+
+			"This is not supported in the context of the docker ecr-login helper.",
+		serverURL)
+	return nil
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {

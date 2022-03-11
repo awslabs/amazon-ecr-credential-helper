@@ -118,3 +118,27 @@ func TestListFailure(t *testing.T) {
 	assert.Error(t, err)
 	assert.Len(t, serverList, 0)
 }
+
+func TestAddNop(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+
+	helper := NewECRHelper(WithClientFactory(factory))
+
+	err := helper.Add(&credentials.Credentials{
+		ServerURL: "123456789.dkr.ecr.us-east-1.amazonaws.com",
+		Username:  "AWS",
+		Secret:    "supersecret",
+	})
+
+	assert.Nil(t, err)
+}
+
+func TestDeleteNop(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+
+	helper := NewECRHelper(WithClientFactory(factory))
+
+	err := helper.Delete("123456789.dkr.ecr.us-east-1.amazonaws.com")
+
+	assert.Nil(t, err)
+}
