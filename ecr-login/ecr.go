@@ -14,14 +14,18 @@
 package ecr
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
+
+var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
 	clientFactory api.ClientFactory
@@ -67,27 +71,37 @@ func NewECRHelper(opts ...Option) *ECRHelper {
 // ensure ECRHelper adheres to the credentials.Helper interface
 var _ credentials.Helper = (*ECRHelper)(nil)
 
+func shouldIgnoreCredsStorage() bool {
+	return os.Getenv("AWS_ECR_IGNORE_CREDS_STORAGE") == "true"
+}
+
 // Called when docker tries to store credentials. This usually happens during `docker login` calls. In our context,
-// storing arbitrary user given credentials makes no sense. To keep interoperability with applications that call `docker
-// login` during their execution, this is implemented as a nop.
+// storing arbitrary user given credentials makes no sense.
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
-	self.logger.
-		WithField("username", creds.Username).
-		WithField("serverURL", creds.ServerURL).
-		Warning("Ignoring request to store credentials. " +
-			"This is not supported in the context of the docker ecr-login helper.")
-	return nil
+	if shouldIgnoreCredsStorage() {
+		self.logger.
+			WithField("username", creds.Username).
+			WithField("serverURL", creds.ServerURL).
+			Warning("Ignoring request to store credentials. " +
+				"This is not supported in the context of the docker ecr-login helper.")
+		return nil
+	} else {
+		return notImplemented
+	}
 }
 
 // Called when docker tries to delete credentials. This usually happens during `docker logout` calls. In our context, we
-// don't store arbitrary user given credentials so deleting them makes no sense. To keep interoperability with
-// applications that call `docker logout` during their execution, this is implemented as a nop.
+// don't store arbitrary user given credentials so deleting them makes no sense.
 func (self ECRHelper) Delete(serverURL string) error {
-	self.logger.
-		WithField("serverURL", serverURL).
-		Warning("Ignoring request to delete credentials. " +
-			"This is not supported in the context of the docker ecr-login helper.")
-	return nil
+	if shouldIgnoreCredsStorage() {
+		self.logger.
+			WithField("serverURL", serverURL).
+			Warning("Ignoring request to delete credentials. " +
+				"This is not supported in the context of the docker ecr-login helper.")
+		return nil
+	} else {
+		return notImplemented
+	}
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {

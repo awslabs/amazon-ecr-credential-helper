@@ -16,6 +16,7 @@ package ecr
 import (
 	"errors"
 	"fmt"
+	"os"
 	"testing"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
@@ -119,13 +120,14 @@ func TestListFailure(t *testing.T) {
 	assert.Len(t, serverList, 0)
 }
 
-func TestAddNop(t *testing.T) {
+func TestAddIgnored(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
+	os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
 	err := helper.Add(&credentials.Credentials{
-		ServerURL: "123456789.dkr.ecr.us-east-1.amazonaws.com",
+		ServerURL: proxyEndpoint,
 		Username:  "AWS",
 		Secret:    "supersecret",
 	})
@@ -133,12 +135,67 @@ func TestAddNop(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDeleteNop(t *testing.T) {
+func TestAddNotImplemented(t *testing.T) {
+	tests := []struct {
+		name   string
+		setEnv func()
+	}{
+		{"unset", func() { os.Unsetenv("AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(tt *testing.T) {
+			factory := &mock_api.MockClientFactory{}
+
+			helper := NewECRHelper(WithClientFactory(factory))
+
+			test.setEnv()
+			err := helper.Add(&credentials.Credentials{
+				ServerURL: proxyEndpoint,
+				Username:  "AWS",
+				Secret:    "supersecret",
+			})
+
+			assert.Error(t, err, "not implemented")
+		})
+	}
+}
+
+func TestDeleteIgnored(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	err := helper.Delete("123456789.dkr.ecr.us-east-1.amazonaws.com")
+	os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
+	err := helper.Delete(proxyEndpoint)
 
 	assert.Nil(t, err)
+}
+
+func TestDeleteNotImplemented(t *testing.T) {
+	tests := []struct {
+		name   string
+		setEnv func()
+	}{
+		{"unset", func() { os.Unsetenv("AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(tt *testing.T) {
+			factory := &mock_api.MockClientFactory{}
+
+			helper := NewECRHelper(WithClientFactory(factory))
+
+			test.setEnv()
+			err := helper.Delete(proxyEndpoint)
+
+			assert.Error(t, err, "not implemented")
+		})
+	}
 }
