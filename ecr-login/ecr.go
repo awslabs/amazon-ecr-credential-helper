@@ -71,11 +71,11 @@ var _ credentials.Helper = (*ECRHelper)(nil)
 // storing arbitrary user given credentials makes no sense. To keep interoperability with applications that call `docker
 // login` during their execution, this is implemented as a nop.
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
-	self.logger.Warningf(
-		"Ignoring request to store credentials for %s@%s. "+
-			"This is not supported in the context of the docker ecr-login helper.",
-		creds.Username,
-		creds.ServerURL)
+	self.logger.
+		WithField("username", creds.Username).
+		WithField("serverURL", creds.ServerURL).
+		Warning("Ignoring request to store credentials. " +
+			"This is not supported in the context of the docker ecr-login helper.")
 	return nil
 }
 
@@ -83,10 +83,10 @@ func (self ECRHelper) Add(creds *credentials.Credentials) error {
 // don't store arbitrary user given credentials so deleting them makes no sense. To keep interoperability with
 // applications that call `docker logout` during their execution, this is implemented as a nop.
 func (self ECRHelper) Delete(serverURL string) error {
-	self.logger.Warningf(
-		"Ignoring request to delete credentials for %s. "+
-			"This is not supported in the context of the docker ecr-login helper.",
-		serverURL)
+	self.logger.
+		WithField("serverURL", serverURL).
+		Warning("Ignoring request to delete credentials. " +
+			"This is not supported in the context of the docker ecr-login helper.")
 	return nil
 }
 
