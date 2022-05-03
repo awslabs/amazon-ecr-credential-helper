@@ -4,8 +4,8 @@ Priority: optional
 Maintainer: Samuel Karp <skarp@amazon.com>
 Build-Depends:
  debhelper-compat (= 12),
- dh-golang (>= 1.1),
- golang-go (>= 1.12),
+ dh-golang,
+ golang-go,
  git,
  golang-github-aws-aws-sdk-go-dev (>= 1.36.0),
  golang-github-docker-docker-credential-helpers-dev,
