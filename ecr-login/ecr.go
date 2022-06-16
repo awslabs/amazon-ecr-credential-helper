@@ -80,14 +80,14 @@ func (ECRHelper) Delete(serverURL string) error {
 	return notImplemented
 }
 
-func (self ECRHelper) Get(serverURL string) (string, string, error) {
+func (self ECRHelper) GetCredentials(serverURL string) (*api.Auth, error) {
 	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
 		self.logger.
 			WithError(err).
 			WithField("serverURL", serverURL).
 			Error("Error parsing the serverURL")
-		return "", "", credentials.NewErrCredentialsNotFound()
+		return nil, credentials.NewErrCredentialsNotFound()
 	}
 
 	var client api.Client
@@ -95,7 +95,7 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 		client, err = self.clientFactory.NewClientWithFipsEndpoint(registry.Region)
 		if err != nil {
 			self.logger.WithError(err).Error("Error resolving FIPS endpoint")
-			return "", "", credentials.NewErrCredentialsNotFound()
+			return nil, credentials.NewErrCredentialsNotFound()
 		}
 	} else {
 		client = self.clientFactory.NewClientFromRegion(registry.Region)
@@ -104,7 +104,15 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
 		self.logger.WithError(err).Error("Error retrieving credentials")
-		return "", "", credentials.NewErrCredentialsNotFound()
+		return nil, credentials.NewErrCredentialsNotFound()
+	}
+	return auth, nil
+}
+
+func (self ECRHelper) Get(serverURL string) (string, string, error) {
+	auth, err := self.GetCredentials(serverURL)
+	if err != nil {
+		return "", "", err
 	}
 	return auth.Username, auth.Password, nil
 }
