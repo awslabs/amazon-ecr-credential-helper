@@ -27,6 +27,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: make get-deps
+        if: ${{ matrix.go >= '1.17' }}
 
       # Apple Silicon is not supported by Go < 1.16.
       # https://go.dev/blog/go1.16
