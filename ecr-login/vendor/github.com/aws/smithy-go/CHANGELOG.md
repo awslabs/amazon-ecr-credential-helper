@@ -1,3 +1,77 @@
+# Release (v1.12.0)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.12.0
+  * **Feature**: `transport/http`: Add utility for setting context metadata when operation serializer automatically assigns content-type default value.
+
+# Release (v1.11.3)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.11.3
+  * **Dependency Update**: Updates smithy-go unit test dependency go-cmp to 0.5.8.
+
+# Release (v1.11.2)
+
+* No change notes available for this release.
+
+# Release (v1.11.1)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.11.1
+  * **Bug Fix**: Updates the smithy-go HTTP Request to correctly handle building the request to an http.Request. Related to [aws/aws-sdk-go-v2#1583](https://github.com/aws/aws-sdk-go-v2/issues/1583)
+
+# Release (v1.11.0)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.11.0
+  * **Feature**: Updates deserialization of header list to supported quoted strings
+
+# Release (v1.10.0)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.10.0
+  * **Feature**: Add `ptr.Duration`, `ptr.ToDuration`, `ptr.DurationSlice`, `ptr.ToDurationSlice`, `ptr.DurationMap`, and `ptr.ToDurationMap` functions for the `time.Duration` type.
+
+# Release (v1.9.1)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.9.1
+  * **Documentation**: Fixes various typos in Go package documentation.
+
+# Release (v1.9.0)
+
+## Module Highlights
+* `github.com/aws/smithy-go`: v1.9.0
+  * **Feature**: sync: OnceErr, can be used to concurrently record a signal when an error has occurred.
+  * **Bug Fix**: `transport/http`: CloseResponseBody and ErrorCloseResponseBody middleware have been updated to ensure that the body is fully drained before closing.
+
+# Release v1.8.1
+
+### Smithy Go Module
+* **Bug Fix**: Fixed an issue that would cause the HTTP Content-Length to be set to 0 if the stream body was not set.
+  * Fixes [aws/aws-sdk-go-v2#1418](https://github.com/aws/aws-sdk-go-v2/issues/1418)
+
+# Release v1.8.0
+
+### Smithy Go Module
+
+* `time`: Add support for parsing additional DateTime timestamp format ([#324](https://github.com/aws/smithy-go/pull/324))
+  * Adds support for parsing DateTime timestamp formatted time similar to RFC 3339, but without the `Z` character, nor UTC offset.
+  * Fixes [#1387](https://github.com/aws/aws-sdk-go-v2/issues/1387)
+
+# Release v1.7.0
+
+### Smithy Go Module
+* `ptr`:  Handle error for deferred file close call ([#314](https://github.com/aws/smithy-go/pull/314))
+  * Handle error for defer close call
+* `middleware`: Add Clone to Metadata ([#318](https://github.com/aws/smithy-go/pull/318))
+  * Adds a new Clone method to the middleware Metadata type. This provides a shallow clone of the entries in the Metadata.
+* `document`: Add new package for document shape serialization support ([#310](https://github.com/aws/smithy-go/pull/310))
+
+### Codegen
+* Add Smithy Document Shape Support ([#310](https://github.com/aws/smithy-go/pull/310))
+  * Adds support for Smithy Document shapes and supporting types for protocols to implement support
+
 # Release v1.6.0 (2021-07-15)
 
 ### Smithy Go Module
@@ -10,7 +84,7 @@
 # Release v1.5.0 (2021-06-25)
 
 ### Smithy Go module
-* `time`: Update time parsing to not be as strict for HTTPDate and DateTime ([#307](https://github.com/aws/smithy-go/pull/307)) 
+* `time`: Update time parsing to not be as strict for HTTPDate and DateTime ([#307](https://github.com/aws/smithy-go/pull/307))
   * Fixes [#302](https://github.com/aws/smithy-go/issues/302) by changing time to UTC before formatting so no local offset time is lost.
 
 ### Codegen
