@@ -79,8 +79,10 @@ github.com/mitchellh/go-homedir
 github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.8.0
 github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20210423082822-04245dca01da
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
+# gopkg.in/yaml.v3 v3.0.1
+gopkg.in/yaml.v3
