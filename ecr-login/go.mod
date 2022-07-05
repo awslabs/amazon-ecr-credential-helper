@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.4.1
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.4.1
 	github.com/aws/smithy-go v1.12.0
-	github.com/docker/docker-credential-helpers v0.6.3
+	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.4.2
