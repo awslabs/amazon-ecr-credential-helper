@@ -1,11 +1,11 @@
 module github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.7.1
+	github.com/aws/aws-sdk-go-v2 v1.16.6
 	github.com/aws/aws-sdk-go-v2/config v1.5.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.3.1
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.4.1
-	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.4.1
+	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.7
 	github.com/aws/smithy-go v1.12.0
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/mitchellh/go-homedir v1.1.0

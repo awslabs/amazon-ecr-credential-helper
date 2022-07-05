@@ -1,6 +1,7 @@
-# github.com/aws/aws-sdk-go-v2 v1.7.1
+# github.com/aws/aws-sdk-go-v2 v1.16.6
 github.com/aws/aws-sdk-go-v2
 github.com/aws/aws-sdk-go-v2/aws
+github.com/aws/aws-sdk-go-v2/aws/defaults
 github.com/aws/aws-sdk-go-v2/aws/middleware
 github.com/aws/aws-sdk-go-v2/aws/protocol/query
 github.com/aws/aws-sdk-go-v2/aws/protocol/restjson
@@ -30,13 +31,17 @@ github.com/aws/aws-sdk-go-v2/credentials/stscreds
 # github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.3.0
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds/internal/config
+# github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.13
+github.com/aws/aws-sdk-go-v2/internal/configsources
+# github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.7
+github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
 # github.com/aws/aws-sdk-go-v2/internal/ini v1.1.1
 github.com/aws/aws-sdk-go-v2/internal/ini
 # github.com/aws/aws-sdk-go-v2/service/ecr v1.4.1
 github.com/aws/aws-sdk-go-v2/service/ecr
 github.com/aws/aws-sdk-go-v2/service/ecr/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ecr/types
-# github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.4.1
+# github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.7
 github.com/aws/aws-sdk-go-v2/service/ecrpublic
 github.com/aws/aws-sdk-go-v2/service/ecrpublic/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ecrpublic/types
@@ -52,6 +57,7 @@ github.com/aws/aws-sdk-go-v2/service/sts/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/sts/types
 # github.com/aws/smithy-go v1.12.0
 github.com/aws/smithy-go
+github.com/aws/smithy-go/document
 github.com/aws/smithy-go/encoding
 github.com/aws/smithy-go/encoding/httpbinding
 github.com/aws/smithy-go/encoding/json
