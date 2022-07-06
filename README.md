@@ -103,7 +103,7 @@ Docker to work with the helper.
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
-1.12+, `git` and `make` installed on your system.
+1.15 or later, `git` and `make` installed on your system.
 
 If you just installed Go, make sure you also have added it to your PATH or 
 Environment Vars (Windows). For example:
