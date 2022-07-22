@@ -239,6 +239,14 @@ There is no need to use `docker login` or `docker logout`.
 
 ## Troubleshooting
 
+If you have previously authenticated with an ECR repository by using the `docker login` command manually
+then Docker may have stored an auth token which has since expired.
+Docker will continue to attempt to use that cached auth token
+instead of utilizing the credential helper. You must explicitly remove the previously cached expired
+token using `docker logout 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository`. After that
+Docker will start utilizing the ECR credential helper to fetch fresh credentials, and you will no longer
+need to use `docker login` or `docker logout`.
+
 Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
 
 For more information about Amazon ECR, see the the
