@@ -159,12 +159,27 @@ contents of your `~/.docker/config.json` file to be:
 	"credsStore": "ecr-login"
 }
 ```
-
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
 
+The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens: 
+
+```json
+{
+	"credsStore": "ecr-login",
+	"auths": {
+		"https://index.docker.io/v1/": {
+			"auth": [docker.io-auth-token]
+		},
+		"registry.gitlab.com": {
+			"auth": [gitlab-auth-token]
+		},
+	}
+}
+```
+
 With Docker 1.13.0 or greater, you can configure Docker to use different
-credential helpers for different registries. To use this credential helper for
+credential helpers for different ECR registries. To use this credential helper for
 a specific ECR registry, create a `credHelpers` section with the URI of your
 ECR registry:
 
