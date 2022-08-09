@@ -1,3 +1,57 @@
+# Release (2022-08-08)
+
+## General Highlights
+* **Dependency Update**: Updated to the latest SDK module versions
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2`: v1.16.9
+  * **Bug Fix**: aws/signer/v4: Fixes a panic in SDK's handling of endpoint URLs with ports by correcting how URL path is parsed from opaque URLs. Fixes [#1294](https://github.com/aws/aws-sdk-go-v2/issues/1294).
+* `github.com/aws/aws-sdk-go-v2/service/glue`: [v1.29.0](service/glue/CHANGELOG.md#v1290-2022-08-08)
+  * **Feature**: Add an option to run non-urgent or non-time sensitive Glue Jobs on spare capacity
+* `github.com/aws/aws-sdk-go-v2/service/identitystore`: [v1.14.10](service/identitystore/CHANGELOG.md#v11410-2022-08-08)
+  * **Documentation**: Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+* `github.com/aws/aws-sdk-go-v2/service/iotwireless`: [v1.21.0](service/iotwireless/CHANGELOG.md#v1210-2022-08-08)
+  * **Feature**: AWS IoT Wireless release support for sidewalk data reliability.
+* `github.com/aws/aws-sdk-go-v2/service/pinpoint`: [v1.17.0](service/pinpoint/CHANGELOG.md#v1170-2022-08-08)
+  * **Feature**: Adds support for Advance Quiet Time in Journeys. Adds RefreshOnSegmentUpdate and WaitForQuietTime to JourneyResponse.
+* `github.com/aws/aws-sdk-go-v2/service/quicksight`: [v1.23.2](service/quicksight/CHANGELOG.md#v1232-2022-08-08)
+  * **Documentation**: A series of documentation updates to the QuickSight API reference.
+* `github.com/aws/aws-sdk-go-v2/service/sso`: [v1.11.14](service/sso/CHANGELOG.md#v11114-2022-08-08)
+  * **Documentation**: Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+* `github.com/aws/aws-sdk-go-v2/service/ssoadmin`: [v1.15.2](service/ssoadmin/CHANGELOG.md#v1152-2022-08-08)
+  * **Documentation**: Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+* `github.com/aws/aws-sdk-go-v2/service/ssooidc`: [v1.12.12](service/ssooidc/CHANGELOG.md#v11212-2022-08-08)
+  * **Documentation**: Documentation updates to reflect service rename - AWS IAM Identity Center (successor to AWS Single Sign-On)
+
+# Release (2022-08-04)
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/chimesdkmeetings`: [v1.13.0](service/chimesdkmeetings/CHANGELOG.md#v1130-2022-08-04)
+  * **Feature**: Adds support for Tags on Amazon Chime SDK WebRTC sessions
+* `github.com/aws/aws-sdk-go-v2/service/configservice`: [v1.24.0](service/configservice/CHANGELOG.md#v1240-2022-08-04)
+  * **Feature**: Add resourceType enums for Athena, GlobalAccelerator, Detective and EC2 types
+* `github.com/aws/aws-sdk-go-v2/service/databasemigrationservice`: [v1.21.3](service/databasemigrationservice/CHANGELOG.md#v1213-2022-08-04)
+  * **Documentation**: Documentation updates for Database Migration Service (DMS).
+* `github.com/aws/aws-sdk-go-v2/service/iot`: [v1.28.0](service/iot/CHANGELOG.md#v1280-2022-08-04)
+  * **Feature**: The release is to support attach a provisioning template to CACert for JITP function,  Customer now doesn't have to hardcode a roleArn and templateBody during register a CACert to enable JITP.
+
+# Release (2022-08-03)
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider`: [v1.18.0](service/cognitoidentityprovider/CHANGELOG.md#v1180-2022-08-03)
+  * **Feature**: Add a new exception type, ForbiddenException, that is returned when request is not allowed
+* `github.com/aws/aws-sdk-go-v2/service/wafv2`: [v1.22.0](service/wafv2/CHANGELOG.md#v1220-2022-08-03)
+  * **Feature**: You can now associate an AWS WAF web ACL with an Amazon Cognito user pool.
+
+# Release (2022-08-02)
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/licensemanagerusersubscriptions`: [v1.0.0](service/licensemanagerusersubscriptions/CHANGELOG.md#v100-2022-08-02)
+  * **Release**: New AWS service client module
+  * **Feature**: This release supports user based subscription for Microsoft Visual Studio Professional and Enterprise on EC2.
+* `github.com/aws/aws-sdk-go-v2/service/personalize`: [v1.21.0](service/personalize/CHANGELOG.md#v1210-2022-08-02)
+  * **Feature**: This release adds support for incremental bulk ingestion for the Personalize CreateDatasetImportJob API.
+
 # Release (2022-08-01)
 
 ## General Highlights
