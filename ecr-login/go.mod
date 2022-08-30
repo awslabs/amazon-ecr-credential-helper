@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.17.12
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.12
-	github.com/aws/smithy-go v1.12.1
+	github.com/aws/smithy-go v1.13.0
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.9.0
