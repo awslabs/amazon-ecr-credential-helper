@@ -35,6 +35,10 @@ if [[ -n "${3}" ]]; then
 fi
 
 GOOS=${TARGET_GOOS:-} GOARCH=${TARGET_GOARCH:-} CGO_ENABLED=0 \
-       	go build -installsuffix cgo -a -ldflags "-s ${version_ldflags}" \
-       	-o ../$1/docker-credential-ecr-login \
-	./cli/docker-credential-ecr-login
+        go build \
+        -installsuffix cgo \
+        -a \
+        -ldflags "-buildid= -s ${version_ldflags}" \
+        -trimpath \
+        -o ../$1/docker-credential-ecr-login \
+        ./cli/docker-credential-ecr-login
