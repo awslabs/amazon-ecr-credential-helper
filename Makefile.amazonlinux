@@ -27,7 +27,7 @@ srpm: .srpm-done
 .rpm-done: release.tar.gz
 	test -e SOURCES || ln -s . SOURCES
 	chown ${UID}.${UID} SOURCES/release.tar.gz
-	rpmbuild --define "%_topdir $(PWD)" -bb amazon-ecr-credential-helper.spec
+	rpmbuild --define "%_topdir $(PWD)" -D 'debug_package %{nil}' -bb amazon-ecr-credential-helper.spec
 	find RPMS/ -type f -exec cp {} . \;
 	touch .rpm-done
 
