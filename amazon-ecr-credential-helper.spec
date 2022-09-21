@@ -11,6 +11,9 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and
 # limitations under the License.
+%if 0%{?amzn} > 2
+%define debug_package %{nil}
+%endif
 Name:           amazon-ecr-credential-helper
 Version:        0.6.0
 Release:        1%{?dist}
