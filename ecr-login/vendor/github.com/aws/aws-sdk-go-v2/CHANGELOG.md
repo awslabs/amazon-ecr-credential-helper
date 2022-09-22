@@ -1,3 +1,47 @@
+# Release (2022-09-20)
+
+## General Highlights
+* **Dependency Update**: Updated to the latest SDK module versions
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2`: v1.16.16
+  * **Documentation**: added clafirfication on the Credential object to show usage of loadDefaultConfig to load credentials
+* `github.com/aws/aws-sdk-go-v2/service/ec2`: [v1.58.0](service/ec2/CHANGELOG.md#v1580-2022-09-20)
+  * **Feature**: This release adds support for blocked paths to Amazon VPC Reachability Analyzer.
+
+# Release (2022-09-19)
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/cloudtrail`: [v1.18.0](service/cloudtrail/CHANGELOG.md#v1180-2022-09-19)
+  * **Feature**: This release includes support for importing existing trails into CloudTrail Lake.
+* `github.com/aws/aws-sdk-go-v2/service/ec2`: [v1.57.0](service/ec2/CHANGELOG.md#v1570-2022-09-19)
+  * **Feature**: This release adds CapacityAllocations field to DescribeCapacityReservations
+* `github.com/aws/aws-sdk-go-v2/service/mediaconnect`: [v1.17.0](service/mediaconnect/CHANGELOG.md#v1170-2022-09-19)
+  * **Feature**: This change allows the customer to use the SRT Caller protocol as part of their flows
+* `github.com/aws/aws-sdk-go-v2/service/rds`: [v1.26.0](service/rds/CHANGELOG.md#v1260-2022-09-19)
+  * **Feature**: This release adds support for Amazon RDS Proxy with SQL Server compatibility.
+
+# Release (2022-09-16)
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/codestarnotifications`: [v1.13.0](service/codestarnotifications/CHANGELOG.md#v1130-2022-09-16)
+  * **Feature**: This release adds tag based access control for the UntagResource API.
+* `github.com/aws/aws-sdk-go-v2/service/ecs`: [v1.18.21](service/ecs/CHANGELOG.md#v11821-2022-09-16)
+  * **Documentation**: This release supports new task definition sizes.
+
+# Release (2022-09-15)
+
+## General Highlights
+* **Dependency Update**: Updated to the latest SDK module versions
+
+## Module Highlights
+* `github.com/aws/aws-sdk-go-v2/service/dynamodb`: [v1.17.0](service/dynamodb/CHANGELOG.md#v1170-2022-09-15)
+  * **Feature**: Increased DynamoDB transaction limit from 25 to 100.
+* `github.com/aws/aws-sdk-go-v2/service/ec2`: [v1.56.0](service/ec2/CHANGELOG.md#v1560-2022-09-15)
+  * **Feature**: This feature allows customers to create tags for vpc-endpoint-connections and vpc-endpoint-service-permissions.
+* `github.com/aws/aws-sdk-go-v2/service/sagemaker`: [v1.43.0](service/sagemaker/CHANGELOG.md#v1430-2022-09-15)
+  * **Feature**: Amazon SageMaker Automatic Model Tuning now supports specifying Hyperband strategy for tuning jobs, which uses a multi-fidelity based tuning strategy to stop underperforming hyperparameter configurations early.
+
 # Release (2022-09-14)
 
 ## General Highlights
