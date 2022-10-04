@@ -1,3 +1,11 @@
+# v1.13.6 (2022-09-30)
+
+* **Documentation**: Documentation updates for the IAM Identity Center OIDC CLI Reference.
+
+# v1.13.5 (2022-09-20)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.13.4 (2022-09-14)
 
 * **Dependency Update**: Updated to the latest SDK module versions
