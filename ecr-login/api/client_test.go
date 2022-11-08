@@ -70,7 +70,7 @@ func TestExtractRegistry(t *testing.T) {
 		},
 		hasError: false,
         }, {
-		serverURL: "210987654321.dkr.ecr.us-iso-east-1.c2s.ic.gov/foo",
+		serverURL: "210987654321.dkr.ecr.us-iso-east-1.c2s.ic.gov",
 		registry: &Registry{
 			ID:      "210987654321",
 			FIPS:    false,
