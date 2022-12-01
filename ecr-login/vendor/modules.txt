@@ -40,7 +40,7 @@ github.com/aws/aws-sdk-go-v2/internal/ini
 github.com/aws/aws-sdk-go-v2/service/ecr
 github.com/aws/aws-sdk-go-v2/service/ecr/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ecr/types
-# github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.19
+# github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.13.20
 github.com/aws/aws-sdk-go-v2/service/ecrpublic
 github.com/aws/aws-sdk-go-v2/service/ecrpublic/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/ecrpublic/types
