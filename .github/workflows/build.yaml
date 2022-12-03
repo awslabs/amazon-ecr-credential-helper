@@ -1,4 +1,4 @@
-name: Build
+name: CI
 
 on:
   push:
@@ -7,6 +7,24 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    name: Lint
+    strategy:
+      matrix:
+        os: ['ubuntu-22.04', 'macos-12']
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+      - uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.52.2
+          working-directory: ecr-login
+
   build:
     strategy:
       matrix:
@@ -18,7 +36,7 @@ jobs:
 
       # Build all variants regardless of failures
       fail-fast: false
-    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: Build / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
 
     steps:
