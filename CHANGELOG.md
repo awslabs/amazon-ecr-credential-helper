@@ -1,4 +1,12 @@
+# 0.6.0
+
+* Feature - Added support for [AWS SSO](https://aws.amazon.com/single-sign-on/) ([#229](https://github.com/awslabs/amazon-ecr-credential-helper/issues/229))
+* Feature - Added support to assume roles via EC2 instance metadata. ([#282](https://github.com/awslabs/amazon-ecr-credential-helper/issues/282))
+* Feature - Added support for [Apple Silicon](https://go.dev/doc/go1.16#darwin) ([#291](https://github.com/awslabs/amazon-ecr-credential-helper/pull/291))
+* Enhancement - The AWS shared config file (`~/.aws/config`) is now always enabled. (`AWS_SDK_LOAD_CONFIG` environment variable is no longer supported) ([#282](https://github.com/awslabs/amazon-ecr-credential-helper/issues/282))
+
 # 0.5.0
+
 * Feature - Added support for [ECR Public](https://gallery.ecr.aws) ([#253](https://github.com/awslabs/amazon-ecr-credential-helper/pull/253))
 * Feature - Added support for [EC2 IMDSv2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html) ([#240](https://github.com/awslabs/amazon-ecr-credential-helper/pull/240))
 * Enhancement - The AWS shared config file (`~/.aws/config`) is now enabled by default.  This can be disabled by setting the environment variable `AWS_SDK_LOAD_CONFIG` to `false` ([#201](https://github.com/awslabs/amazon-ecr-credential-helper/pull/201))

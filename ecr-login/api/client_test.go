@@ -19,12 +19,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecrpublic"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api/mocks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	ecrpublictypes "github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	mock_api "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api/mocks"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache/mocks"
+	mock_cache "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -146,7 +148,7 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
@@ -186,7 +188,7 @@ func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(proxyEndpointScheme + "notproxy"),
 				AuthorizationToken: aws.String(base64.StdEncoding.EncodeToString([]byte(expectedUsername + ":" + expectedPassword))),
 			}},
@@ -248,7 +250,7 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
@@ -298,7 +300,7 @@ func TestGetAuthConfigBadBase64(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 1, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(proxyEndpointScheme + proxyEndpoint),
 				AuthorizationToken: aws.String(expectedUsername + ":" + expectedPassword),
 			}},
@@ -519,16 +521,16 @@ func TestListCredentialsEmpty(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 0, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
 			}},
 		}, nil
 	}
-	ecrPublicClient.GetAuthorizationTokenFn = func(_ *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+	ecrPublicClient.GetAuthorizationTokenFn = func(*ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
 		return &ecrpublic.GetAuthorizationTokenOutput{
-			AuthorizationData: &ecrpublic.AuthorizationData{
+			AuthorizationData: &ecrpublictypes.AuthorizationData{
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String(authorizationToken),
 			},
@@ -579,7 +581,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 0, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalid:token"),
@@ -619,7 +621,7 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 		assert.NotNil(t, input, "GetAuthorizationToken input")
 		assert.Len(t, input.RegistryIds, 0, "GetAuthorizationToken registry IDs len")
 		return &ecr.GetAuthorizationTokenOutput{
-			AuthorizationData: []*ecr.AuthorizationData{{
+			AuthorizationData: []ecrtypes.AuthorizationData{{
 				ProxyEndpoint:      aws.String(testProxyEndpoint),
 				ExpiresAt:          aws.Time(expiresAt),
 				AuthorizationToken: aws.String("invalidtoken"),

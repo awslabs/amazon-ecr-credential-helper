@@ -40,6 +40,14 @@ A community-maintained Homebrew formula is available in the core tap.
 $ brew install docker-credential-helper-ecr
 ```
 
+On macOS, another community-maintained installation method is to use MacPorts.
+
+[![MacPorts package](https://repology.org/badge/version-for-repo/macports/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+
+```bash
+$ sudo port install docker-credential-helper-ecr
+```
+
 Once you have installed the credential helper, see the
 [Configuration section](#Configuration) for instructions on how to configure
 Docker to work with the helper.
@@ -198,6 +206,13 @@ in the *AWS Command Line Interface User Guide*.
 
 The credentials must have a policy applied that
 [allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+
+### Amazon ECR Docker Credential Helper 
+
+| Environment Variable  | Sample Value  | Description                                                        |
+| --------------------- | ------------- | ------------------------------------------------------------------ |
+| AWS_ECR_DISABLE_CACHE | true          | Disables the local file auth cache if set to a non-empty value     |
+| AWS_ECR_CACHE_DIR     | ~/.ecr        | Specifies the local file auth cache directory location             |
 
 ## Usage
 
