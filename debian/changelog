@@ -1,4 +1,4 @@
-amazon-ecr-credential-helper (0.6.0-1) UNRELEASED; urgency=medium
+amazon-ecr-credential-helper (0.6.0-1) unstable; urgency=medium
 
   [ Debian Janitor ]
   * Remove constraints unnecessary since buster:
@@ -6,8 +6,10 @@ amazon-ecr-credential-helper (0.6.0-1) UNRELEASED; urgency=medium
 
   [ Noah Meyerhans ]
   * New upstream release
+  * Add golang-github-aws-aws-sdk-go-v2-dev to build-deps
+  * Replace Sam Karp with myself as Maintainer
 
- -- Noah Meyerhans <noahm@debian.org>  Sun, 29 Jan 2023 09:41:31 -0800
+ -- Noah Meyerhans <noahm@debian.org>  Tue, 31 Jan 2023 11:17:40 -0800
 
 amazon-ecr-credential-helper (0.5.0-1) unstable; urgency=medium
 
