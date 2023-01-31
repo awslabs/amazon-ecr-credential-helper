@@ -1,7 +1,7 @@
 Source: amazon-ecr-credential-helper
 Section: misc
 Priority: optional
-Maintainer: Samuel Karp <skarp@amazon.com>
+Maintainer: Noah Meyerhans <noahm@debian.org>
 Build-Depends:
  debhelper-compat (= 12),
  dh-golang,
