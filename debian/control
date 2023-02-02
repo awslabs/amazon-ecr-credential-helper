@@ -1,13 +1,13 @@
 Source: amazon-ecr-credential-helper
 Section: misc
 Priority: optional
-Maintainer: Samuel Karp <skarp@amazon.com>
+Maintainer: Noah Meyerhans <noahm@debian.org>
 Build-Depends:
  debhelper-compat (= 12),
  dh-golang,
  golang-go,
  git,
- golang-github-aws-aws-sdk-go-dev (>= 1.36.0),
+ golang-github-aws-aws-sdk-go-v2-dev,
  golang-github-docker-docker-credential-helpers-dev,
  golang-github-mitchellh-go-homedir-dev,
  golang-github-sirupsen-logrus-dev,

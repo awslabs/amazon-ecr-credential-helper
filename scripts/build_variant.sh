@@ -12,6 +12,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+set -euo pipefail
+
 # This script is used for compilation of a specific variant.
 # Specify GOOS as $1, GOARCH as $2
 # Binaries are placed into ./bin/$GOOS-$GOARCH/docker-credential-ecr-login
@@ -19,9 +21,6 @@
 # Normalize to working directory being build root (up one level from ./scripts)
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
-
-# Source the shared environment
-source ./scripts/shared_env
 
 # Export variables
 export TARGET_GOOS="$1"

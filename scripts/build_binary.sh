@@ -12,6 +12,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+set -euo pipefail
+
 # Normalize to working directory being build root (up one level from ./scripts)
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
@@ -32,7 +34,7 @@ if [[ -n "${3}" ]]; then
   version_ldflags="$version_ldflags -X ${package_root}/version.GitCommitSHA=${3}"
 fi
 
-GOOS=$TARGET_GOOS GOARCH=$TARGET_GOARCH CGO_ENABLED=0 \
+GOOS=${TARGET_GOOS:-} GOARCH=${TARGET_GOARCH:-} CGO_ENABLED=0 \
        	go build -installsuffix cgo -a -ldflags "-s ${version_ldflags}" \
        	-o ../$1/docker-credential-ecr-login \
 	./cli/docker-credential-ecr-login
