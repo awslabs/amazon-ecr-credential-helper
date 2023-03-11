@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -37,7 +38,10 @@ const (
 	ecrPublicEndpoint   = proxyEndpointScheme + ecrPublicName
 )
 
-var ecrPattern = regexp.MustCompile(`^(\d{12})\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.com(\.cn)?|sc2s\.sgov\.gov|c2s\.ic\.gov|cloud\.adc-e\.uk|csp\.hci\.ic\.gov)$`)
+var (
+	ecrPattern            = regexp.MustCompile(`^(\d{12})\.dkr\.ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.com(\.cn)?|sc2s\.sgov\.gov|c2s\.ic\.gov|cloud\.adc-e\.uk|csp\.hci\.ic\.gov)$`)
+	ecrUseDefaultRegistry = os.Getenv("AWS_ECR_USE_DEFAULT_REGISTRY")
+)
 
 type Service string
 
@@ -69,7 +73,14 @@ func ExtractRegistry(input string) (*Registry, error) {
 		}, nil
 	}
 	matches := ecrPattern.FindStringSubmatch(serverURL.Hostname())
-	if len(matches) == 0 {
+	if len(matches) == 0 && ecrUseDefaultRegistry != "" {
+		return &Registry{
+			Service: ServiceECR,
+			ID:      "",
+			FIPS:    false,
+			Region:  "",
+		}, nil
+	} else if len(matches) == 0 {
 		return nil, fmt.Errorf(programName + " can only be used with Amazon Elastic Container Registry.")
 	} else if len(matches) < 3 {
 		return nil, fmt.Errorf("%q is not a valid repository URI for Amazon Elastic Container Registry.", input)
