@@ -147,7 +147,7 @@ A community-maintained package is available in the [Alpine Linux aports Reposito
 ```bash
 apk add docker-credential-ecr-login
 ```
-> [!NOTE] 
+> [!NOTE]
 > Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
 
 Once you have installed the credential helper, see the
@@ -225,11 +225,11 @@ On Windows, depending on whether the executable is ran in the User or System con
 
 Following that the configuration for the docker client needs to be updated in `~/.docker/config.json` to use the **ecr-login** helper.
 Depending on the operating system and context under which docker client will be executed, this configuration can be found in different places.
-  
+
 On Linux systems:
 - `/home/<username>/.docker/config.json` for **user** context
 - `/root/.docker/config.json` for **root** context
-  
+
 On Windows:
 - `C:\Users\<username>\.docker\config.json` for **user** context
 - `C:\Windows\System32\config\systemprofile\.docker\config.json` for the **SYSTEM** context
@@ -243,6 +243,22 @@ Set the contents of the file to the following:
 ```
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
+
+The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens:
+
+```json
+{
+	"credsStore": "ecr-login",
+	"auths": {
+		"https://index.docker.io/v1/": {
+			"auth": [docker.io-auth-token]
+		},
+		"registry.gitlab.com": {
+			"auth": [gitlab-auth-token]
+		},
+	}
+}
+```
 
 With Docker 1.13.0 or greater, you can configure Docker to use different
 credential helpers for different ECR registries. To use this credential helper for
@@ -322,6 +338,7 @@ The credentials must have a policy applied that
 | AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value. When disabled, the credential helper will not store or read cached ECR authorization tokens from the local filesystem, requiring fresh credentials to be fetched from AWS for each Docker operation. This may be useful in environments where persisting credentials to disk is not desired, though it will result in additional API calls to ECR.  |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
+| AWS_ECR_USE_DEFAULT_REGISTRY | true          | Uses the default registry when the provided one cannot be parsed   |
 
 ## Usage
 
@@ -364,7 +381,7 @@ If you test any experimental feaures, you can give feedback via the feature's tr
 * Suggested improvements
 
 Experimental features are incomplete in design and implementation. Backwards incompatible
-changes may be introduced at any time or support dropped entirely. Therefore experimental 
+changes may be introduced at any time or support dropped entirely. Therefore experimental
 features are **not recommended** for use in production environments.
 
 ## Security disclosures
