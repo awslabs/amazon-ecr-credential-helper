@@ -116,7 +116,7 @@ Docker to work with the helper.
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
-1.15 or later, `git` and `make` installed on your system.
+1.19 or later, `git` and `make` installed on your system.
 
 If you just installed Go, make sure you also have added it to your PATH or 
 Environment Vars (Windows). For example:
@@ -138,16 +138,10 @@ running `docker-credential-ecr-login` will output: `command not found`
 
 You can install this via the `go` command line tool.
 
-For go version 1.16 and newer run :
+To install run:
 
 ```
 go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
-```
-
-or with an older version of go run :
-
-```
-go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
 ```
 
 If you already have Docker environment, just clone this repository anywhere
