@@ -1,5 +1,10 @@
 name: Dependabot auto-merge
-on: pull_request
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_run:
+    workflows: [ "Build", "CodeQL Scan" ]
+    types: [ completed ]
 
 permissions:
   contents: write
@@ -8,7 +13,9 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: |
+      ${{ github.actor == 'dependabot[bot]' }} && 
+      ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Dependabot metadata
         id: metadata
@@ -18,11 +25,11 @@ jobs:
 
       - name: Approve and auto-merge PR
         if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-minor' || 
-          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' }} || 
+          ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
         run: |
           gh pr review --approve "$PR_URL"
           gh pr merge --auto --merge "$PR_URL"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
+          PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
