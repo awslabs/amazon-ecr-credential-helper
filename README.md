@@ -158,7 +158,7 @@ contents of your `~/.docker/config.json` file to be:
 
 ```json
 {
-	"credsStore": "ecr-login"
+	"credStore": "ecr-login"
 }
 ```
 This configures the Docker daemon to use the credential helper for all Amazon
