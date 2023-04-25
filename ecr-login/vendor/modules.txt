@@ -1,4 +1,4 @@
-# github.com/aws/aws-sdk-go-v2 v1.17.8
+# github.com/aws/aws-sdk-go-v2 v1.18.0
 github.com/aws/aws-sdk-go-v2
 github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/aws/defaults
