@@ -1,3 +1,8 @@
+# 0.7.0
+
+* Feature - Allow callers to set log output. ([#309](https://github.com/awslabs/amazon-ecr-credential-helper/pull/309) and [#312](https://github.com/awslabs/amazon-ecr-credential-helper/pull/312))
+* Upgrade dependencies for bug fixes and security patches. 
+
 # 0.6.0
 
 * Feature - Added support for [AWS SSO](https://aws.amazon.com/single-sign-on/) ([#229](https://github.com/awslabs/amazon-ecr-credential-helper/issues/229))
