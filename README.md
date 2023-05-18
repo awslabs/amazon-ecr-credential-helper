@@ -20,7 +20,18 @@ use different AWS credentials.
 
 ## Installing
 
-### Amazon Linux 2
+### Amazon Linux 2023 (AL2023)
+You can install the Amazon ECR Credential Helper from the Amazon Linux 2023 repositories.
+
+```bash
+$ sudo dnf install -y amazon-ecr-credential-helper
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#Configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Amazon Linux 2 (AL2)
 You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
 extras](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-linux-ami-basics.html#extras-library).
 
