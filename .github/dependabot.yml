@@ -4,3 +4,9 @@ updates:
     directory: /ecr-login
     schedule:
       interval: daily
+
+  # Dependencies listed in .github/workflows/*.yml
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
