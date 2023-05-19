@@ -90,7 +90,7 @@ github.com/mitchellh/go-homedir
 github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.9.2
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.8.2
+# github.com/stretchr/testify v1.8.3
 github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64
 golang.org/x/sys/internal/unsafeheader
