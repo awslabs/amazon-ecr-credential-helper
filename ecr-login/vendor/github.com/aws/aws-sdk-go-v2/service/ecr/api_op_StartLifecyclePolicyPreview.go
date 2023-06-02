@@ -11,8 +11,8 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Starts a preview of a lifecycle policy for the specified repository. This allows
-// you to see the results before associating the lifecycle policy with the
+// Starts a preview of a lifecycle policy for the specified repository. This
+// allows you to see the results before associating the lifecycle policy with the
 // repository.
 func (c *Client) StartLifecyclePolicyPreview(ctx context.Context, params *StartLifecyclePolicyPreviewInput, optFns ...func(*Options)) (*StartLifecyclePolicyPreviewOutput, error) {
 	if params == nil {
@@ -40,9 +40,12 @@ type StartLifecyclePolicyPreviewInput struct {
 	// policy for the repository is used.
 	LifecyclePolicyText *string
 
-	// The AWS account ID associated with the registry that contains the repository. If
-	// you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository. If you do not specify a registry, the default registry is
+	// assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type StartLifecyclePolicyPreviewOutput struct {
@@ -61,6 +64,8 @@ type StartLifecyclePolicyPreviewOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationStartLifecyclePolicyPreviewMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -112,6 +117,9 @@ func (c *Client) addOperationStartLifecyclePolicyPreviewMiddlewares(stack *middl
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opStartLifecyclePolicyPreview(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

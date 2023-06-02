@@ -14,7 +14,7 @@ import (
 
 // Lists all the image IDs for the specified repository. You can filter images
 // based on whether or not they are tagged by using the tagStatus filter and
-// specifying either TAGGED, UNTAGGED or ANY. For example, you can filter your
+// specifying either TAGGED , UNTAGGED or ANY . For example, you can filter your
 // results to return only UNTAGGED images and then pipe that result to a
 // BatchDeleteImage operation to delete them. Or, you can filter your results to
 // return only TAGGED images to list all of the tags in your repository.
@@ -60,10 +60,12 @@ type ListImagesInput struct {
 	// retrieve the next items in a list and not for other programmatic purposes.
 	NextToken *string
 
-	// The AWS account ID associated with the registry that contains the repository in
-	// which to list images. If you do not specify a registry, the default registry is
-	// assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository in which to list images. If you do not specify a registry, the
+	// default registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type ListImagesOutput struct {
@@ -72,13 +74,15 @@ type ListImagesOutput struct {
 	ImageIds []types.ImageIdentifier
 
 	// The nextToken value to include in a future ListImages request. When the results
-	// of a ListImages request exceed maxResults, this value can be used to retrieve
+	// of a ListImages request exceed maxResults , this value can be used to retrieve
 	// the next page of results. This value is null when there are no more results to
 	// return.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationListImagesMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -130,6 +134,9 @@ func (c *Client) addOperationListImagesMiddlewares(stack *middleware.Stack, opti
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListImages(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -196,12 +203,13 @@ func NewListImagesPaginator(client ListImagesAPIClient, params *ListImagesInput,
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *ListImagesPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next ListImages page.
@@ -228,7 +236,10 @@ func (p *ListImagesPaginator) NextPage(ctx context.Context, optFns ...func(*Opti
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 

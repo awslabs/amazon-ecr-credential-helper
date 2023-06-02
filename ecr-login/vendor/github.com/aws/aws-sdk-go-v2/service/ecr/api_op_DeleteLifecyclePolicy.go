@@ -34,9 +34,12 @@ type DeleteLifecyclePolicyInput struct {
 	// This member is required.
 	RepositoryName *string
 
-	// The AWS account ID associated with the registry that contains the repository. If
-	// you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository. If you do not specify a registry, the default registry is
+	// assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type DeleteLifecyclePolicyOutput struct {
@@ -55,6 +58,8 @@ type DeleteLifecyclePolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationDeleteLifecyclePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -106,6 +111,9 @@ func (c *Client) addOperationDeleteLifecyclePolicyMiddlewares(stack *middleware.
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteLifecyclePolicy(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

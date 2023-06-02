@@ -50,9 +50,12 @@ type CompleteLayerUploadInput struct {
 	// This member is required.
 	UploadId *string
 
-	// The AWS account ID associated with the registry to which to upload layers. If
-	// you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry to which to
+	// upload layers. If you do not specify a registry, the default registry is
+	// assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type CompleteLayerUploadOutput struct {
@@ -71,6 +74,8 @@ type CompleteLayerUploadOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationCompleteLayerUploadMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -122,6 +127,9 @@ func (c *Client) addOperationCompleteLayerUploadMiddlewares(stack *middleware.St
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCompleteLayerUpload(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

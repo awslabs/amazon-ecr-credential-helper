@@ -11,7 +11,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Create or updates the catalog data for a public registry.
+// Create or update the catalog data for a public registry.
 func (c *Client) PutRegistryCatalogData(ctx context.Context, params *PutRegistryCatalogDataInput, optFns ...func(*Options)) (*PutRegistryCatalogDataOutput, error) {
 	if params == nil {
 		params = &PutRegistryCatalogDataInput{}
@@ -33,6 +33,8 @@ type PutRegistryCatalogDataInput struct {
 	// repository author in the Amazon ECR Public Gallery. The registry display name is
 	// only publicly visible in the Amazon ECR Public Gallery for verified accounts.
 	DisplayName *string
+
+	noSmithyDocumentSerde
 }
 
 type PutRegistryCatalogDataOutput struct {
@@ -44,6 +46,8 @@ type PutRegistryCatalogDataOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationPutRegistryCatalogDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -92,6 +96,9 @@ func (c *Client) addOperationPutRegistryCatalogDataMiddlewares(stack *middleware
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutRegistryCatalogData(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

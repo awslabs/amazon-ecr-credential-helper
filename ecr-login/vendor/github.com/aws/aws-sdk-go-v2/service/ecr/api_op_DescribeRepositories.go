@@ -31,13 +31,14 @@ func (c *Client) DescribeRepositories(ctx context.Context, params *DescribeRepos
 type DescribeRepositoriesInput struct {
 
 	// The maximum number of repository results returned by DescribeRepositories in
-	// paginated output. When this parameter is used, DescribeRepositories only returns
-	// maxResults results in a single page along with a nextToken response element. The
-	// remaining results of the initial request can be seen by sending another
-	// DescribeRepositories request with the returned nextToken value. This value can
-	// be between 1 and 1000. If this parameter is not used, then DescribeRepositories
-	// returns up to 100 results and a nextToken value, if applicable. This option
-	// cannot be used when you specify repositories with repositoryNames.
+	// paginated output. When this parameter is used, DescribeRepositories only
+	// returns maxResults results in a single page along with a nextToken response
+	// element. The remaining results of the initial request can be seen by sending
+	// another DescribeRepositories request with the returned nextToken value. This
+	// value can be between 1 and 1000. If this parameter is not used, then
+	// DescribeRepositories returns up to 100 results and a nextToken value, if
+	// applicable. This option cannot be used when you specify repositories with
+	// repositoryNames .
 	MaxResults *int32
 
 	// The nextToken value returned from a previous paginated DescribeRepositories
@@ -45,25 +46,27 @@ type DescribeRepositoriesInput struct {
 	// parameter. Pagination continues from the end of the previous results that
 	// returned the nextToken value. This value is null when there are no more results
 	// to return. This option cannot be used when you specify repositories with
-	// repositoryNames. This token should be treated as an opaque identifier that is
+	// repositoryNames . This token should be treated as an opaque identifier that is
 	// only used to retrieve the next items in a list and not for other programmatic
 	// purposes.
 	NextToken *string
 
-	// The AWS account ID associated with the registry that contains the repositories
-	// to be described. If you do not specify a registry, the default registry is
-	// assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repositories to be described. If you do not specify a registry, the default
+	// registry is assumed.
 	RegistryId *string
 
 	// A list of repositories to describe. If this parameter is omitted, then all
 	// repositories in a registry are described.
 	RepositoryNames []string
+
+	noSmithyDocumentSerde
 }
 
 type DescribeRepositoriesOutput struct {
 
 	// The nextToken value to include in a future DescribeRepositories request. When
-	// the results of a DescribeRepositories request exceed maxResults, this value can
+	// the results of a DescribeRepositories request exceed maxResults , this value can
 	// be used to retrieve the next page of results. This value is null when there are
 	// no more results to return.
 	NextToken *string
@@ -73,6 +76,8 @@ type DescribeRepositoriesOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationDescribeRepositoriesMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -123,6 +128,9 @@ func (c *Client) addOperationDescribeRepositoriesMiddlewares(stack *middleware.S
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeRepositories(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -147,13 +155,14 @@ var _ DescribeRepositoriesAPIClient = (*Client)(nil)
 // DescribeRepositories
 type DescribeRepositoriesPaginatorOptions struct {
 	// The maximum number of repository results returned by DescribeRepositories in
-	// paginated output. When this parameter is used, DescribeRepositories only returns
-	// maxResults results in a single page along with a nextToken response element. The
-	// remaining results of the initial request can be seen by sending another
-	// DescribeRepositories request with the returned nextToken value. This value can
-	// be between 1 and 1000. If this parameter is not used, then DescribeRepositories
-	// returns up to 100 results and a nextToken value, if applicable. This option
-	// cannot be used when you specify repositories with repositoryNames.
+	// paginated output. When this parameter is used, DescribeRepositories only
+	// returns maxResults results in a single page along with a nextToken response
+	// element. The remaining results of the initial request can be seen by sending
+	// another DescribeRepositories request with the returned nextToken value. This
+	// value can be between 1 and 1000. If this parameter is not used, then
+	// DescribeRepositories returns up to 100 results and a nextToken value, if
+	// applicable. This option cannot be used when you specify repositories with
+	// repositoryNames .
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -190,12 +199,13 @@ func NewDescribeRepositoriesPaginator(client DescribeRepositoriesAPIClient, para
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *DescribeRepositoriesPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next DescribeRepositories page.
@@ -222,7 +232,10 @@ func (p *DescribeRepositoriesPaginator) NextPage(ctx context.Context, optFns ...
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 

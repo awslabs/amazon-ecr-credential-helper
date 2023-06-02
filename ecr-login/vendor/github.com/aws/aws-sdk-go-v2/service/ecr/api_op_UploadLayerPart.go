@@ -59,9 +59,12 @@ type UploadLayerPartInput struct {
 	// This member is required.
 	UploadId *string
 
-	// The AWS account ID associated with the registry to which you are uploading layer
-	// parts. If you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry to which you
+	// are uploading layer parts. If you do not specify a registry, the default
+	// registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type UploadLayerPartOutput struct {
@@ -80,6 +83,8 @@ type UploadLayerPartOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationUploadLayerPartMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -131,6 +136,9 @@ func (c *Client) addOperationUploadLayerPartMiddlewares(stack *middleware.Stack,
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opUploadLayerPart(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
