@@ -88,7 +88,7 @@ github.com/jmespath/go-jmespath
 github.com/mitchellh/go-homedir
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/sirupsen/logrus v1.9.2
+# github.com/sirupsen/logrus v1.9.3
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.2
 github.com/stretchr/testify/assert
