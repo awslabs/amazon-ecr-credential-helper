@@ -71,13 +71,13 @@ func NewECRHelper(opts ...Option) *ECRHelper {
 var _ credentials.Helper = (*ECRHelper)(nil)
 
 func (ECRHelper) Add(creds *credentials.Credentials) error {
-	// This does not seem to get called
-	return notImplemented
+	// Never store the credentials
+	return nil
 }
 
 func (ECRHelper) Delete(serverURL string) error {
-	// This does not seem to get called
-	return notImplemented
+	// Never store the credentials
+	return nil
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
