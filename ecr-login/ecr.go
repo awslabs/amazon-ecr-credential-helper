@@ -75,7 +75,7 @@ func shouldIgnoreCredsStorage() bool {
 	return os.Getenv("AWS_ECR_IGNORE_CREDS_STORAGE") == "true"
 }
 
-// Called when docker tries to store credentials. This usually happens during `docker login` calls. In our context,
+// Add tries to store credentials when docker requests it. This usually happens during `docker login` calls. In our context,
 // storing arbitrary user given credentials makes no sense.
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	if shouldIgnoreCredsStorage() {
@@ -90,7 +90,7 @@ func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	}
 }
 
-// Called when docker tries to delete credentials. This usually happens during `docker logout` calls. In our context, we
+// Delete tries to delete credentials when docker requests it. This usually happens during `docker logout` calls. In our context, we
 // don't store arbitrary user given credentials so deleting them makes no sense.
 func (self ECRHelper) Delete(serverURL string) error {
 	if shouldIgnoreCredsStorage() {
