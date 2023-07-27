@@ -28,7 +28,7 @@ $ sudo dnf install -y amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Amazon Linux 2 (AL2)
@@ -41,7 +41,7 @@ $ sudo yum install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Mac OS
@@ -62,7 +62,7 @@ $ sudo port install docker-credential-helper-ecr
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Debian Buster (and future versions)
@@ -80,7 +80,7 @@ $ sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Ubuntu 19.04 Disco Dingo and newer
@@ -96,7 +96,7 @@ $ sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Arch Linux
@@ -111,7 +111,7 @@ $ makepkg -si
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### From Source
@@ -151,7 +151,7 @@ container and output it to local directory.
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ## Configuration
