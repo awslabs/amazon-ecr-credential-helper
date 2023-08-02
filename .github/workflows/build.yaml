@@ -27,7 +27,13 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: make get-deps
-        if: ${{ matrix.go >= '1.17' }}
+        if: ${{ matrix.go >= '1.19' }}
+
+      # test Dockerfile build on Linux. macOS runners do not ship with Docker
+      # installed by default whereas Ubuntu runners do.
+      - name: Build in Dockerfile
+        run: make docker
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
 
       # Apple Silicon is not supported by Go < 1.16.
       # https://go.dev/blog/go1.16
