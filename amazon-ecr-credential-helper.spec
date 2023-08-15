@@ -15,7 +15,7 @@
 %define debug_package %{nil}
 %endif
 Name:           amazon-ecr-credential-helper
-Version:        0.6.0
+Version:        0.7.1
 Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.11
+BuildRequires: golang >= 1.19
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -139,6 +139,9 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Aug 15 2023 Swagat Bora <sbora@amazon.com> - 0.7.1-1
+- Allow callers to set log output
+- Upgrade dependencies for bug fixes
 * Fri Jan 14 2022 Austin Vazquez <macedonv@amazon.com> - 0.6.0-1
 - Added support for AWS SSO
 - Added support to assume roles via EC2 instance metadata
