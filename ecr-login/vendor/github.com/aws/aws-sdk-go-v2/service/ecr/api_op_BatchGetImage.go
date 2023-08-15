@@ -12,7 +12,7 @@ import (
 )
 
 // Gets detailed information for an image. Images are specified with either an
-// imageTag or imageDigest. When an image is pulled, the BatchGetImage API is
+// imageTag or imageDigest . When an image is pulled, the BatchGetImage API is
 // called once to retrieve the image manifest.
 func (c *Client) BatchGetImage(ctx context.Context, params *BatchGetImageInput, optFns ...func(*Options)) (*BatchGetImageOutput, error) {
 	if params == nil {
@@ -32,7 +32,7 @@ func (c *Client) BatchGetImage(ctx context.Context, params *BatchGetImageInput, 
 type BatchGetImageInput struct {
 
 	// A list of image ID references that correspond to images to describe. The format
-	// of the imageIds reference is imageTag=tag or imageDigest=digest.
+	// of the imageIds reference is imageTag=tag or imageDigest=digest .
 	//
 	// This member is required.
 	ImageIds []types.ImageIdentifier
@@ -48,9 +48,12 @@ type BatchGetImageInput struct {
 	// application/vnd.oci.image.manifest.v1+json
 	AcceptedMediaTypes []string
 
-	// The AWS account ID associated with the registry that contains the images to
-	// describe. If you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the images to describe. If you do not specify a registry, the default registry
+	// is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type BatchGetImageOutput struct {
@@ -63,6 +66,8 @@ type BatchGetImageOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationBatchGetImageMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -114,6 +119,9 @@ func (c *Client) addOperationBatchGetImageMiddlewares(stack *middleware.Stack, o
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opBatchGetImage(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

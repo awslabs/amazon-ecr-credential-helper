@@ -28,6 +28,7 @@ func (c *Client) GetRegistryCatalogData(ctx context.Context, params *GetRegistry
 }
 
 type GetRegistryCatalogDataInput struct {
+	noSmithyDocumentSerde
 }
 
 type GetRegistryCatalogDataOutput struct {
@@ -39,6 +40,8 @@ type GetRegistryCatalogDataOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationGetRegistryCatalogDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -87,6 +90,9 @@ func (c *Client) addOperationGetRegistryCatalogDataMiddlewares(stack *middleware
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetRegistryCatalogData(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

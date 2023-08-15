@@ -50,13 +50,13 @@ type GetLifecyclePolicyPreviewInput struct {
 	// The maximum number of repository results returned by
 	// GetLifecyclePolicyPreviewRequest in  paginated output. When this parameter is
 	// used, GetLifecyclePolicyPreviewRequest only returns  maxResults results in a
-	// single page along with a nextToken  response element. The remaining results of
+	// single page along with a nextToken   response element. The remaining results of
 	// the initial request can be seen by sending  another
-	// GetLifecyclePolicyPreviewRequest request with the returned nextToken  value.
+	// GetLifecyclePolicyPreviewRequest request with the returned nextToken   value.
 	// This value can be between 1 and 1000. If this  parameter is not used, then
 	// GetLifecyclePolicyPreviewRequest returns up to  100 results and a nextToken
 	// value, if  applicable. This option cannot be used when you specify images with
-	// imageIds.
+	// imageIds .
 	MaxResults *int32
 
 	// The nextToken value returned from a previous paginated
@@ -64,12 +64,15 @@ type GetLifecyclePolicyPreviewInput struct {
 	// results exceeded the value of that parameter. Pagination continues from the end
 	// of the  previous results that returned the nextToken value. This value is  null
 	// when there are no more results to return. This option cannot be used when you
-	// specify images with imageIds.
+	// specify images with imageIds .
 	NextToken *string
 
-	// The AWS account ID associated with the registry that contains the repository. If
-	// you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository. If you do not specify a registry, the default registry is
+	// assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type GetLifecyclePolicyPreviewOutput struct {
@@ -78,7 +81,7 @@ type GetLifecyclePolicyPreviewOutput struct {
 	LifecyclePolicyText *string
 
 	// The nextToken value to include in a future GetLifecyclePolicyPreview request.
-	// When the results of a GetLifecyclePolicyPreview request exceed maxResults, this
+	// When the results of a GetLifecyclePolicyPreview request exceed maxResults , this
 	// value can be used to retrieve the next page of results. This value is null when
 	// there are no more results to return.
 	NextToken *string
@@ -100,6 +103,8 @@ type GetLifecyclePolicyPreviewOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationGetLifecyclePolicyPreviewMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -153,6 +158,9 @@ func (c *Client) addOperationGetLifecyclePolicyPreviewMiddlewares(stack *middlew
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetLifecyclePolicyPreview(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -179,13 +187,13 @@ type GetLifecyclePolicyPreviewPaginatorOptions struct {
 	// The maximum number of repository results returned by
 	// GetLifecyclePolicyPreviewRequest in  paginated output. When this parameter is
 	// used, GetLifecyclePolicyPreviewRequest only returns  maxResults results in a
-	// single page along with a nextToken  response element. The remaining results of
+	// single page along with a nextToken   response element. The remaining results of
 	// the initial request can be seen by sending  another
-	// GetLifecyclePolicyPreviewRequest request with the returned nextToken  value.
+	// GetLifecyclePolicyPreviewRequest request with the returned nextToken   value.
 	// This value can be between 1 and 1000. If this  parameter is not used, then
 	// GetLifecyclePolicyPreviewRequest returns up to  100 results and a nextToken
 	// value, if  applicable. This option cannot be used when you specify images with
-	// imageIds.
+	// imageIds .
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -223,12 +231,13 @@ func NewGetLifecyclePolicyPreviewPaginator(client GetLifecyclePolicyPreviewAPICl
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *GetLifecyclePolicyPreviewPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next GetLifecyclePolicyPreview page.
@@ -255,7 +264,10 @@ func (p *GetLifecyclePolicyPreviewPaginator) NextPage(ctx context.Context, optFn
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 
@@ -277,10 +289,10 @@ type LifecyclePolicyPreviewCompleteWaiterOptions struct {
 	// MaxDelay.
 	MinDelay time.Duration
 
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, LifecyclePolicyPreviewCompleteWaiter will use default max delay of 120
-	// seconds. Note that MaxDelay must resolve to value greater than or equal to the
-	// MinDelay.
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, LifecyclePolicyPreviewCompleteWaiter will use default max delay of
+	// 120 seconds. Note that MaxDelay must resolve to value greater than or equal to
+	// the MinDelay.
 	MaxDelay time.Duration
 
 	// LogWaitAttempts is used to enable logging for waiter retry attempts
@@ -326,8 +338,17 @@ func NewLifecyclePolicyPreviewCompleteWaiter(client GetLifecyclePolicyPreviewAPI
 // maxWaitDur is the maximum wait duration the waiter will wait. The maxWaitDur is
 // required and must be greater than zero.
 func (w *LifecyclePolicyPreviewCompleteWaiter) Wait(ctx context.Context, params *GetLifecyclePolicyPreviewInput, maxWaitDur time.Duration, optFns ...func(*LifecyclePolicyPreviewCompleteWaiterOptions)) error {
+	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
+	return err
+}
+
+// WaitForOutput calls the waiter function for LifecyclePolicyPreviewComplete
+// waiter and returns the output of the successful operation. The maxWaitDur is the
+// maximum wait duration the waiter will wait. The maxWaitDur is required and must
+// be greater than zero.
+func (w *LifecyclePolicyPreviewCompleteWaiter) WaitForOutput(ctx context.Context, params *GetLifecyclePolicyPreviewInput, maxWaitDur time.Duration, optFns ...func(*LifecyclePolicyPreviewCompleteWaiterOptions)) (*GetLifecyclePolicyPreviewOutput, error) {
 	if maxWaitDur <= 0 {
-		return fmt.Errorf("maximum wait time for waiter must be greater than zero")
+		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
 	}
 
 	options := w.options
@@ -340,7 +361,7 @@ func (w *LifecyclePolicyPreviewCompleteWaiter) Wait(ctx context.Context, params 
 	}
 
 	if options.MinDelay > options.MaxDelay {
-		return fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
+		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
 	}
 
 	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
@@ -368,10 +389,10 @@ func (w *LifecyclePolicyPreviewCompleteWaiter) Wait(ctx context.Context, params 
 
 		retryable, err := options.Retryable(ctx, params, out, err)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if !retryable {
-			return nil
+			return out, nil
 		}
 
 		remainingTime -= time.Since(start)
@@ -384,16 +405,16 @@ func (w *LifecyclePolicyPreviewCompleteWaiter) Wait(ctx context.Context, params 
 			attempt, options.MinDelay, options.MaxDelay, remainingTime,
 		)
 		if err != nil {
-			return fmt.Errorf("error computing waiter delay, %w", err)
+			return nil, fmt.Errorf("error computing waiter delay, %w", err)
 		}
 
 		remainingTime -= delay
 		// sleep for the delay amount before invoking a request
 		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
-			return fmt.Errorf("request cancelled while waiting, %w", err)
+			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
 		}
 	}
-	return fmt.Errorf("exceeded max wait time for LifecyclePolicyPreviewComplete waiter")
+	return nil, fmt.Errorf("exceeded max wait time for LifecyclePolicyPreviewComplete waiter")
 }
 
 func lifecyclePolicyPreviewCompleteStateRetryable(ctx context.Context, input *GetLifecyclePolicyPreviewInput, output *GetLifecyclePolicyPreviewOutput, err error) (bool, error) {

@@ -12,11 +12,11 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Returns metadata about the images in a repository. Beginning with Docker version
-// 1.9, the Docker client compresses image layers before pushing them to a V2
-// Docker registry. The output of the docker images command shows the uncompressed
-// image size, so it may return a larger image size than the image sizes returned
-// by DescribeImages.
+// Returns metadata about the images in a repository. Beginning with Docker
+// version 1.9, the Docker client compresses image layers before pushing them to a
+// V2 Docker registry. The output of the docker images command shows the
+// uncompressed image size, so it may return a larger image size than the image
+// sizes returned by DescribeImages .
 func (c *Client) DescribeImages(ctx context.Context, params *DescribeImagesInput, optFns ...func(*Options)) (*DescribeImagesOutput, error) {
 	if params == nil {
 		params = &DescribeImagesInput{}
@@ -45,27 +45,29 @@ type DescribeImagesInput struct {
 	// The list of image IDs for the requested repository.
 	ImageIds []types.ImageIdentifier
 
-	// The maximum number of repository results returned by DescribeImages in paginated
-	// output. When this parameter is used, DescribeImages only returns maxResults
-	// results in a single page along with a nextToken response element. The remaining
-	// results of the initial request can be seen by sending another DescribeImages
-	// request with the returned nextToken value. This value can be between 1 and 1000.
-	// If this parameter is not used, then DescribeImages returns up to 100 results and
-	// a nextToken value, if applicable. This option cannot be used when you specify
-	// images with imageIds.
+	// The maximum number of repository results returned by DescribeImages in
+	// paginated output. When this parameter is used, DescribeImages only returns
+	// maxResults results in a single page along with a nextToken response element.
+	// The remaining results of the initial request can be seen by sending another
+	// DescribeImages request with the returned nextToken value. This value can be
+	// between 1 and 1000. If this parameter is not used, then DescribeImages returns
+	// up to 100 results and a nextToken value, if applicable. This option cannot be
+	// used when you specify images with imageIds .
 	MaxResults *int32
 
 	// The nextToken value returned from a previous paginated DescribeImages request
 	// where maxResults was used and the results exceeded the value of that parameter.
 	// Pagination continues from the end of the previous results that returned the
 	// nextToken value. This value is null when there are no more results to return.
-	// This option cannot be used when you specify images with imageIds.
+	// This option cannot be used when you specify images with imageIds .
 	NextToken *string
 
-	// The AWS account ID associated with the registry that contains the repository in
-	// which to describe images. If you do not specify a registry, the default registry
-	// is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository in which to describe images. If you do not specify a registry,
+	// the default registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type DescribeImagesOutput struct {
@@ -74,13 +76,15 @@ type DescribeImagesOutput struct {
 	ImageDetails []types.ImageDetail
 
 	// The nextToken value to include in a future DescribeImages request. When the
-	// results of a DescribeImages request exceed maxResults, this value can be used to
-	// retrieve the next page of results. This value is null when there are no more
+	// results of a DescribeImages request exceed maxResults , this value can be used
+	// to retrieve the next page of results. This value is null when there are no more
 	// results to return.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationDescribeImagesMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -134,6 +138,9 @@ func (c *Client) addOperationDescribeImagesMiddlewares(stack *middleware.Stack, 
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeImages(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -156,14 +163,14 @@ var _ DescribeImagesAPIClient = (*Client)(nil)
 
 // DescribeImagesPaginatorOptions is the paginator options for DescribeImages
 type DescribeImagesPaginatorOptions struct {
-	// The maximum number of repository results returned by DescribeImages in paginated
-	// output. When this parameter is used, DescribeImages only returns maxResults
-	// results in a single page along with a nextToken response element. The remaining
-	// results of the initial request can be seen by sending another DescribeImages
-	// request with the returned nextToken value. This value can be between 1 and 1000.
-	// If this parameter is not used, then DescribeImages returns up to 100 results and
-	// a nextToken value, if applicable. This option cannot be used when you specify
-	// images with imageIds.
+	// The maximum number of repository results returned by DescribeImages in
+	// paginated output. When this parameter is used, DescribeImages only returns
+	// maxResults results in a single page along with a nextToken response element.
+	// The remaining results of the initial request can be seen by sending another
+	// DescribeImages request with the returned nextToken value. This value can be
+	// between 1 and 1000. If this parameter is not used, then DescribeImages returns
+	// up to 100 results and a nextToken value, if applicable. This option cannot be
+	// used when you specify images with imageIds .
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -200,12 +207,13 @@ func NewDescribeImagesPaginator(client DescribeImagesAPIClient, params *Describe
 		client:    client,
 		params:    params,
 		firstPage: true,
+		nextToken: params.NextToken,
 	}
 }
 
 // HasMorePages returns a boolean indicating whether more pages are available
 func (p *DescribeImagesPaginator) HasMorePages() bool {
-	return p.firstPage || p.nextToken != nil
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
 }
 
 // NextPage retrieves the next DescribeImages page.
@@ -232,7 +240,10 @@ func (p *DescribeImagesPaginator) NextPage(ctx context.Context, optFns ...func(*
 	prevToken := p.nextToken
 	p.nextToken = result.NextToken
 
-	if p.options.StopOnDuplicateToken && prevToken != nil && p.nextToken != nil && *prevToken == *p.nextToken {
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
 		p.nextToken = nil
 	}
 

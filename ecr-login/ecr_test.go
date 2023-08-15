@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/mocks"
+	mock_api "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/mocks"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,9 +36,7 @@ func TestGetSuccess(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
 
-	helper := &ECRHelper{
-		ClientFactory: factory,
-	}
+	helper := NewECRHelper(WithClientFactory(factory))
 
 	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
 	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
@@ -62,9 +60,7 @@ func TestGetError(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
 
-	helper := &ECRHelper{
-		ClientFactory: factory,
-	}
+	helper := NewECRHelper(WithClientFactory(factory))
 
 	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
 	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
@@ -78,7 +74,7 @@ func TestGetError(t *testing.T) {
 }
 
 func TestGetNoMatch(t *testing.T) {
-	helper := &ECRHelper{}
+	helper := NewECRHelper(WithClientFactory(nil))
 
 	username, password, err := helper.Get("not-ecr-server-url")
 	assert.True(t, credentials.IsErrCredentialsNotFound(err))
@@ -90,9 +86,7 @@ func TestListSuccess(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
 
-	helper := &ECRHelper{
-		ClientFactory: factory,
-	}
+	helper := NewECRHelper(WithClientFactory(factory))
 
 	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
 	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {
@@ -113,9 +107,7 @@ func TestListFailure(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
 
-	helper := &ECRHelper{
-		ClientFactory: factory,
-	}
+	helper := NewECRHelper(WithClientFactory(factory))
 
 	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
 	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {

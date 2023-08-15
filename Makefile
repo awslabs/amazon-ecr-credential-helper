@@ -104,9 +104,7 @@ gogenerate:
 
 .PHONY: get-deps
 get-deps:
-	go get github.com/tools/godep
-	go get golang.org/x/tools/cmd/cover
-	go get golang.org/x/tools/cmd/goimports
+	go install golang.org/x/tools/cmd/goimports@698251aaa532d49ac69d2c416b0241afb2f65ea5
 
 .PHONY: clean
 clean: .clean-amazonlinux

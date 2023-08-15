@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
@@ -34,8 +35,11 @@ var defaultAWSConfigResolvers = []awsConfigResolver{
 
 	// Sets the endpoint resolving behavior the API Clients will use for making
 	// requests to. Clients default to their own clients this allows overrides
-	// to be specified.
+	// to be specified. The resolveEndpointResolver option is deprecated, but
+	// we still need to set it for backwards compatibility on config
+	// construction.
 	resolveEndpointResolver,
+	resolveEndpointResolverWithOptions,
 
 	// Sets the retry behavior API clients will use within their retry attempt
 	// middleware. Defaults to unset, allowing API clients to define their own
@@ -51,6 +55,15 @@ var defaultAWSConfigResolvers = []awsConfigResolver{
 	// API client request pipeline middleware.
 	resolveAPIOptions,
 
+	// Resolves the DefaultsMode that should be used by SDK clients. If this
+	// mode is set to DefaultsModeAuto.
+	//
+	// Comes after HTTPClient and CustomCABundle to ensure the HTTP client is
+	// configured if provided before invoking IMDS if mode is auto. Comes
+	// before resolving credentials so that those subsequent clients use the
+	// configured auto mode.
+	resolveDefaultsModeOptions,
+
 	// Sets the resolved credentials the API clients will use for
 	// authentication. Provides the SDK's default credential chain.
 	//
@@ -59,6 +72,10 @@ var defaultAWSConfigResolvers = []awsConfigResolver{
 	// implementations depend on or can be configured with earlier resolved
 	// configuration options.
 	resolveCredentials,
+
+	// Sets the resolved bearer authentication token API clients will use for
+	// httpBearerAuth authentication scheme.
+	resolveBearerAuthToken,
 }
 
 // A Config represents a generic configuration value or set of values. This type
@@ -124,16 +141,9 @@ func (cs configs) ResolveAWSConfig(ctx context.Context, resolvers []awsConfigRes
 
 	for _, fn := range resolvers {
 		if err := fn(ctx, &cfg, cs); err != nil {
-			// TODO provide better error?
 			return aws.Config{}, err
 		}
 	}
-
-	var sources []interface{}
-	for _, s := range cs {
-		sources = append(sources, s)
-	}
-	cfg.ConfigSources = sources
 
 	return cfg, nil
 }
@@ -156,13 +166,12 @@ func (cs configs) ResolveConfig(f func(configs []interface{}) error) error {
 // The custom configurations must satisfy the respective providers for their data
 // or the custom data will be ignored by the resolvers and config loaders.
 //
-//    cfg, err := config.LoadDefaultConfig( context.TODO(),
-//       WithSharedConfigProfile("test-profile"),
-//    )
-//    if err != nil {
-//       panic(fmt.Sprintf("failed loading config, %v", err))
-//    }
-//
+//	cfg, err := config.LoadDefaultConfig( context.TODO(),
+//	   WithSharedConfigProfile("test-profile"),
+//	)
+//	if err != nil {
+//	   panic(fmt.Sprintf("failed loading config, %v", err))
+//	}
 //
 // The default configuration sources are:
 // * Environment Variables
@@ -170,7 +179,9 @@ func (cs configs) ResolveConfig(f func(configs []interface{}) error) error {
 func LoadDefaultConfig(ctx context.Context, optFns ...func(*LoadOptions) error) (cfg aws.Config, err error) {
 	var options LoadOptions
 	for _, optFn := range optFns {
-		optFn(&options)
+		if err := optFn(&options); err != nil {
+			return aws.Config{}, err
+		}
 	}
 
 	// assign Load Options to configs

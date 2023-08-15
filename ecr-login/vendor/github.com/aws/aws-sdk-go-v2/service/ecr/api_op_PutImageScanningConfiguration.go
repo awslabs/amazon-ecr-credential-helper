@@ -11,7 +11,10 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Updates the image scanning configuration for the specified repository.
+// The PutImageScanningConfiguration API is being deprecated, in favor of
+// specifying the image scanning configuration at the registry level. For more
+// information, see PutRegistryScanningConfiguration . Updates the image scanning
+// configuration for the specified repository.
 func (c *Client) PutImageScanningConfiguration(ctx context.Context, params *PutImageScanningConfigurationInput, optFns ...func(*Options)) (*PutImageScanningConfigurationOutput, error) {
 	if params == nil {
 		params = &PutImageScanningConfigurationInput{}
@@ -42,10 +45,12 @@ type PutImageScanningConfigurationInput struct {
 	// This member is required.
 	RepositoryName *string
 
-	// The AWS account ID associated with the registry that contains the repository in
-	// which to update the image scanning configuration setting. If you do not specify
-	// a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository in which to update the image scanning configuration setting. If
+	// you do not specify a registry, the default registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type PutImageScanningConfigurationOutput struct {
@@ -61,6 +66,8 @@ type PutImageScanningConfigurationOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationPutImageScanningConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -112,6 +119,9 @@ func (c *Client) addOperationPutImageScanningConfigurationMiddlewares(stack *mid
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutImageScanningConfiguration(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -27,6 +27,7 @@ func (c *Client) GetRegistryPolicy(ctx context.Context, params *GetRegistryPolic
 }
 
 type GetRegistryPolicyInput struct {
+	noSmithyDocumentSerde
 }
 
 type GetRegistryPolicyOutput struct {
@@ -39,6 +40,8 @@ type GetRegistryPolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationGetRegistryPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -87,6 +90,9 @@ func (c *Client) addOperationGetRegistryPolicyMiddlewares(stack *middleware.Stac
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetRegistryPolicy(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

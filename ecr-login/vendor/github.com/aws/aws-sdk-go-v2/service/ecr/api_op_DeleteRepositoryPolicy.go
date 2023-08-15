@@ -34,10 +34,12 @@ type DeleteRepositoryPolicyInput struct {
 	// This member is required.
 	RepositoryName *string
 
-	// The AWS account ID associated with the registry that contains the repository
-	// policy to delete. If you do not specify a registry, the default registry is
-	// assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository policy to delete. If you do not specify a registry, the default
+	// registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type DeleteRepositoryPolicyOutput struct {
@@ -53,6 +55,8 @@ type DeleteRepositoryPolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationDeleteRepositoryPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -104,6 +108,9 @@ func (c *Client) addOperationDeleteRepositoryPolicyMiddlewares(stack *middleware
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteRepositoryPolicy(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

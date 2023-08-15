@@ -2,7 +2,9 @@
 
 ![Amazon ECR logo](docs/ecr.png "Amazon ECR")
 
-[![Build Status](https://travis-ci.org/awslabs/amazon-ecr-credential-helper.svg?branch=master)](https://travis-ci.org/awslabs/amazon-ecr-credential-helper)
+[![Build](https://github.com/awslabs/amazon-ecr-credential-helper/actions/workflows/build.yaml/badge.svg)](https://github.com/awslabs/amazon-ecr-credential-helper/actions/workflows/build.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/awslabs/amazon-ecr-credential-helper)](https://goreportcard.com/report/github.com/awslabs/amazon-ecr-credential-helper)
+[![latest packaged version(s)](https://repology.org/badge/latest-versions/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 The Amazon ECR Docker Credential Helper is a
 [credential helper](https://github.com/docker/docker-credential-helpers)
@@ -56,8 +58,9 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Debian Buster
 archives.  This package will also be included in future releases of Debian.
 
-[![Debian Stable package](https://repology.org/badge/version-for-repo/debian_stable/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
-[![Debian Testing package](https://repology.org/badge/version-for-repo/debian_testing/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
+[![Debian 10 package](https://repology.org/badge/version-for-repo/debian_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Debian 11 package](https://repology.org/badge/version-for-repo/debian_11/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Debian 12 package](https://repology.org/badge/version-for-repo/debian_12/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
@@ -73,9 +76,8 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Ubuntu 19.04 Disco
 Dingo (and newer) archives.
 
-[![Ubuntu 19.04 package](https://repology.org/badge/version-for-repo/ubuntu_19_04/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
-[![Ubuntu 19.10 package](https://repology.org/badge/version-for-repo/ubuntu_19_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Ubuntu 20.04 package](https://repology.org/badge/version-for-repo/ubuntu_20_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Ubuntu 22.04 package](https://repology.org/badge/version-for-repo/ubuntu_22_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
 $ sudo apt update
@@ -103,7 +105,7 @@ Docker to work with the helper.
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
-1.12+, `git` and `make` installed on your system.
+1.15 or later, `git` and `make` installed on your system.
 
 If you just installed Go, make sure you also have added it to your PATH or 
 Environment Vars (Windows). For example:
@@ -123,12 +125,19 @@ setx GOPATH %USERPROFILE%\go
 If you haven't defined the PATH, the command below will fail silently, and
 running `docker-credential-ecr-login` will output: `command not found`
 
-You can install this via `go get` with:
+You can install this via the `go` command line tool.
+
+For go version 1.16 and newer run :
+
+```
+go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
+```
+
+or with an older version of go run :
 
 ```
 go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
 ```
-
 
 If you already have Docker environment, just clone this repository anywhere
 and run `make docker`. This command builds the binary with Go inside the Docker
@@ -152,12 +161,27 @@ contents of your `~/.docker/config.json` file to be:
 	"credsStore": "ecr-login"
 }
 ```
-
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
 
+The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens: 
+
+```json
+{
+	"credsStore": "ecr-login",
+	"auths": {
+		"https://index.docker.io/v1/": {
+			"auth": [docker.io-auth-token]
+		},
+		"registry.gitlab.com": {
+			"auth": [gitlab-auth-token]
+		},
+	}
+}
+```
+
 With Docker 1.13.0 or greater, you can configure Docker to use different
-credential helpers for different registries. To use this credential helper for
+credential helpers for different ECR registries. To use this credential helper for
 a specific ECR registry, create a `credHelpers` section with the URI of your
 ECR registry:
 
@@ -231,6 +255,14 @@ For example:
 There is no need to use `docker login` or `docker logout`.
 
 ## Troubleshooting
+
+If you have previously authenticated with an ECR repository by using the `docker login` command manually
+then Docker may have stored an auth token which has since expired.
+Docker will continue to attempt to use that cached auth token
+instead of utilizing the credential helper. You must explicitly remove the previously cached expired
+token using `docker logout 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository`. After that
+Docker will start utilizing the ECR credential helper to fetch fresh credentials, and you will no longer
+need to use `docker login` or `docker logout`.
 
 Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
 
