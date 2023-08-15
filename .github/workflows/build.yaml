@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, amazonlinux ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, amazonlinux ]
 
 jobs:
   build:
