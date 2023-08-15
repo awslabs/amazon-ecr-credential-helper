@@ -44,9 +44,12 @@ type BatchCheckLayerAvailabilityInput struct {
 	// This member is required.
 	RepositoryName *string
 
-	// The AWS account ID associated with the registry that contains the image layers
-	// to check. If you do not specify a registry, the default registry is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the image layers to check. If you do not specify a registry, the default
+	// registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type BatchCheckLayerAvailabilityOutput struct {
@@ -54,12 +57,14 @@ type BatchCheckLayerAvailabilityOutput struct {
 	// Any failures associated with the call.
 	Failures []types.LayerFailure
 
-	// A list of image layer objects corresponding to the image layer references in the
-	// request.
+	// A list of image layer objects corresponding to the image layer references in
+	// the request.
 	Layers []types.Layer
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationBatchCheckLayerAvailabilityMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -111,6 +116,9 @@ func (c *Client) addOperationBatchCheckLayerAvailabilityMiddlewares(stack *middl
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opBatchCheckLayerAvailability(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

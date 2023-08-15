@@ -27,6 +27,7 @@ func (c *Client) DeleteRegistryPolicy(ctx context.Context, params *DeleteRegistr
 }
 
 type DeleteRegistryPolicyInput struct {
+	noSmithyDocumentSerde
 }
 
 type DeleteRegistryPolicyOutput struct {
@@ -39,6 +40,8 @@ type DeleteRegistryPolicyOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationDeleteRegistryPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -87,6 +90,9 @@ func (c *Client) addOperationDeleteRegistryPolicyMiddlewares(stack *middleware.S
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteRegistryPolicy(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

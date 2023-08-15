@@ -11,12 +11,12 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates or updates the image manifest and tags associated with an image. When an
-// image is pushed and all new image layers have been uploaded, the PutImage API is
-// called once to create or update the image manifest and the tags associated with
-// the image. This operation is used by the Amazon ECR proxy and is not generally
-// used by customers for pulling and pushing images. In most cases, you should use
-// the docker CLI to pull, tag, and push images.
+// Creates or updates the image manifest and tags associated with an image. When
+// an image is pushed and all new image layers have been uploaded, the PutImage API
+// is called once to create or update the image manifest and the tags associated
+// with the image. This operation is used by the Amazon ECR proxy and is not
+// generally used by customers for pulling and pushing images. In most cases, you
+// should use the docker CLI to pull, tag, and push images.
 func (c *Client) PutImage(ctx context.Context, params *PutImageInput, optFns ...func(*Options)) (*PutImageOutput, error) {
 	if params == nil {
 		params = &PutImageInput{}
@@ -57,10 +57,12 @@ type PutImageInput struct {
 	// formats.
 	ImageTag *string
 
-	// The AWS account ID associated with the registry that contains the repository in
-	// which to put the image. If you do not specify a registry, the default registry
-	// is assumed.
+	// The Amazon Web Services account ID associated with the registry that contains
+	// the repository in which to put the image. If you do not specify a registry, the
+	// default registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type PutImageOutput struct {
@@ -70,6 +72,8 @@ type PutImageOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationPutImageMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -121,6 +125,9 @@ func (c *Client) addOperationPutImageMiddlewares(stack *middleware.Stack, option
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPutImage(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

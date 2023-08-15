@@ -35,10 +35,12 @@ type GetRepositoryCatalogDataInput struct {
 	// This member is required.
 	RepositoryName *string
 
-	// The AWS account ID associated with the registry that contains the repositories
-	// to be described. If you do not specify a registry, the default public registry
-	// is assumed.
+	// The Amazon Web Services account ID that's associated with the registry that
+	// contains the repositories to be described. If you do not specify a registry, the
+	// default public registry is assumed.
 	RegistryId *string
+
+	noSmithyDocumentSerde
 }
 
 type GetRepositoryCatalogDataOutput struct {
@@ -48,6 +50,8 @@ type GetRepositoryCatalogDataOutput struct {
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
+
+	noSmithyDocumentSerde
 }
 
 func (c *Client) addOperationGetRepositoryCatalogDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
@@ -99,6 +103,9 @@ func (c *Client) addOperationGetRepositoryCatalogDataMiddlewares(stack *middlewa
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetRepositoryCatalogData(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

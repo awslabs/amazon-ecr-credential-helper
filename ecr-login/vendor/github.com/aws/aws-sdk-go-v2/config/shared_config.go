@@ -1,24 +1,32 @@
 package config
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/aws/aws-sdk-go-v2/internal/ini"
+	"github.com/aws/aws-sdk-go-v2/internal/shareddefaults"
 	"github.com/aws/smithy-go/logging"
 )
 
 const (
-	// Prefix to use for filtering profiles
+	// Prefix to use for filtering profiles. The profile prefix should only
+	// exist in the shared config file, not the credentials file.
 	profilePrefix = `profile `
+
+	// Prefix to be used for SSO sections. These are supposed to only exist in
+	// the shared config file, not the credentials file.
+	ssoSectionPrefix = `sso-session `
 
 	// string equivalent for boolean
 	endpointDiscoveryDisabled = `false`
@@ -40,10 +48,13 @@ const (
 	roleDurationSecondsKey = "duration_seconds"  // optional
 
 	// AWS Single Sign-On (AWS SSO) group
+	ssoSessionNameKey = "sso_session"
+
+	ssoRegionKey   = "sso_region"
+	ssoStartURLKey = "sso_start_url"
+
 	ssoAccountIDKey = "sso_account_id"
-	ssoRegionKey    = "sso_region"
 	ssoRoleNameKey  = "sso_role_name"
-	ssoStartURL     = "sso_start_url"
 
 	// Additional Config fields
 	regionKey = `region`
@@ -64,10 +75,26 @@ const (
 
 	ec2MetadataServiceEndpointKey = "ec2_metadata_service_endpoint"
 
+	// Use DualStack Endpoint Resolution
+	useDualStackEndpoint = "use_dualstack_endpoint"
+
 	// DefaultSharedConfigProfile is the default profile to be used when
 	// loading configuration from the config files if another profile name
 	// is not provided.
 	DefaultSharedConfigProfile = `default`
+
+	// S3 Disable Multi-Region AccessPoints
+	s3DisableMultiRegionAccessPointsKey = `s3_disable_multiregion_access_points`
+
+	useFIPSEndpointKey = "use_fips_endpoint"
+
+	defaultsModeKey = "defaults_mode"
+
+	// Retry options
+	retryMaxAttemptsKey = "max_attempts"
+	retryModeKey        = "retry_mode"
+
+	caBundleKey = "ca_bundle"
 )
 
 // defaultSharedConfigProfile allows for swapping the default profile for testing
@@ -81,7 +108,7 @@ var defaultSharedConfigProfile = DefaultSharedConfigProfile
 //   - Linux/Unix: $HOME/.aws/credentials
 //   - Windows: %USERPROFILE%\.aws\credentials
 func DefaultSharedCredentialsFilename() string {
-	return filepath.Join(userHomeDir(), ".aws", "credentials")
+	return filepath.Join(shareddefaults.UserHomeDir(), ".aws", "credentials")
 }
 
 // DefaultSharedConfigFilename returns the SDK's default file path for
@@ -92,7 +119,7 @@ func DefaultSharedCredentialsFilename() string {
 //   - Linux/Unix: $HOME/.aws/config
 //   - Windows: %USERPROFILE%\.aws\config
 func DefaultSharedConfigFilename() string {
-	return filepath.Join(userHomeDir(), ".aws", "config")
+	return filepath.Join(shareddefaults.UserHomeDir(), ".aws", "config")
 }
 
 // DefaultSharedConfigFiles is a slice of the default shared config files that
@@ -101,10 +128,24 @@ var DefaultSharedConfigFiles = []string{
 	DefaultSharedConfigFilename(),
 }
 
-// DefaultSharedCredentialsFiles is a slice of the default shared credentials files that
-// the will be used in order to load the SharedConfig.
+// DefaultSharedCredentialsFiles is a slice of the default shared credentials
+// files that the will be used in order to load the SharedConfig.
 var DefaultSharedCredentialsFiles = []string{
 	DefaultSharedCredentialsFilename(),
+}
+
+// SSOSession provides the shared configuration parameters of the sso-session
+// section.
+type SSOSession struct {
+	Name        string
+	SSORegion   string
+	SSOStartURL string
+}
+
+func (s *SSOSession) setFromIniSection(section ini.Section) {
+	updateString(&s.Name, section, ssoSessionNameKey)
+	updateString(&s.SSORegion, section, ssoRegionKey)
+	updateString(&s.SSOStartURL, section, ssoStartURLKey)
 }
 
 // SharedConfig represents the configuration fields of the SDK config files.
@@ -126,10 +167,17 @@ type SharedConfig struct {
 	CredentialProcess    string
 	WebIdentityTokenFile string
 
+	// SSO session options
+	SSOSessionName string
+	SSOSession     *SSOSession
+
+	// Legacy SSO session options
+	SSORegion   string
+	SSOStartURL string
+
+	// SSO fields not used
 	SSOAccountID string
-	SSORegion    string
 	SSORoleName  string
-	SSOStartURL  string
 
 	RoleARN             string
 	ExternalID          string
@@ -158,15 +206,94 @@ type SharedConfig struct {
 	// s3_use_arn_region=true
 	S3UseARNRegion *bool
 
-	// Specifies the EC2 Instance Metadata Service default endpoint selection mode (IPv4 or IPv6)
+	// Specifies the EC2 Instance Metadata Service default endpoint selection
+	// mode (IPv4 or IPv6)
 	//
 	// ec2_metadata_service_endpoint_mode=IPv6
 	EC2IMDSEndpointMode imds.EndpointModeState
 
-	// Specifies the EC2 Instance Metadata Service endpoint to use. If specified it overrides EC2IMDSEndpointMode.
+	// Specifies the EC2 Instance Metadata Service endpoint to use. If
+	// specified it overrides EC2IMDSEndpointMode.
 	//
 	// ec2_metadata_service_endpoint=http://fd00:ec2::254
 	EC2IMDSEndpoint string
+
+	// Specifies if the S3 service should disable support for Multi-Region
+	// access-points
+	//
+	// s3_disable_multiregion_access_points=true
+	S3DisableMultiRegionAccessPoints *bool
+
+	// Specifies that SDK clients must resolve a dual-stack endpoint for
+	// services.
+	//
+	// use_dualstack_endpoint=true
+	UseDualStackEndpoint aws.DualStackEndpointState
+
+	// Specifies that SDK clients must resolve a FIPS endpoint for
+	// services.
+	//
+	// use_fips_endpoint=true
+	UseFIPSEndpoint aws.FIPSEndpointState
+
+	// Specifies which defaults mode should be used by services.
+	//
+	// defaults_mode=standard
+	DefaultsMode aws.DefaultsMode
+
+	// Specifies the maximum number attempts an API client will call an
+	// operation that fails with a retryable error.
+	//
+	// max_attempts=3
+	RetryMaxAttempts int
+
+	// Specifies the retry model the API client will be created with.
+	//
+	// retry_mode=standard
+	RetryMode aws.RetryMode
+
+	// Sets the path to a custom Credentials Authority (CA) Bundle PEM file
+	// that the SDK will use instead of the system's root CA bundle. Only use
+	// this if you want to configure the SDK to use a custom set of CAs.
+	//
+	// Enabling this option will attempt to merge the Transport into the SDK's
+	// HTTP client. If the client's Transport is not a http.Transport an error
+	// will be returned. If the Transport's TLS config is set this option will
+	// cause the SDK to overwrite the Transport's TLS config's  RootCAs value.
+	//
+	// Setting a custom HTTPClient in the aws.Config options will override this
+	// setting. To use this option and custom HTTP client, the HTTP client
+	// needs to be provided when creating the config. Not the service client.
+	//
+	//  ca_bundle=$HOME/my_custom_ca_bundle
+	CustomCABundle string
+}
+
+func (c SharedConfig) getDefaultsMode(ctx context.Context) (value aws.DefaultsMode, ok bool, err error) {
+	if len(c.DefaultsMode) == 0 {
+		return "", false, nil
+	}
+
+	return c.DefaultsMode, true, nil
+}
+
+// GetRetryMaxAttempts returns the maximum number of attempts an API client
+// created Retryer should attempt an operation call before failing.
+func (c SharedConfig) GetRetryMaxAttempts(ctx context.Context) (value int, ok bool, err error) {
+	if c.RetryMaxAttempts == 0 {
+		return 0, false, nil
+	}
+
+	return c.RetryMaxAttempts, true, nil
+}
+
+// GetRetryMode returns the model the API client should create its Retryer in.
+func (c SharedConfig) GetRetryMode(ctx context.Context) (value aws.RetryMode, ok bool, err error) {
+	if len(c.RetryMode) == 0 {
+		return "", false, nil
+	}
+
+	return c.RetryMode, true, nil
 }
 
 // GetS3UseARNRegion returns if the S3 service should allow ARNs to direct the region
@@ -186,6 +313,16 @@ func (c SharedConfig) GetEnableEndpointDiscovery(ctx context.Context) (value aws
 	}
 
 	return c.EnableEndpointDiscovery, true, nil
+}
+
+// GetS3DisableMultiRegionAccessPoints returns if the S3 service should disable support for Multi-Region
+// access-points.
+func (c SharedConfig) GetS3DisableMultiRegionAccessPoints(ctx context.Context) (value, ok bool, err error) {
+	if c.S3DisableMultiRegionAccessPoints == nil {
+		return false, false, nil
+	}
+
+	return *c.S3DisableMultiRegionAccessPoints, true, nil
 }
 
 // GetRegion returns the region for the profile if a region is set.
@@ -217,6 +354,39 @@ func (c SharedConfig) GetEC2IMDSEndpoint() (string, bool, error) {
 	}
 
 	return c.EC2IMDSEndpoint, true, nil
+}
+
+// GetUseDualStackEndpoint returns whether the service's dual-stack endpoint should be
+// used for requests.
+func (c SharedConfig) GetUseDualStackEndpoint(ctx context.Context) (value aws.DualStackEndpointState, found bool, err error) {
+	if c.UseDualStackEndpoint == aws.DualStackEndpointStateUnset {
+		return aws.DualStackEndpointStateUnset, false, nil
+	}
+
+	return c.UseDualStackEndpoint, true, nil
+}
+
+// GetUseFIPSEndpoint returns whether the service's FIPS endpoint should be
+// used for requests.
+func (c SharedConfig) GetUseFIPSEndpoint(ctx context.Context) (value aws.FIPSEndpointState, found bool, err error) {
+	if c.UseFIPSEndpoint == aws.FIPSEndpointStateUnset {
+		return aws.FIPSEndpointStateUnset, false, nil
+	}
+
+	return c.UseFIPSEndpoint, true, nil
+}
+
+// GetCustomCABundle returns the custom CA bundle's PEM bytes if the file was
+func (c SharedConfig) getCustomCABundle(context.Context) (io.Reader, bool, error) {
+	if len(c.CustomCABundle) == 0 {
+		return nil, false, nil
+	}
+
+	b, err := ioutil.ReadFile(c.CustomCABundle)
+	if err != nil {
+		return nil, false, err
+	}
+	return bytes.NewReader(b), true, nil
 }
 
 // loadSharedConfigIgnoreNotExist is an alias for loadSharedConfig with the
@@ -323,7 +493,6 @@ type LoadSharedConfigOptions struct {
 //
 // You can read more about shared config and credentials file location at
 // https://docs.aws.amazon.com/credref/latest/refdocs/file-location.html#file-location
-//
 func LoadSharedConfigProfile(ctx context.Context, profile string, optFns ...func(*LoadSharedConfigOptions)) (SharedConfig, error) {
 	var option LoadSharedConfigOptions
 	for _, fn := range optFns {
@@ -345,7 +514,7 @@ func LoadSharedConfigProfile(ctx context.Context, profile string, optFns ...func
 	}
 
 	// check for profile prefix and drop duplicates or invalid profiles
-	err = processConfigSections(ctx, configSections, option.Logger)
+	err = processConfigSections(ctx, &configSections, option.Logger)
 	if err != nil {
 		return SharedConfig{}, err
 	}
@@ -357,12 +526,12 @@ func LoadSharedConfigProfile(ctx context.Context, profile string, optFns ...func
 	}
 
 	// check for profile prefix and drop duplicates or invalid profiles
-	err = processCredentialsSections(ctx, credentialsSections, option.Logger)
+	err = processCredentialsSections(ctx, &credentialsSections, option.Logger)
 	if err != nil {
 		return SharedConfig{}, err
 	}
 
-	err = mergeSections(configSections, credentialsSections)
+	err = mergeSections(&configSections, credentialsSections)
 	if err != nil {
 		return SharedConfig{}, err
 	}
@@ -376,53 +545,73 @@ func LoadSharedConfigProfile(ctx context.Context, profile string, optFns ...func
 	return cfg, nil
 }
 
-func processConfigSections(ctx context.Context, sections ini.Sections, logger logging.Logger) error {
+func processConfigSections(ctx context.Context, sections *ini.Sections, logger logging.Logger) error {
+	skipSections := map[string]struct{}{}
+
 	for _, section := range sections.List() {
-		// drop profiles without prefix for config files
-		if !strings.HasPrefix(section, profilePrefix) && !strings.EqualFold(section, "default") {
+		if _, ok := skipSections[section]; ok {
+			continue
+		}
+
+		// drop sections from config file that do not have expected prefixes.
+		switch {
+		case strings.HasPrefix(section, profilePrefix):
+			// Rename sections to remove "profile " prefixing to match with
+			// credentials file. If default is already present, it will be
+			// dropped.
+			newName, err := renameProfileSection(section, sections, logger)
+			if err != nil {
+				return fmt.Errorf("failed to rename profile section, %w", err)
+			}
+			skipSections[newName] = struct{}{}
+
+		case strings.HasPrefix(section, ssoSectionPrefix):
+		case strings.EqualFold(section, "default"):
+		default:
 			// drop this section, as invalid profile name
 			sections.DeleteSection(section)
 
 			if logger != nil {
-				logger.Logf(logging.Debug,
-					"A profile defined with name `%v` is ignored. For use within a shared configuration file, "+
-						"a non-default profile must have `profile ` prefixed to the profile name.\n",
+				logger.Logf(logging.Debug, "A profile defined with name `%v` is ignored. "+
+					"For use within a shared configuration file, "+
+					"a non-default profile must have `profile ` "+
+					"prefixed to the profile name.",
 					section,
 				)
 			}
 		}
 	}
-
-	// rename sections to remove `profile ` prefixing to match with credentials file.
-	// if default is already present, it will be dropped.
-	for _, section := range sections.List() {
-		if strings.HasPrefix(section, profilePrefix) {
-			v, ok := sections.GetSection(section)
-			if !ok {
-				return fmt.Errorf("error processing profiles within the shared configuration files")
-			}
-
-			// delete section with profile as prefix
-			sections.DeleteSection(section)
-
-			// set the value to non-prefixed name in sections.
-			section = strings.TrimPrefix(section, profilePrefix)
-			if sections.HasSection(section) {
-				oldSection, _ := sections.GetSection(section)
-				v.Logs = append(v.Logs,
-					fmt.Sprintf("A default profile prefixed with `profile ` found in %s, "+
-						"overrided non-prefixed default profile from %s", v.SourceFile, oldSection.SourceFile))
-			}
-
-			// assign non-prefixed name to section
-			v.Name = section
-			sections.SetSection(section, v)
-		}
-	}
 	return nil
 }
 
-func processCredentialsSections(ctx context.Context, sections ini.Sections, logger logging.Logger) error {
+func renameProfileSection(section string, sections *ini.Sections, logger logging.Logger) (string, error) {
+	v, ok := sections.GetSection(section)
+	if !ok {
+		return "", fmt.Errorf("error processing profiles within the shared configuration files")
+	}
+
+	// delete section with profile as prefix
+	sections.DeleteSection(section)
+
+	// set the value to non-prefixed name in sections.
+	section = strings.TrimPrefix(section, profilePrefix)
+	if sections.HasSection(section) {
+		oldSection, _ := sections.GetSection(section)
+		v.Logs = append(v.Logs,
+			fmt.Sprintf("A non-default profile not prefixed with `profile ` found in %s, "+
+				"overriding non-default profile from %s",
+				v.SourceFile, oldSection.SourceFile))
+		sections.DeleteSection(section)
+	}
+
+	// assign non-prefixed name to section
+	v.Name = section
+	sections.SetSection(section, v)
+
+	return section, nil
+}
+
+func processCredentialsSections(ctx context.Context, sections *ini.Sections, logger logging.Logger) error {
 	for _, section := range sections.List() {
 		// drop profiles with prefix for credential files
 		if strings.HasPrefix(section, profilePrefix) {
@@ -456,7 +645,7 @@ func loadIniFiles(filenames []string) (ini.Sections, error) {
 		}
 
 		// mergeSections into mergedSections
-		err = mergeSections(mergedSections, sections)
+		err = mergeSections(&mergedSections, sections)
 		if err != nil {
 			return ini.Sections{}, SharedConfigLoadError{Filename: filename, Err: err}
 		}
@@ -466,7 +655,7 @@ func loadIniFiles(filenames []string) (ini.Sections, error) {
 }
 
 // mergeSections merges source section properties into destination section properties
-func mergeSections(dst, src ini.Sections) error {
+func mergeSections(dst *ini.Sections, src ini.Sections) error {
 	for _, sectionName := range src.List() {
 		srcSection, _ := src.GetSection(sectionName)
 
@@ -493,12 +682,8 @@ func mergeSections(dst, src ini.Sections) error {
 			secretKey := srcSection.String(secretAccessKey)
 
 			if dstSection.Has(accessKeyIDKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding credentials value for aws access key id, "+
-						"and aws secret access key, defined in %v, with values found in a duplicate profile "+
-						"defined at file %v. \n",
-						sectionName, dstSection.SourceFile[accessKeyIDKey],
-						srcSection.SourceFile[accessKeyIDKey]))
+				dstSection.Logs = append(dstSection.Logs, newMergeKeyLogMessage(sectionName, accessKeyIDKey,
+					dstSection.SourceFile[accessKeyIDKey], srcSection.SourceFile[accessKeyIDKey]))
 			}
 
 			// update access key
@@ -516,24 +701,8 @@ func mergeSections(dst, src ini.Sections) error {
 			dstSection.UpdateValue(secretAccessKey, v)
 
 			// update session token
-			if srcSection.Has(sessionTokenKey) {
-				sessionKey := srcSection.String(sessionTokenKey)
-
-				val, e := ini.NewStringValue(sessionKey)
-				if e != nil {
-					return fmt.Errorf("error merging session key, %w", e)
-				}
-
-				if dstSection.Has(sessionTokenKey) {
-					dstSection.Logs = append(dstSection.Logs,
-						fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-							"with a %v value found in a duplicate profile defined at file %v. \n",
-							sectionName, sessionTokenKey, dstSection.SourceFile[sessionTokenKey],
-							sessionTokenKey, srcSection.SourceFile[sessionTokenKey]))
-				}
-
-				dstSection.UpdateValue(sessionTokenKey, val)
-				dstSection.UpdateSourceFile(sessionTokenKey, srcSection.SourceFile[sessionTokenKey])
+			if err = mergeStringKey(&srcSection, &dstSection, sectionName, sessionTokenKey); err != nil {
+				return err
 			}
 
 			// update source file to reflect where the static creds came from
@@ -541,232 +710,99 @@ func mergeSections(dst, src ini.Sections) error {
 			dstSection.UpdateSourceFile(secretAccessKey, srcSection.SourceFile[secretAccessKey])
 		}
 
-		if srcSection.Has(roleArnKey) {
-			key := srcSection.String(roleArnKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging roleArnKey, %w", err)
-			}
+		stringKeys := []string{
+			roleArnKey,
+			sourceProfileKey,
+			credentialSourceKey,
+			externalIDKey,
+			mfaSerialKey,
+			roleSessionNameKey,
+			regionKey,
+			enableEndpointDiscoveryKey,
+			credentialProcessKey,
+			webIdentityTokenFileKey,
+			s3UseARNRegionKey,
+			s3DisableMultiRegionAccessPointsKey,
+			ec2MetadataServiceEndpointModeKey,
+			ec2MetadataServiceEndpointKey,
+			useDualStackEndpoint,
+			useFIPSEndpointKey,
+			defaultsModeKey,
+			retryModeKey,
+			caBundleKey,
 
-			if dstSection.Has(roleArnKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, roleArnKey, dstSection.SourceFile[roleArnKey],
-						roleArnKey, srcSection.SourceFile[roleArnKey]))
+			ssoSessionNameKey,
+			ssoAccountIDKey,
+			ssoRegionKey,
+			ssoRoleNameKey,
+			ssoStartURLKey,
+		}
+		for i := range stringKeys {
+			if err := mergeStringKey(&srcSection, &dstSection, sectionName, stringKeys[i]); err != nil {
+				return err
 			}
-
-			dstSection.UpdateValue(roleArnKey, val)
-			dstSection.UpdateSourceFile(roleArnKey, srcSection.SourceFile[roleArnKey])
 		}
 
-		if srcSection.Has(sourceProfileKey) {
-			key := srcSection.String(sourceProfileKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging sourceProfileKey, %w", err)
-			}
-
-			if dstSection.Has(sourceProfileKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, sourceProfileKey, dstSection.SourceFile[sourceProfileKey],
-						sourceProfileKey, srcSection.SourceFile[sourceProfileKey]))
-			}
-
-			dstSection.UpdateValue(sourceProfileKey, val)
-			dstSection.UpdateSourceFile(sourceProfileKey, srcSection.SourceFile[sourceProfileKey])
+		intKeys := []string{
+			roleDurationSecondsKey,
+			retryMaxAttemptsKey,
 		}
-
-		if srcSection.Has(credentialSourceKey) {
-			key := srcSection.String(credentialSourceKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging credentialSourceKey, %w", err)
+		for i := range intKeys {
+			if err := mergeIntKey(&srcSection, &dstSection, sectionName, intKeys[i]); err != nil {
+				return err
 			}
-
-			if dstSection.Has(credentialSourceKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, credentialSourceKey, dstSection.SourceFile[credentialSourceKey],
-						credentialSourceKey, srcSection.SourceFile[credentialSourceKey]))
-			}
-
-			dstSection.UpdateValue(credentialSourceKey, val)
-			dstSection.UpdateSourceFile(credentialSourceKey, srcSection.SourceFile[credentialSourceKey])
-		}
-
-		if srcSection.Has(externalIDKey) {
-			key := srcSection.String(externalIDKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging externalIDKey, %w", err)
-			}
-
-			if dstSection.Has(externalIDKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, externalIDKey, dstSection.SourceFile[externalIDKey],
-						externalIDKey, srcSection.SourceFile[externalIDKey]))
-			}
-
-			dstSection.UpdateValue(externalIDKey, val)
-			dstSection.UpdateSourceFile(externalIDKey, srcSection.SourceFile[externalIDKey])
-		}
-
-		if srcSection.Has(mfaSerialKey) {
-			key := srcSection.String(mfaSerialKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging mfaSerialKey, %w", err)
-			}
-
-			if dstSection.Has(mfaSerialKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, mfaSerialKey, dstSection.SourceFile[mfaSerialKey],
-						mfaSerialKey, srcSection.SourceFile[mfaSerialKey]))
-			}
-
-			dstSection.UpdateValue(mfaSerialKey, val)
-			dstSection.UpdateSourceFile(mfaSerialKey, srcSection.SourceFile[mfaSerialKey])
-		}
-
-		if srcSection.Has(roleSessionNameKey) {
-			key := srcSection.String(roleSessionNameKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging roleSessionNameKey, %w", err)
-			}
-
-			if dstSection.Has(roleSessionNameKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, roleSessionNameKey, dstSection.SourceFile[roleSessionNameKey],
-						roleSessionNameKey, srcSection.SourceFile[roleSessionNameKey]))
-			}
-
-			dstSection.UpdateValue(roleSessionNameKey, val)
-			dstSection.UpdateSourceFile(roleSessionNameKey, srcSection.SourceFile[roleSessionNameKey])
-		}
-
-		// role duration seconds key update
-		if srcSection.Has(roleDurationSecondsKey) {
-			roleDurationSeconds := srcSection.Int(roleDurationSecondsKey)
-			v, err := ini.NewIntValue(roleDurationSeconds)
-			if err != nil {
-				return fmt.Errorf("error merging role duration seconds key, %w", err)
-			}
-			dstSection.UpdateValue(roleDurationSecondsKey, v)
-
-			dstSection.UpdateSourceFile(roleDurationSecondsKey, srcSection.SourceFile[roleDurationSecondsKey])
-		}
-
-		if srcSection.Has(regionKey) {
-			key := srcSection.String(regionKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging regionKey, %w", err)
-			}
-
-			if dstSection.Has(regionKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, regionKey, dstSection.SourceFile[regionKey],
-						regionKey, srcSection.SourceFile[regionKey]))
-			}
-
-			dstSection.UpdateValue(regionKey, val)
-			dstSection.UpdateSourceFile(regionKey, srcSection.SourceFile[regionKey])
-		}
-
-		if srcSection.Has(enableEndpointDiscoveryKey) {
-			key := srcSection.String(enableEndpointDiscoveryKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging enableEndpointDiscoveryKey, %w", err)
-			}
-
-			if dstSection.Has(enableEndpointDiscoveryKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, enableEndpointDiscoveryKey, dstSection.SourceFile[enableEndpointDiscoveryKey],
-						enableEndpointDiscoveryKey, srcSection.SourceFile[enableEndpointDiscoveryKey]))
-			}
-
-			dstSection.UpdateValue(enableEndpointDiscoveryKey, val)
-			dstSection.UpdateSourceFile(enableEndpointDiscoveryKey, srcSection.SourceFile[enableEndpointDiscoveryKey])
-		}
-
-		if srcSection.Has(credentialProcessKey) {
-			key := srcSection.String(credentialProcessKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging credentialProcessKey, %w", err)
-			}
-
-			if dstSection.Has(credentialProcessKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, credentialProcessKey, dstSection.SourceFile[credentialProcessKey],
-						credentialProcessKey, srcSection.SourceFile[credentialProcessKey]))
-			}
-
-			dstSection.UpdateValue(credentialProcessKey, val)
-			dstSection.UpdateSourceFile(credentialProcessKey, srcSection.SourceFile[credentialProcessKey])
-		}
-
-		if srcSection.Has(webIdentityTokenFileKey) {
-			key := srcSection.String(webIdentityTokenFileKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging webIdentityTokenFileKey, %w", err)
-			}
-
-			if dstSection.Has(webIdentityTokenFileKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, webIdentityTokenFileKey, dstSection.SourceFile[webIdentityTokenFileKey],
-						webIdentityTokenFileKey, srcSection.SourceFile[webIdentityTokenFileKey]))
-			}
-
-			dstSection.UpdateValue(webIdentityTokenFileKey, val)
-			dstSection.UpdateSourceFile(webIdentityTokenFileKey, srcSection.SourceFile[webIdentityTokenFileKey])
-		}
-
-		if srcSection.Has(s3UseARNRegionKey) {
-			key := srcSection.String(s3UseARNRegionKey)
-			val, err := ini.NewStringValue(key)
-			if err != nil {
-				return fmt.Errorf("error merging s3UseARNRegionKey, %w", err)
-			}
-
-			if dstSection.Has(s3UseARNRegionKey) {
-				dstSection.Logs = append(dstSection.Logs,
-					fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
-						"with a %v value found in a duplicate profile defined at file %v. \n",
-						sectionName, s3UseARNRegionKey, dstSection.SourceFile[s3UseARNRegionKey],
-						s3UseARNRegionKey, srcSection.SourceFile[s3UseARNRegionKey]))
-			}
-
-			dstSection.UpdateValue(s3UseARNRegionKey, val)
-			dstSection.UpdateSourceFile(s3UseARNRegionKey, srcSection.SourceFile[s3UseARNRegionKey])
 		}
 
 		// set srcSection on dst srcSection
-		dst = dst.SetSection(sectionName, dstSection)
+		*dst = dst.SetSection(sectionName, dstSection)
 	}
 
 	return nil
+}
+
+func mergeStringKey(srcSection *ini.Section, dstSection *ini.Section, sectionName, key string) error {
+	if srcSection.Has(key) {
+		srcValue := srcSection.String(key)
+		val, err := ini.NewStringValue(srcValue)
+		if err != nil {
+			return fmt.Errorf("error merging %s, %w", key, err)
+		}
+
+		if dstSection.Has(key) {
+			dstSection.Logs = append(dstSection.Logs, newMergeKeyLogMessage(sectionName, key,
+				dstSection.SourceFile[key], srcSection.SourceFile[key]))
+		}
+
+		dstSection.UpdateValue(key, val)
+		dstSection.UpdateSourceFile(key, srcSection.SourceFile[key])
+	}
+	return nil
+}
+
+func mergeIntKey(srcSection *ini.Section, dstSection *ini.Section, sectionName, key string) error {
+	if srcSection.Has(key) {
+		srcValue := srcSection.Int(key)
+		v, err := ini.NewIntValue(srcValue)
+		if err != nil {
+			return fmt.Errorf("error merging %s, %w", key, err)
+		}
+
+		if dstSection.Has(key) {
+			dstSection.Logs = append(dstSection.Logs, newMergeKeyLogMessage(sectionName, key,
+				dstSection.SourceFile[key], srcSection.SourceFile[key]))
+
+		}
+
+		dstSection.UpdateValue(key, v)
+		dstSection.UpdateSourceFile(key, srcSection.SourceFile[key])
+	}
+	return nil
+}
+
+func newMergeKeyLogMessage(sectionName, key, dstSourceFile, srcSourceFile string) string {
+	return fmt.Sprintf("For profile: %v, overriding %v value, defined in %v "+
+		"with a %v value found in a duplicate profile defined at file %v. \n",
+		sectionName, key, dstSourceFile, key, srcSourceFile)
 }
 
 // Returns an error if all of the files fail to load. If at least one file is
@@ -789,7 +825,7 @@ func (c *SharedConfig) setFromIniSections(profiles map[string]struct{}, profile 
 		}
 	}
 
-	// set config from the provided ini section
+	// set config from the provided INI section
 	err := c.setFromIniSection(profile, section)
 	if err != nil {
 		return fmt.Errorf("error fetching config from profile, %v, %w", profile, err)
@@ -802,9 +838,8 @@ func (c *SharedConfig) setFromIniSections(profiles map[string]struct{}, profile 
 		// profile only have credential provider options.
 		c.clearAssumeRoleOptions()
 	} else {
-		// First time a profile has been seen, It must either be a assume role
-		// credentials, or SSO. Assert if the credential type requires a role ARN,
-		// the ARN is also set, or validate that the SSO configuration is complete.
+		// First time a profile has been seen. Assert if the credential type
+		// requires a role ARN, the ARN is also set
 		if err := c.validateCredentialsConfig(profile); err != nil {
 			return err
 		}
@@ -852,11 +887,26 @@ func (c *SharedConfig) setFromIniSections(profiles map[string]struct{}, profile 
 		c.Source = srcCfg
 	}
 
+	// If the profile contains an SSO session parameter, the session MUST exist
+	// as a section in the config file. Load the SSO session using the name
+	// provided. If the session section is not found or incomplete an error
+	// will be returned.
+	if c.hasSSOTokenProviderConfiguration() {
+		section, ok := sections.GetSection(ssoSectionPrefix + strings.TrimSpace(c.SSOSessionName))
+		if !ok {
+			return fmt.Errorf("failed to find SSO session section, %v", c.SSOSessionName)
+		}
+		var ssoSession SSOSession
+		ssoSession.setFromIniSection(section)
+		ssoSession.Name = c.SSOSessionName
+		c.SSOSession = &ssoSession
+	}
+
 	return nil
 }
 
 // setFromIniSection loads the configuration from the profile section defined in
-// the provided ini file. A SharedConfig pointer type value is used so that
+// the provided INI file. A SharedConfig pointer type value is used so that
 // multiple config file loadings can be chained.
 //
 // Only loads complete logically grouped values, and will not set fields in cfg
@@ -891,10 +941,16 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 	updateString(&c.Region, section, regionKey)
 
 	// AWS Single Sign-On (AWS SSO)
-	updateString(&c.SSOAccountID, section, ssoAccountIDKey)
+	// SSO session options
+	updateString(&c.SSOSessionName, section, ssoSessionNameKey)
+
+	// Legacy SSO session options
 	updateString(&c.SSORegion, section, ssoRegionKey)
+	updateString(&c.SSOStartURL, section, ssoStartURLKey)
+
+	// SSO fields not used
+	updateString(&c.SSOAccountID, section, ssoAccountIDKey)
 	updateString(&c.SSORoleName, section, ssoRoleNameKey)
-	updateString(&c.SSOStartURL, section, ssoStartURL)
 
 	if section.Has(roleDurationSecondsKey) {
 		d := time.Duration(section.Int(roleDurationSecondsKey)) * time.Second
@@ -906,11 +962,28 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 
 	updateEndpointDiscoveryType(&c.EnableEndpointDiscovery, section, enableEndpointDiscoveryKey)
 	updateBoolPtr(&c.S3UseARNRegion, section, s3UseARNRegionKey)
+	updateBoolPtr(&c.S3DisableMultiRegionAccessPoints, section, s3DisableMultiRegionAccessPointsKey)
 
 	if err := updateEC2MetadataServiceEndpointMode(&c.EC2IMDSEndpointMode, section, ec2MetadataServiceEndpointModeKey); err != nil {
 		return fmt.Errorf("failed to load %s from shared config, %v", ec2MetadataServiceEndpointModeKey, err)
 	}
 	updateString(&c.EC2IMDSEndpoint, section, ec2MetadataServiceEndpointKey)
+
+	updateUseDualStackEndpoint(&c.UseDualStackEndpoint, section, useDualStackEndpoint)
+	updateUseFIPSEndpoint(&c.UseFIPSEndpoint, section, useFIPSEndpointKey)
+
+	if err := updateDefaultsMode(&c.DefaultsMode, section, defaultsModeKey); err != nil {
+		return fmt.Errorf("failed to load %s from shared config, %w", defaultsModeKey, err)
+	}
+
+	if err := updateInt(&c.RetryMaxAttempts, section, retryMaxAttemptsKey); err != nil {
+		return fmt.Errorf("failed to load %s from shared config, %w", retryMaxAttemptsKey, err)
+	}
+	if err := updateRetryMode(&c.RetryMode, section, retryModeKey); err != nil {
+		return fmt.Errorf("failed to load %s from shared config, %w", retryModeKey, err)
+	}
+
+	updateString(&c.CustomCABundle, section, caBundleKey)
 
 	// Shared Credentials
 	creds := aws.Credentials{
@@ -924,6 +997,28 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 		c.Credentials = creds
 	}
 
+	return nil
+}
+
+func updateDefaultsMode(mode *aws.DefaultsMode, section ini.Section, key string) error {
+	if !section.Has(key) {
+		return nil
+	}
+	value := section.String(key)
+	if ok := mode.SetFromString(value); !ok {
+		return fmt.Errorf("invalid value: %s", value)
+	}
+	return nil
+}
+
+func updateRetryMode(mode *aws.RetryMode, section ini.Section, key string) (err error) {
+	if !section.Has(key) {
+		return nil
+	}
+	value := section.String(key)
+	if *mode, err = aws.ParseRetryMode(value); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -973,32 +1068,47 @@ func (c *SharedConfig) validateCredentialType() error {
 		len(c.CredentialProcess) != 0,
 		len(c.WebIdentityTokenFile) != 0,
 	) {
-		return fmt.Errorf("only one credential type may be specified per profile: source profile, credential source, credential process, web identity token, or sso")
+		return fmt.Errorf("only one credential type may be specified per profile: source profile, credential source, credential process, web identity token")
 	}
 
 	return nil
 }
 
 func (c *SharedConfig) validateSSOConfiguration() error {
-	if !c.hasSSOConfiguration() {
+	if c.hasSSOTokenProviderConfiguration() {
+		err := c.validateSSOTokenProviderConfiguration()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 
+	if c.hasLegacySSOConfiguration() {
+		err := c.validateLegacySSOConfiguration()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *SharedConfig) validateSSOTokenProviderConfiguration() error {
 	var missing []string
-	if len(c.SSOAccountID) == 0 {
-		missing = append(missing, ssoAccountIDKey)
+
+	if len(c.SSOSessionName) == 0 {
+		missing = append(missing, ssoSessionNameKey)
 	}
 
-	if len(c.SSORegion) == 0 {
-		missing = append(missing, ssoRegionKey)
-	}
+	if c.SSOSession == nil {
+		missing = append(missing, ssoSectionPrefix)
+	} else {
+		if len(c.SSOSession.SSORegion) == 0 {
+			missing = append(missing, ssoRegionKey)
+		}
 
-	if len(c.SSORoleName) == 0 {
-		missing = append(missing, ssoRoleNameKey)
-	}
-
-	if len(c.SSOStartURL) == 0 {
-		missing = append(missing, ssoStartURL)
+		if len(c.SSOSession.SSOStartURL) == 0 {
+			missing = append(missing, ssoStartURLKey)
+		}
 	}
 
 	if len(missing) > 0 {
@@ -1006,6 +1116,40 @@ func (c *SharedConfig) validateSSOConfiguration() error {
 			c.Profile, strings.Join(missing, ", "))
 	}
 
+	if len(c.SSORegion) > 0 && c.SSORegion != c.SSOSession.SSORegion {
+		return fmt.Errorf("%s in profile %q must match %s in %s", ssoRegionKey, c.Profile, ssoRegionKey, ssoSectionPrefix)
+	}
+
+	if len(c.SSOStartURL) > 0 && c.SSOStartURL != c.SSOSession.SSOStartURL {
+		return fmt.Errorf("%s in profile %q must match %s in %s", ssoStartURLKey, c.Profile, ssoStartURLKey, ssoSectionPrefix)
+	}
+
+	return nil
+}
+
+func (c *SharedConfig) validateLegacySSOConfiguration() error {
+	var missing []string
+
+	if len(c.SSORegion) == 0 {
+		missing = append(missing, ssoRegionKey)
+	}
+
+	if len(c.SSOStartURL) == 0 {
+		missing = append(missing, ssoStartURLKey)
+	}
+
+	if len(c.SSOAccountID) == 0 {
+		missing = append(missing, ssoAccountIDKey)
+	}
+
+	if len(c.SSORoleName) == 0 {
+		missing = append(missing, ssoRoleNameKey)
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("profile %q is configured to use SSO but is missing required configuration: %s",
+			c.Profile, strings.Join(missing, ", "))
+	}
 	return nil
 }
 
@@ -1025,15 +1169,15 @@ func (c *SharedConfig) hasCredentials() bool {
 }
 
 func (c *SharedConfig) hasSSOConfiguration() bool {
-	switch {
-	case len(c.SSOAccountID) != 0:
-	case len(c.SSORegion) != 0:
-	case len(c.SSORoleName) != 0:
-	case len(c.SSOStartURL) != 0:
-	default:
-		return false
-	}
-	return true
+	return c.hasSSOTokenProviderConfiguration() || c.hasLegacySSOConfiguration()
+}
+
+func (c *SharedConfig) hasSSOTokenProviderConfiguration() bool {
+	return len(c.SSOSessionName) > 0
+}
+
+func (c *SharedConfig) hasLegacySSOConfiguration() bool {
+	return len(c.SSORegion) > 0 || len(c.SSOAccountID) > 0 || len(c.SSOStartURL) > 0 || len(c.SSORoleName) > 0
 }
 
 func (c *SharedConfig) clearAssumeRoleOptions() {
@@ -1124,15 +1268,6 @@ func (e CredentialRequiresARNError) Error() string {
 	)
 }
 
-func userHomeDir() string {
-	if runtime.GOOS == "windows" { // Windows
-		return os.Getenv("USERPROFILE")
-	}
-
-	// *nix
-	return os.Getenv("HOME")
-}
-
 func oneOrNone(bs ...bool) bool {
 	var count int
 
@@ -1155,6 +1290,24 @@ func updateString(dst *string, section ini.Section, key string) {
 		return
 	}
 	*dst = section.String(key)
+}
+
+// updateInt will only update the dst with the value in the section key, key
+// is present in the section.
+//
+// Down casts the INI integer value from a int64 to an int, which could be
+// different bit size depending on platform.
+func updateInt(dst *int, section ini.Section, key string) error {
+	if !section.Has(key) {
+		return nil
+	}
+	if vt, _ := section.ValueType(key); vt != ini.IntegerType {
+		return fmt.Errorf("invalid value %s=%s, expect integer",
+			key, section.String(key))
+
+	}
+	*dst = int(section.Int(key))
+	return nil
 }
 
 // updateBool will only update the dst with the value in the section key, key
@@ -1196,4 +1349,36 @@ func updateEndpointDiscoveryType(dst *aws.EndpointDiscoveryEnableState, section 
 	case strings.EqualFold(value, endpointDiscoveryAuto):
 		*dst = aws.EndpointDiscoveryAuto
 	}
+}
+
+// updateEndpointDiscoveryType will only update the dst with the value in the section, if
+// a valid key and corresponding EndpointDiscoveryType is found.
+func updateUseDualStackEndpoint(dst *aws.DualStackEndpointState, section ini.Section, key string) {
+	if !section.Has(key) {
+		return
+	}
+
+	if section.Bool(key) {
+		*dst = aws.DualStackEndpointStateEnabled
+	} else {
+		*dst = aws.DualStackEndpointStateDisabled
+	}
+
+	return
+}
+
+// updateEndpointDiscoveryType will only update the dst with the value in the section, if
+// a valid key and corresponding EndpointDiscoveryType is found.
+func updateUseFIPSEndpoint(dst *aws.FIPSEndpointState, section ini.Section, key string) {
+	if !section.Has(key) {
+		return
+	}
+
+	if section.Bool(key) {
+		*dst = aws.FIPSEndpointStateEnabled
+	} else {
+		*dst = aws.FIPSEndpointStateDisabled
+	}
+
+	return
 }
