@@ -11,6 +11,25 @@ The Amazon ECR Docker Credential Helper is a
 for the Docker daemon that makes it easier to use
 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/).
 
+## Table of Contents
+  * [Prerequisites](#prerequisites)
+  * [Installing](#installing)
+    + [Amazon Linux 2023 (AL2023)](#amazon-linux-2023-al2023)
+    + [Amazon Linux 2 (AL2)](#amazon-linux-2-al2)
+    + [Mac OS](#mac-os)
+    + [Debian Buster (and future versions)](#debian-buster-and-future-versions)
+    + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
+    + [Arch Linux](#arch-linux)
+    + [From Source](#from-source)
+  * [Configuration](#configuration)
+    + [Docker](#docker)
+    + [AWS credentials](#aws-credentials)
+    + [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper-1)
+  * [Usage](#usage)
+  * [Troubleshooting](#troubleshooting)
+  * [Security disclosures](#security-disclosures)
+  * [License](#license)
+
 ## Prerequisites
 
 You must have at least Docker 1.11 installed on your system.
@@ -157,6 +176,8 @@ Docker to work with the helper.
 ## Configuration
 
 ### Docker
+
+There is no need to use `docker login` or `docker logout`.
 
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the
 contents of your `~/.docker/config.json` file to be:
