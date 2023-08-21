@@ -1,3 +1,28 @@
+# v1.19.4 (2023-08-18)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.3 (2023-08-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.2 (2023-08-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.1 (2023-08-01)
+
+* No change notes available for this release.
+
+# v1.19.0 (2023-07-31)
+
+* **Feature**: Adds support for smithy-modeled endpoint resolution. A new rules-based endpoint resolution will be added to the SDK which will supercede and deprecate existing endpoint resolution. Specifically, EndpointResolver will be deprecated while BaseEndpoint and EndpointResolverV2 will take its place. For more information, please see the Endpoints section in our Developer Guide.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.18.15 (2023-07-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.18.14 (2023-07-13)
 
 * **Dependency Update**: Updated to the latest SDK module versions
