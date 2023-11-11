@@ -19,7 +19,6 @@ import (
 	"os"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login"
-	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/version"
 	"github.com/docker/docker-credential-helpers/credentials"
@@ -42,5 +41,5 @@ func main() {
 	}
 
 	config.SetupLogger()
-	credentials.Serve(ecr.ECRHelper{ClientFactory: api.DefaultClientFactory{}})
+	credentials.Serve(ecr.NewECRHelper())
 }
