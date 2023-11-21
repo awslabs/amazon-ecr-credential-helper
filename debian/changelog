@@ -1,3 +1,9 @@
+amazon-ecr-credential-helper (0.7.1-1) unstable; urgency=medium
+
+  * New upstream release 0.7.1
+
+ -- Noah Meyerhans <noahm@debian.org>  Sat, 11 Nov 2023 15:44:07 -0800
+
 amazon-ecr-credential-helper (0.6.0-1) unstable; urgency=medium
 
   [ Debian Janitor ]
