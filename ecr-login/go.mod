@@ -3,10 +3,10 @@ module github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.23.1
+	github.com/aws/aws-sdk-go-v2 v1.23.2
 	github.com/aws/aws-sdk-go-v2/config v1.25.4
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.3
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.23.1
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.23.3
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.20.3
 	github.com/aws/smithy-go v1.17.0
 	github.com/docker/docker-credential-helpers v0.8.0
@@ -17,8 +17,8 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.4 // indirect
