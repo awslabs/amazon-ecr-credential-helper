@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/internal/ini"
 	"github.com/aws/aws-sdk-go-v2/internal/shareddefaults"
 	"github.com/aws/smithy-go/logging"
+	smithyrequestcompression "github.com/aws/smithy-go/private/requestcompression"
 )
 
 const (
@@ -107,6 +108,11 @@ const (
 	ignoreConfiguredEndpoints = "ignore_configured_endpoint_urls"
 
 	endpointURL = "endpoint_url"
+
+	disableRequestCompression      = "disable_request_compression"
+	requestMinCompressionSizeBytes = "request_min_compression_size_bytes"
+
+	s3DisableExpressSessionAuthKey = "s3_disable_express_session_auth"
 )
 
 // defaultSharedConfigProfile allows for swapping the default profile for testing
@@ -316,6 +322,22 @@ type SharedConfig struct {
 
 	// Value to contain services section content.
 	Services Services
+
+	// determine if request compression is allowed, default to false
+	// retrieved from config file's profile field disable_request_compression
+	DisableRequestCompression *bool
+
+	// inclusive threshold request body size to trigger compression,
+	// default to 10240 and must be within 0 and 10485760 bytes inclusive
+	// retrieved from config file's profile field request_min_compression_size_bytes
+	RequestMinCompressSizeBytes *int64
+
+	// Whether S3Express auth is disabled.
+	//
+	// This will NOT prevent requests from being made to S3Express buckets, it
+	// will only bypass the modified endpoint routing and signing behaviors
+	// associated with the feature.
+	S3DisableExpressAuth *bool
 }
 
 func (c SharedConfig) getDefaultsMode(ctx context.Context) (value aws.DefaultsMode, ok bool, err error) {
@@ -433,6 +455,16 @@ func (c SharedConfig) GetUseFIPSEndpoint(ctx context.Context) (value aws.FIPSEnd
 	}
 
 	return c.UseFIPSEndpoint, true, nil
+}
+
+// GetS3DisableExpressAuth returns the configured value for
+// [SharedConfig.S3DisableExpressAuth].
+func (c SharedConfig) GetS3DisableExpressAuth() (value, ok bool) {
+	if c.S3DisableExpressAuth == nil {
+		return false, false
+	}
+
+	return *c.S3DisableExpressAuth, true
 }
 
 // GetCustomCABundle returns the custom CA bundle's PEM bytes if the file was
@@ -1054,6 +1086,7 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 	updateEndpointDiscoveryType(&c.EnableEndpointDiscovery, section, enableEndpointDiscoveryKey)
 	updateBoolPtr(&c.S3UseARNRegion, section, s3UseARNRegionKey)
 	updateBoolPtr(&c.S3DisableMultiRegionAccessPoints, section, s3DisableMultiRegionAccessPointsKey)
+	updateBoolPtr(&c.S3DisableExpressAuth, section, s3DisableExpressSessionAuthKey)
 
 	if err := updateEC2MetadataServiceEndpointMode(&c.EC2IMDSEndpointMode, section, ec2MetadataServiceEndpointModeKey); err != nil {
 		return fmt.Errorf("failed to load %s from shared config, %v", ec2MetadataServiceEndpointModeKey, err)
@@ -1084,6 +1117,13 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 
 	updateString(&c.BaseEndpoint, section, endpointURL)
 
+	if err := updateDisableRequestCompression(&c.DisableRequestCompression, section, disableRequestCompression); err != nil {
+		return fmt.Errorf("failed to load %s from shared config, %w", disableRequestCompression, err)
+	}
+	if err := updateRequestMinCompressSizeBytes(&c.RequestMinCompressSizeBytes, section, requestMinCompressionSizeBytes); err != nil {
+		return fmt.Errorf("failed to load %s from shared config, %w", requestMinCompressionSizeBytes, err)
+	}
+
 	// Shared Credentials
 	creds := aws.Credentials{
 		AccessKeyID:     section.String(accessKeyIDKey),
@@ -1097,6 +1137,56 @@ func (c *SharedConfig) setFromIniSection(profile string, section ini.Section) er
 	}
 
 	return nil
+}
+
+func updateRequestMinCompressSizeBytes(bytes **int64, sec ini.Section, key string) error {
+	if !sec.Has(key) {
+		return nil
+	}
+
+	v, ok := sec.Int(key)
+	if !ok {
+		return fmt.Errorf("invalid value for min request compression size bytes %s, need int64", sec.String(key))
+	}
+	if v < 0 || v > smithyrequestcompression.MaxRequestMinCompressSizeBytes {
+		return fmt.Errorf("invalid range for min request compression size bytes %d, must be within 0 and 10485760 inclusively", v)
+	}
+	*bytes = new(int64)
+	**bytes = v
+	return nil
+}
+
+func updateDisableRequestCompression(disable **bool, sec ini.Section, key string) error {
+	if !sec.Has(key) {
+		return nil
+	}
+
+	v := sec.String(key)
+	switch {
+	case v == "true":
+		*disable = new(bool)
+		**disable = true
+	case v == "false":
+		*disable = new(bool)
+		**disable = false
+	default:
+		return fmt.Errorf("invalid value for shared config profile field, %s=%s, need true or false", key, v)
+	}
+	return nil
+}
+
+func (c SharedConfig) getRequestMinCompressSizeBytes(ctx context.Context) (int64, bool, error) {
+	if c.RequestMinCompressSizeBytes == nil {
+		return 0, false, nil
+	}
+	return *c.RequestMinCompressSizeBytes, true, nil
+}
+
+func (c SharedConfig) getDisableRequestCompression(ctx context.Context) (bool, bool, error) {
+	if c.DisableRequestCompression == nil {
+		return false, false, nil
+	}
+	return *c.DisableRequestCompression, true, nil
 }
 
 func updateDefaultsMode(mode *aws.DefaultsMode, section ini.Section, key string) error {
