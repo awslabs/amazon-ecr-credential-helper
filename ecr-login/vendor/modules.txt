@@ -105,7 +105,7 @@ github.com/aws/smithy-go/waiter
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/docker/docker-credential-helpers v0.8.0
+# github.com/docker/docker-credential-helpers v0.8.1
 ## explicit; go 1.19
 github.com/docker/docker-credential-helpers/credentials
 # github.com/jmespath/go-jmespath v0.4.0
@@ -123,9 +123,8 @@ github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.4
 ## explicit; go 1.20
 github.com/stretchr/testify/assert
-# golang.org/x/sys v0.8.0
-## explicit; go 1.17
-golang.org/x/sys/internal/unsafeheader
+# golang.org/x/sys v0.15.0
+## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # gopkg.in/yaml.v3 v3.0.1
