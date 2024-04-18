@@ -27,6 +27,7 @@ LINUX_ARM64_BINARY=bin/linux-arm64/$(BINARY_NAME)
 DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
 DARWIN_ARM64_BINARY=bin/darwin-arm64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
+WINDOWS_ARM64_BINARY=bin/windows-arm64/$(BINARY_NAME).exe
 
 .PHONY: docker
 docker: Dockerfile GITCOMMIT_SHA
@@ -49,7 +50,7 @@ test:
 	cd $(SOURCEDIR) && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
-all-variants: linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64
+all-variants: linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64 windows-arm64
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
@@ -76,6 +77,12 @@ windows-amd64: $(WINDOWS_AMD64_BINARY)
 $(WINDOWS_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh windows amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
+
+.PHONY: windows-arm64
+windows-arm64: $(WINDOWS_ARM64_BINARY)
+$(WINDOWS_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh windows arm64 $(VERSION) $(shell cat GITCOMMIT_SHA)
+	@mv ./bin/windows-arm64/$(BINARY_NAME) ./$(WINDOWS_ARM64_BINARY)
 
 GITCOMMIT_SHA: $(GITFILES)
 	git rev-parse --short=7 HEAD > GITCOMMIT_SHA
