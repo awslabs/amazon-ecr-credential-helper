@@ -26,6 +26,17 @@ jobs:
           git secrets --register-aws
           git secrets --scan-history
 
+  cross-compile:
+    runs-on: 'ubuntu-22.04'
+    container: public.ecr.aws/docker/library/golang:1.19
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src/github.com/awslabs/amazon-ecr-credential-helper
+      - name: Cross-compile all variants
+        run: make all-variants
+        working-directory: src/github.com/awslabs/amazon-ecr-credential-helper
+
   build:
     strategy:
       matrix:
@@ -48,19 +59,5 @@ jobs:
       - run: make get-deps
         if: ${{ matrix.go >= '1.19' }}
 
-      # test Dockerfile build on Linux. macOS runners do not ship with Docker
-      # installed by default whereas Ubuntu runners do.
-      - name: Build in Dockerfile
-        run: make docker
-        if: ${{ matrix.os == 'ubuntu-22.04' }}
-
-      # Apple Silicon is not supported by Go < 1.16.
-      # https://go.dev/blog/go1.16
-      - name: Cross-compile all variants
-        run: make all-variants
-        if: ${{ matrix.go >= '1.16' }}
-      - name: Cross-compile all variants except for Apple Silicon
-        run: make linux-amd64 linux-arm64 darwin-amd64 windows-amd64
-        if: ${{ matrix.go < '1.16' }}
-
+      - run: make
       - run: make test
