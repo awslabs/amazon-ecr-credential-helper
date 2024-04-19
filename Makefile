@@ -19,30 +19,23 @@ SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 VERSION := $(shell cat VERSION)
 GITFILES := $(shell test -d .git && find ".git/" -type f)
+
+BINPATH:=$(abspath ./bin)
 BINARY_NAME=docker-credential-ecr-login
-LOCAL_BINARY=bin/local/$(BINARY_NAME)
+LOCAL_BINARY=$(BINPATH)/local/$(BINARY_NAME)
 
-LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
-LINUX_ARM64_BINARY=bin/linux-arm64/$(BINARY_NAME)
-DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
-DARWIN_ARM64_BINARY=bin/darwin-arm64/$(BINARY_NAME)
-WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
-WINDOWS_ARM64_BINARY=bin/windows-arm64/$(BINARY_NAME).exe
-
-.PHONY: docker
-docker: Dockerfile GITCOMMIT_SHA
-	mkdir -p bin
-	docker run --rm \
-	-e TARGET_GOOS=$(TARGET_GOOS) \
-	-e TARGET_GOARCH=$(TARGET_GOARCH) \
-	-v '$(shell pwd)/bin':/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
-	$(shell docker build -q .)
+LINUX_AMD64_BINARY=$(BINPATH)/linux-amd64/$(BINARY_NAME)
+LINUX_ARM64_BINARY=$(BINPATH)/linux-arm64/$(BINARY_NAME)
+DARWIN_AMD64_BINARY=$(BINPATH)/darwin-amd64/$(BINARY_NAME)
+DARWIN_ARM64_BINARY=$(BINPATH)/darwin-arm64/$(BINARY_NAME)
+WINDOWS_AMD64_BINARY=$(BINPATH)/windows-amd64/$(BINARY_NAME).exe
+WINDOWS_ARM64_BINARY=$(BINPATH)/windows-arm64/$(BINARY_NAME).exe
 
 .PHONY: build
 build: $(LOCAL_BINARY)
 
 $(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
-	./scripts/build_binary.sh ./bin/local $(VERSION) $(shell cat GITCOMMIT_SHA)
+	./scripts/build_binary.sh $(BINPATH)/local $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@echo "Built ecr-login"
 
 .PHONY: test
@@ -76,13 +69,13 @@ $(DARWIN_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
 windows-amd64: $(WINDOWS_AMD64_BINARY)
 $(WINDOWS_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh windows amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
-	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
+	@mv $(BINPATH)/windows-amd64/$(BINARY_NAME) $(WINDOWS_AMD64_BINARY)
 
 .PHONY: windows-arm64
 windows-arm64: $(WINDOWS_ARM64_BINARY)
 $(WINDOWS_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh windows arm64 $(VERSION) $(shell cat GITCOMMIT_SHA)
-	@mv ./bin/windows-arm64/$(BINARY_NAME) ./$(WINDOWS_ARM64_BINARY)
+	@mv $(BINPATH)/windows-arm64/$(BINARY_NAME) $(WINDOWS_ARM64_BINARY)
 
 GITCOMMIT_SHA: $(GITFILES)
 	git rev-parse --short=7 HEAD > GITCOMMIT_SHA
