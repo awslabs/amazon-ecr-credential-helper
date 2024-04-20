@@ -37,7 +37,7 @@ jobs:
         run: make all-variants
         working-directory: src/github.com/awslabs/amazon-ecr-credential-helper
 
-  build:
+  unit-test:
     strategy:
       matrix:
         go: ['1.19', '1.20', '1.21']
@@ -48,7 +48,7 @@ jobs:
 
       # Build all variants regardless of failures
       fail-fast: false
-    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: unit-test (${{ matrix.os }} / Go ${{ matrix.go }})
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -56,8 +56,4 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-      - run: make get-deps
-        if: ${{ matrix.go >= '1.19' }}
-
-      - run: make
       - run: make test
