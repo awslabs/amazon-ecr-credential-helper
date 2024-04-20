@@ -28,11 +28,19 @@ jobs:
 
   cross-compile:
     runs-on: 'ubuntu-22.04'
-    container: public.ecr.aws/docker/library/golang:1.19
+    container: public.ecr.aws/docker/library/golang:1.21-alpine
     steps:
+      # Need to update git before checking out the repository.
+      # This is a workaround for https://github.com/actions/checkout/issues/335
+      # where older git versions would not create the .git folder for the repository.
+      - name: Update Git
+        run: apk add --no-cache git
       - uses: actions/checkout@v4
         with:
           path: src/github.com/awslabs/amazon-ecr-credential-helper
+      - name: Install dependencies to container
+        run: ./scripts/install_deps.sh
+        working-directory: src/github.com/awslabs/amazon-ecr-credential-helper
       - name: Cross-compile all variants
         run: make all-variants
         working-directory: src/github.com/awslabs/amazon-ecr-credential-helper
