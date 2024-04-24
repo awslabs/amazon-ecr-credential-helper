@@ -164,7 +164,7 @@ go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-
 ```
 
 If you already have Docker environment, just clone this repository anywhere
-and run `make docker`. This command builds the binary with Go inside the Docker
+and run `make build-in-docker`. This command builds the binary with Go inside the Docker
 container and output it to local directory.
 
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.

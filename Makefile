@@ -19,6 +19,8 @@ SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 VERSION := $(shell cat VERSION)
 GITFILES := $(shell test -d .git && find ".git/" -type f)
+UID:=$(shell id -u)
+GID:=$(shell id -g)
 
 BINPATH:=$(abspath ./bin)
 BINARY_NAME=docker-credential-ecr-login
@@ -30,6 +32,18 @@ DARWIN_AMD64_BINARY=$(BINPATH)/darwin-amd64/$(BINARY_NAME)
 DARWIN_ARM64_BINARY=$(BINPATH)/darwin-arm64/$(BINARY_NAME)
 WINDOWS_AMD64_BINARY=$(BINPATH)/windows-amd64/$(BINARY_NAME).exe
 WINDOWS_ARM64_BINARY=$(BINPATH)/windows-arm64/$(BINARY_NAME).exe
+
+.PHONY: docker
+docker: build-in-docker
+
+%-in-docker:
+	docker run --rm \
+		--user $(UID):$(GID) \
+		--env TARGET_GOOS=$(TARGET_GOOS) \
+		--env TARGET_GOARCH=$(TARGET_GOARCH) \
+		--volume $(ROOT):/go/src/github.com/awslabs/amazon-ecr-credential-helper \
+		$(shell docker build -q .) \
+		make $(subst -in-docker,,$@)
 
 .PHONY: build
 build: $(LOCAL_BINARY)
