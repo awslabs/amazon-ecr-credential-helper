@@ -163,6 +163,11 @@ To install run:
 go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
 ```
 
+> [!WARNING]
+> Disclaimer: the [Dockerfile](./Dockerfile) in this repository is used to test cross-compilation of the
+> Amazon ECR credential helper binaries in GitHub Actions CI and as a developer utility for building locally from source.
+> It is a reference implementation and not security hardened for building and running production containers.
+
 If you already have Docker environment, just clone this repository anywhere
 and run `make build-in-docker`. This command builds the binary with Go inside the Docker
 container and output it to local directory.
