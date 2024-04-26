@@ -133,6 +133,14 @@ Once you have installed the credential helper, see the
 [Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
+### Windows
+Windows executables are available via [GitHub releases](https://github.com/awslabs/amazon-ecr-credential-helper/releases).
+
+> [!NOTE]
+> Windows ARM support is considered [experimental](#experimental-features).
+>
+> See https://github.com/awslabs/amazon-ecr-credential-helper/issues/795
+
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
 1.19 or later, `git` and `make` installed on your system.
@@ -294,6 +302,19 @@ Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
 
 For more information about Amazon ECR, see the the
 [Amazon Elastic Container Registry User Guide](http://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html).
+
+## Experimental features
+
+Features marked as experimental are optionally made available to users to test and provide feedback.
+
+If you test any experimental feaures, you can give feedback via the feature's tracking issue regarding:
+* Your experience with the feature
+* Issues or problems
+* Suggested improvements
+
+Experimental features are incomplete in design and implementation. Backwards incompatible
+changes may be introduced at any time or support dropped entirely. Therefore experimental 
+features are **not recommended** for use in production environments.
 
 ## Security disclosures
 
