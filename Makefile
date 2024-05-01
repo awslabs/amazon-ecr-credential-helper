@@ -118,6 +118,10 @@ gogenerate:
 get-deps:
 	go install golang.org/x/tools/cmd/goimports@698251aaa532d49ac69d2c416b0241afb2f65ea5
 
+.PHONY: licenses
+licenses:
+	./scripts/build_third_party_licenses.sh
+
 .PHONY: clean
 clean:
 	- rm -rf ./bin
