@@ -36,7 +36,7 @@ WINDOWS_ARM64_BINARY=$(BINPATH)/windows-arm64/$(BINARY_NAME).exe
 .PHONY: docker
 docker: build-in-docker
 
-%-in-docker:
+%-in-docker: GITCOMMIT_SHA
 	docker run --rm \
 		--user $(UID):$(GID) \
 		--env TARGET_GOOS=$(TARGET_GOOS) \

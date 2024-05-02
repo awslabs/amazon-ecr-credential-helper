@@ -27,5 +27,7 @@ apk add --no-cache \
 # Resolves permission issues for Go cache when
 # building credential helper as non-root user.
 mkdir /.cache && chmod 777 /.cache
+# Resolves dubious ownership of git directory when
+# building credential helper as root user.
 git config --global --add safe.directory /go/src/github.com/awslabs/amazon-ecr-credential-helper
 
