@@ -1,4 +1,4 @@
-// Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -69,7 +69,7 @@ func TestExtractRegistry(t *testing.T) {
 			Service: ServiceECR,
 		},
 		hasError: false,
-        }, {
+	}, {
 		serverURL: "210987654321.dkr.ecr.us-iso-east-1.c2s.ic.gov",
 		registry: &Registry{
 			ID:      "210987654321",
