@@ -1,0 +1,24 @@
+name: Check Links
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 3" # Every Wednesday at 00:00 UTC
+  pull_request:
+    paths:
+      - ".github/workflows/check-links.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    if: github.repository == 'awslabs/amazon-ecr-credential-helper'
+    name: lychee
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v1.10.0
+        with:
+          fail: true
+          args: --exclude-path ecr-login/vendor --timeout 30 --no-progress './**/*.md'
+          format: markdown
+          jobSummary: true
