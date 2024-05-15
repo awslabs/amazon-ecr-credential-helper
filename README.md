@@ -52,7 +52,7 @@ Docker to work with the helper.
 
 ### Amazon Linux 2 (AL2)
 You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
-extras](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-linux-ami-basics.html#extras-library).
+extras](https://docs.aws.amazon.com/linux/al2/ug/al2-extras.html).
 
 ```bash
 $ sudo amazon-linux-extras enable docker
@@ -264,11 +264,11 @@ variable to `false`.  The supported options include:
 The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
 CLI and the AWS SDKs. For more information about configuring AWS credentials,
 see
-[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 in the *AWS Command Line Interface User Guide*.
 
 The credentials must have a policy applied that
-[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+[allows access to Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security-iam-awsmanpol.html).
 
 ### Amazon ECR Docker Credential Helper 
 

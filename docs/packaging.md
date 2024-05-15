@@ -16,7 +16,7 @@ There are community-maintained packages for the Amazon ECR Credential Helper on
 the following operating systems:
 
 * Mac OS X (with the Homebrew package manager)
-  ([source](https://github.com/Homebrew/homebrew-core/blob/master/Formula/docker-credential-helper-ecr.rb))
+  ([source](https://github.com/Homebrew/homebrew-core/blob/master/Formula/d/docker-credential-helper-ecr.rb))
 * NixOS (and the Nix package manager)
   ([source](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/amazon-ecr-credential-helper/default.nix))
 * Arch Linux (in the Arch User Repository)
