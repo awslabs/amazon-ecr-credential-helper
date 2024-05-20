@@ -5,6 +5,11 @@ updates:
     directory: "/ecr-login"
     schedule:
       interval: "daily"
+    groups:
+      # Group updates from github.com/aws/aws-sdk-go-v2 dependencies
+      aws-sdk-go-v2:
+        patterns:
+          - "github.com/aws/aws-sdk-go-v2/*"
 
   # Dependencies listed in .github/workflows/*.yml
   - package-ecosystem: "github-actions"
