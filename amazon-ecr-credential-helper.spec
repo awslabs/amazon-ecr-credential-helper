@@ -16,7 +16,7 @@
 %endif
 Name:           amazon-ecr-credential-helper
 Version:        0.7.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.19
+BuildRequires: golang >= 1.22.3
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
