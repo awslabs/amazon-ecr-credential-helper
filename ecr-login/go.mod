@@ -3,7 +3,7 @@ module github.com/awslabs/amazon-ecr-credential-helper/ecr-login
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.29.0
+	github.com/aws/aws-sdk-go-v2 v1.30.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.18
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.28.5
