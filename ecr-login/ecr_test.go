@@ -16,6 +16,7 @@ package ecr
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
@@ -117,4 +118,41 @@ func TestListFailure(t *testing.T) {
 	serverList, err := helper.List()
 	assert.Error(t, err)
 	assert.Len(t, serverList, 0)
+}
+
+func TestGetResolveRealm(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+	fakeHTTP := &fakeHTTPClient{}
+	fakeHTTP.response.Header = http.Header{}
+	fakeHTTP.response.Header.Set(
+		"WWW-Authenticate",
+		`Basic realm="https://123456789012.dkr.ecr.us-east-1.amazonaws.com/",service="ecr.amazonaws.com"`)
+
+	helper := NewECRHelper(WithClientFactory(factory), WithHTTPClient(fakeHTTP))
+
+	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		if serverURL != proxyEndpoint {
+			return nil, fmt.Errorf("unexpected input: %s", serverURL)
+		}
+		return &ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: proxyEndpointUrl,
+		}, nil
+	}
+
+	username, password, err := helper.Get("my-registry.my-domain.com")
+	assert.Nil(t, err)
+	assert.Equal(t, expectedUsername, username)
+	assert.Equal(t, expectedPassword, password)
+}
+
+type fakeHTTPClient struct {
+	response http.Response
+}
+
+func (c *fakeHTTPClient) Do(r *http.Request) (*http.Response, error) {
+	return &c.response, nil
 }
