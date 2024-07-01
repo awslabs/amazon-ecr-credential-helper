@@ -145,7 +145,7 @@ Windows executables are available via [GitHub releases](https://github.com/awsla
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
 1.19 or later, `git` and `make` installed on your system.
 
-If you just installed Go, make sure you also have added it to your PATH or 
+If you just installed Go, make sure you also have added it to your PATH or
 Environment Vars (Windows). For example:
 
 ```
@@ -203,7 +203,7 @@ contents of your `~/.docker/config.json` file to be:
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
 
-The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens: 
+The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens:
 
 ```json
 {
@@ -247,7 +247,7 @@ include:
 * An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
 
 To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
-may set the `AWS_PROFILE` environment variable. 
+may set the `AWS_PROFILE` environment variable.
 
 The Amazon ECR Docker Credential Helper reads and supports some configuration options specified in the AWS
 shared configuration file (`~/.aws/config`).  To disable these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
@@ -270,12 +270,13 @@ in the *AWS Command Line Interface User Guide*.
 The credentials must have a policy applied that
 [allows access to Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security-iam-awsmanpol.html).
 
-### Amazon ECR Docker Credential Helper 
+### Amazon ECR Docker Credential Helper
 
-| Environment Variable  | Sample Value  | Description                                                        |
-| --------------------- | ------------- | ------------------------------------------------------------------ |
-| AWS_ECR_DISABLE_CACHE | true          | Disables the local file auth cache if set to a non-empty value     |
-| AWS_ECR_CACHE_DIR     | ~/.ecr        | Specifies the local file auth cache directory location             |
+| Environment Variable         | Sample Value  | Description                                                        |
+| ---------------------------- | ------------- | ------------------------------------------------------------------ |
+| AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
+| AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
+| AWS_ECR_USE_DEFAULT_REGISTRY | true          | Uses the default registry when the provided one cannot be parsed   |
 
 ## Usage
 
