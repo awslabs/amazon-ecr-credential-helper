@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/sirupsen/logrus"
 
@@ -70,14 +71,37 @@ func NewECRHelper(opts ...Option) *ECRHelper {
 // ensure ECRHelper adheres to the credentials.Helper interface
 var _ credentials.Helper = (*ECRHelper)(nil)
 
-func (ECRHelper) Add(creds *credentials.Credentials) error {
-	// This does not seem to get called
-	return notImplemented
+func shouldIgnoreCredsStorage() bool {
+	return os.Getenv("AWS_ECR_IGNORE_CREDS_STORAGE") == "true"
 }
 
-func (ECRHelper) Delete(serverURL string) error {
-	// This does not seem to get called
-	return notImplemented
+// Add tries to store credentials when docker requests it. This usually happens during `docker login` calls. In our context,
+// storing arbitrary user given credentials makes no sense.
+func (self ECRHelper) Add(creds *credentials.Credentials) error {
+	if shouldIgnoreCredsStorage() {
+		self.logger.
+			WithField("username", creds.Username).
+			WithField("serverURL", creds.ServerURL).
+			Warning("Ignoring request to store credentials. " +
+				"This is not supported in the context of the docker ecr-login helper.")
+		return nil
+	} else {
+		return notImplemented
+	}
+}
+
+// Delete tries to delete credentials when docker requests it. This usually happens during `docker logout` calls. In our context, we
+// don't store arbitrary user given credentials so deleting them makes no sense.
+func (self ECRHelper) Delete(serverURL string) error {
+	if shouldIgnoreCredsStorage() {
+		self.logger.
+			WithField("serverURL", serverURL).
+			Warning("Ignoring request to delete credentials. " +
+				"This is not supported in the context of the docker ecr-login helper.")
+		return nil
+	} else {
+		return notImplemented
+	}
 }
 
 func (self ECRHelper) Get(serverURL string) (string, string, error) {
