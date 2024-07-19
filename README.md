@@ -20,6 +20,7 @@ for the Docker daemon that makes it easier to use
     + [Debian Buster (and future versions)](#debian-buster-and-future-versions)
     + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
     + [Arch Linux](#arch-linux)
+    + [Alpine Linux](#alpine-linux)
     + [From Source](#from-source)
   * [Configuration](#configuration)
     + [Docker](#docker)
@@ -128,6 +129,21 @@ $ git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
 $ cd amazon-ecr-credential-helper
 $ makepkg -si
 ```
+
+Once you have installed the credential helper, see the
+[Configuration section](#configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Alpine Linux
+A community-maintained package is available in the [Alpine Linux aports Repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login).
+
+[![Alpine Linux Edge package](https://repology.org/badge/version-for-repo/alpine_edge/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+
+```bash
+$ apk add docker-credential-ecr-login
+```
+> [!NOTE] 
+> Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
 
 Once you have installed the credential helper, see the
 [Configuration section](#configuration) for instructions on how to configure
