@@ -6,37 +6,45 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Retrieves the permissions policy for a registry.
-func (c *Client) GetRegistryPolicy(ctx context.Context, params *GetRegistryPolicyInput, optFns ...func(*Options)) (*GetRegistryPolicyOutput, error) {
+// Deletes a repository creation template.
+func (c *Client) DeleteRepositoryCreationTemplate(ctx context.Context, params *DeleteRepositoryCreationTemplateInput, optFns ...func(*Options)) (*DeleteRepositoryCreationTemplateOutput, error) {
 	if params == nil {
-		params = &GetRegistryPolicyInput{}
+		params = &DeleteRepositoryCreationTemplateInput{}
 	}
 
-	result, metadata, err := c.invokeOperation(ctx, "GetRegistryPolicy", params, optFns, c.addOperationGetRegistryPolicyMiddlewares)
+	result, metadata, err := c.invokeOperation(ctx, "DeleteRepositoryCreationTemplate", params, optFns, c.addOperationDeleteRepositoryCreationTemplateMiddlewares)
 	if err != nil {
 		return nil, err
 	}
 
-	out := result.(*GetRegistryPolicyOutput)
+	out := result.(*DeleteRepositoryCreationTemplateOutput)
 	out.ResultMetadata = metadata
 	return out, nil
 }
 
-type GetRegistryPolicyInput struct {
+type DeleteRepositoryCreationTemplateInput struct {
+
+	// The repository namespace prefix associated with the repository creation
+	// template.
+	//
+	// This member is required.
+	Prefix *string
+
 	noSmithyDocumentSerde
 }
 
-type GetRegistryPolicyOutput struct {
-
-	// The JSON text of the permissions policy for a registry.
-	PolicyText *string
+type DeleteRepositoryCreationTemplateOutput struct {
 
 	// The registry ID associated with the request.
 	RegistryId *string
+
+	// The details of the repository creation template that was deleted.
+	RepositoryCreationTemplate *types.RepositoryCreationTemplate
 
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -44,19 +52,19 @@ type GetRegistryPolicyOutput struct {
 	noSmithyDocumentSerde
 }
 
-func (c *Client) addOperationGetRegistryPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
+func (c *Client) addOperationDeleteRepositoryCreationTemplateMiddlewares(stack *middleware.Stack, options Options) (err error) {
 	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetRegistryPolicy{}, middleware.After)
+	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDeleteRepositoryCreationTemplate{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetRegistryPolicy{}, middleware.After)
+	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDeleteRepositoryCreationTemplate{}, middleware.After)
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "GetRegistryPolicy"); err != nil {
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteRepositoryCreationTemplate"); err != nil {
 		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
@@ -105,7 +113,10 @@ func (c *Client) addOperationGetRegistryPolicyMiddlewares(stack *middleware.Stac
 	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetRegistryPolicy(options.Region), middleware.Before); err != nil {
+	if err = addOpDeleteRepositoryCreationTemplateValidationMiddleware(stack); err != nil {
+		return err
+	}
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteRepositoryCreationTemplate(options.Region), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRecursionDetection(stack); err != nil {
@@ -126,10 +137,10 @@ func (c *Client) addOperationGetRegistryPolicyMiddlewares(stack *middleware.Stac
 	return nil
 }
 
-func newServiceMetadataMiddleware_opGetRegistryPolicy(region string) *awsmiddleware.RegisterServiceMetadata {
+func newServiceMetadataMiddleware_opDeleteRepositoryCreationTemplate(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		OperationName: "GetRegistryPolicy",
+		OperationName: "DeleteRepositoryCreationTemplate",
 	}
 }
