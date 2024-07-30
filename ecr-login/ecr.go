@@ -80,7 +80,6 @@ func shouldIgnoreCredsStorage() bool {
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	if shouldIgnoreCredsStorage() {
 		self.logger.
-			WithField("username", creds.Username).
 			WithField("serverURL", creds.ServerURL).
 			Warning("Ignoring request to store credentials. " +
 				"This is not supported in the context of the docker ecr-login helper.")
