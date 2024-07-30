@@ -81,7 +81,7 @@ func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	if shouldIgnoreCredsStorage() {
 		self.logger.
 			WithField("serverURL", creds.ServerURL).
-			Warning("Ignoring request to store credentials. " +
+			Warning("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
 				"This is not supported in the context of the docker ecr-login helper.")
 		return nil
 	} else {
@@ -95,7 +95,7 @@ func (self ECRHelper) Delete(serverURL string) error {
 	if shouldIgnoreCredsStorage() {
 		self.logger.
 			WithField("serverURL", serverURL).
-			Warning("Ignoring request to delete credentials. " +
+			Warning("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
 				"This is not supported in the context of the docker ecr-login helper.")
 		return nil
 	} else {
