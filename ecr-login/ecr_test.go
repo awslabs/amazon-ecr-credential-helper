@@ -33,6 +33,28 @@ const (
 	expectedPassword = "password"
 )
 
+// unsetEnv unsets an environment variable and registers a cleanup function that
+// restores it after the test is complete. Note: tests that modify environment
+// variables may not be run in parallel.
+//
+// See also [testing.T.Setenv]
+func unsetEnv(t *testing.T, key string) {
+	t.Helper()
+
+	// save original value
+	originalValue, wasSet := os.LookupEnv(key)
+
+	// unset the environment variable
+	os.Unsetenv(key)
+
+	// restore the original value if necessary
+	if wasSet {
+		t.Cleanup(func() {
+			os.Setenv(key, originalValue)
+		})
+	}
+}
+
 func TestGetSuccess(t *testing.T) {
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
@@ -125,7 +147,7 @@ func TestAddIgnored(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
+	t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
 	err := helper.Add(&credentials.Credentials{
 		ServerURL: proxyEndpoint,
 		Username:  "AWS",
@@ -140,10 +162,10 @@ func TestAddNotImplemented(t *testing.T) {
 		name   string
 		setEnv func()
 	}{
-		{"unset", func() { os.Unsetenv("AWS_ECR_IGNORE_CREDS_STORAGE") }},
-		{"false", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
-		{"0", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
-		{"empty string", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+		{"unset", func() { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
 	}
 
 	for _, test := range tests {
@@ -169,7 +191,7 @@ func TestDeleteIgnored(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
+	t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "true")
 	err := helper.Delete(proxyEndpoint)
 
 	assert.Nil(t, err)
@@ -180,10 +202,10 @@ func TestDeleteNotImplemented(t *testing.T) {
 		name   string
 		setEnv func()
 	}{
-		{"unset", func() { os.Unsetenv("AWS_ECR_IGNORE_CREDS_STORAGE") }},
-		{"false", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
-		{"0", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
-		{"empty string", func() { os.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+		{"unset", func() { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
 	}
 
 	for _, test := range tests {
