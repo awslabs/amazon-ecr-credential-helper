@@ -85,7 +85,7 @@ func (self ECRHelper) Add(creds *credentials.Credentials) error {
 				"ecr-login does not require 'docker login', and does not support persisting temporary ECR-issued credentials.")
 		return nil
 	} else {
-		self.logger.Warning("Saving credentials is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
+		self.logger.Warning("Add() is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
 		return notImplemented
 	}
 }
@@ -100,7 +100,7 @@ func (self ECRHelper) Delete(serverURL string) error {
 				"ecr-login does not require 'docker login', and does not support persisting temporary ECR-issued credentials.")
 		return nil
 	} else {
-		self.logger.Warning("Saving credentials is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
+		self.logger.Warning("Delete() credentials is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
 		return notImplemented
 	}
 }
