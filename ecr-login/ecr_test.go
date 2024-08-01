@@ -160,12 +160,12 @@ func TestAddIgnored(t *testing.T) {
 func TestAddNotImplemented(t *testing.T) {
 	tests := []struct {
 		name   string
-		setEnv func()
+		setEnv func(*testing.T)
 	}{
-		{"unset", func() { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
-		{"false", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
-		{"0", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
-		{"empty string", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+		{"unset", func(*testing.T) { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
 	}
 
 	for _, test := range tests {
@@ -174,14 +174,14 @@ func TestAddNotImplemented(t *testing.T) {
 
 			helper := NewECRHelper(WithClientFactory(factory))
 
-			test.setEnv()
+			test.setEnv(tt)
 			err := helper.Add(&credentials.Credentials{
 				ServerURL: proxyEndpoint,
 				Username:  "AWS",
 				Secret:    "supersecret",
 			})
 
-			assert.Error(t, err, "not implemented")
+			assert.Error(tt, err, "not implemented")
 		})
 	}
 }
@@ -200,12 +200,12 @@ func TestDeleteIgnored(t *testing.T) {
 func TestDeleteNotImplemented(t *testing.T) {
 	tests := []struct {
 		name   string
-		setEnv func()
+		setEnv func(*testing.T)
 	}{
-		{"unset", func() { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
-		{"false", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
-		{"0", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
-		{"empty string", func() { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
+		{"unset", func(*testing.T) { unsetEnv(t, "AWS_ECR_IGNORE_CREDS_STORAGE") }},
+		{"false", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "false") }},
+		{"0", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "0") }},
+		{"empty string", func(*testing.T) { t.Setenv("AWS_ECR_IGNORE_CREDS_STORAGE", "") }},
 	}
 
 	for _, test := range tests {
@@ -214,10 +214,10 @@ func TestDeleteNotImplemented(t *testing.T) {
 
 			helper := NewECRHelper(WithClientFactory(factory))
 
-			test.setEnv()
+			test.setEnv(tt)
 			err := helper.Delete(proxyEndpoint)
 
-			assert.Error(t, err, "not implemented")
+			assert.Error(tt, err, "not implemented")
 		})
 	}
 }
