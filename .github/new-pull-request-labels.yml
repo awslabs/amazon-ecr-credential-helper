@@ -1,0 +1,23 @@
+aws_partition_change:
+  - changed-files:
+      - any-glob-to-any-file: ['ecr-login/vendor/github.com/aws/aws-sdk-go-v2/internal/endpoints/awsrulesfn/partitions.*']
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ['**/go.mod', '**/go.sum']
+
+documentation:
+  - changed-files:
+      - all-globs-to-all-files: ['**/*.md']
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/**', 'scripts/**']
+
+go:
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.go']
+
+testing:
+  - changed-files:
+      - any-glob-to-any-file: ['integration/**', '**/*_test.go']
