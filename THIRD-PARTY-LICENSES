@@ -1,18 +1,18 @@
-** github.com/aws/aws-sdk-go-v2; version v1.26.1 - https://github.com/aws/aws-sdk-go-v2/blob/v1.26.1/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/config; version v1.27.11 - https://github.com/aws/aws-sdk-go-v2/blob/config/v1.27.11/config/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/credentials; version v1.17.11 - https://github.com/aws/aws-sdk-go-v2/blob/credentials/v1.17.11/credentials/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/feature/ec2/imds; version v1.16.1 - https://github.com/aws/aws-sdk-go-v2/blob/feature/ec2/imds/v1.16.1/feature/ec2/imds/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/internal/configsources; version v1.3.5 - https://github.com/aws/aws-sdk-go-v2/blob/internal/configsources/v1.3.5/internal/configsources/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/internal/endpoints/v2; version v2.6.5 - https://github.com/aws/aws-sdk-go-v2/blob/internal/endpoints/v2.6.5/internal/endpoints/v2/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/internal/ini; version v1.8.0 - https://github.com/aws/aws-sdk-go-v2/blob/internal/ini/v1.8.0/internal/ini/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/ecr; version v1.27.4 - https://github.com/aws/aws-sdk-go-v2/blob/service/ecr/v1.27.4/service/ecr/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/ecrpublic; version v1.23.4 - https://github.com/aws/aws-sdk-go-v2/blob/service/ecrpublic/v1.23.4/service/ecrpublic/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding; version v1.11.2 - https://github.com/aws/aws-sdk-go-v2/blob/service/internal/accept-encoding/v1.11.2/service/internal/accept-encoding/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/internal/presigned-url; version v1.11.7 - https://github.com/aws/aws-sdk-go-v2/blob/service/internal/presigned-url/v1.11.7/service/internal/presigned-url/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/sso; version v1.20.5 - https://github.com/aws/aws-sdk-go-v2/blob/service/sso/v1.20.5/service/sso/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/ssooidc; version v1.23.4 - https://github.com/aws/aws-sdk-go-v2/blob/service/ssooidc/v1.23.4/service/ssooidc/LICENSE.txt
-** github.com/aws/aws-sdk-go-v2/service/sts; version v1.28.6 - https://github.com/aws/aws-sdk-go-v2/blob/service/sts/v1.28.6/service/sts/LICENSE.txt
-** github.com/aws/smithy-go; version v1.20.2 - https://github.com/aws/smithy-go/blob/v1.20.2/LICENSE
+** github.com/aws/aws-sdk-go-v2; version v1.30.5 - https://github.com/aws/aws-sdk-go-v2/blob/v1.30.5/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/config; version v1.27.33 - https://github.com/aws/aws-sdk-go-v2/blob/config/v1.27.33/config/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/credentials; version v1.17.32 - https://github.com/aws/aws-sdk-go-v2/blob/credentials/v1.17.32/credentials/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/feature/ec2/imds; version v1.16.13 - https://github.com/aws/aws-sdk-go-v2/blob/feature/ec2/imds/v1.16.13/feature/ec2/imds/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/internal/configsources; version v1.3.17 - https://github.com/aws/aws-sdk-go-v2/blob/internal/configsources/v1.3.17/internal/configsources/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/internal/endpoints/v2; version v2.6.17 - https://github.com/aws/aws-sdk-go-v2/blob/internal/endpoints/v2.6.17/internal/endpoints/v2/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/internal/ini; version v1.8.1 - https://github.com/aws/aws-sdk-go-v2/blob/internal/ini/v1.8.1/internal/ini/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/ecr; version v1.32.4 - https://github.com/aws/aws-sdk-go-v2/blob/service/ecr/v1.32.4/service/ecr/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/ecrpublic; version v1.25.6 - https://github.com/aws/aws-sdk-go-v2/blob/service/ecrpublic/v1.25.6/service/ecrpublic/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding; version v1.11.4 - https://github.com/aws/aws-sdk-go-v2/blob/service/internal/accept-encoding/v1.11.4/service/internal/accept-encoding/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/internal/presigned-url; version v1.11.19 - https://github.com/aws/aws-sdk-go-v2/blob/service/internal/presigned-url/v1.11.19/service/internal/presigned-url/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/sso; version v1.22.7 - https://github.com/aws/aws-sdk-go-v2/blob/service/sso/v1.22.7/service/sso/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/ssooidc; version v1.26.7 - https://github.com/aws/aws-sdk-go-v2/blob/service/ssooidc/v1.26.7/service/ssooidc/LICENSE.txt
+** github.com/aws/aws-sdk-go-v2/service/sts; version v1.30.7 - https://github.com/aws/aws-sdk-go-v2/blob/service/sts/v1.30.7/service/sts/LICENSE.txt
+** github.com/aws/smithy-go; version v1.20.4 - https://github.com/aws/smithy-go/blob/v1.20.4/LICENSE
 ** github.com/jmespath/go-jmespath; version v0.4.0 - https://github.com/jmespath/go-jmespath/blob/v0.4.0/LICENSE
 
                                  Apache License
@@ -218,7 +218,7 @@
    limitations under the License.
 
 --------------------------------------------------------------------------------
-** github.com/aws/aws-sdk-go-v2/internal/sync/singleflight; version v1.26.1 - https://github.com/aws/aws-sdk-go-v2/blob/v1.26.1/internal/sync/singleflight/LICENSE
+** github.com/aws/aws-sdk-go-v2/internal/sync/singleflight; version v1.30.5 - https://github.com/aws/aws-sdk-go-v2/blob/v1.30.5/internal/sync/singleflight/LICENSE
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -251,7 +251,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 --------------------------------------------------------------------------------
-** github.com/aws/smithy-go/internal/sync/singleflight; version v1.20.2 - https://github.com/aws/smithy-go/blob/v1.20.2/internal/sync/singleflight/LICENSE
+** github.com/aws/smithy-go/internal/sync/singleflight; version v1.20.4 - https://github.com/aws/smithy-go/blob/v1.20.4/internal/sync/singleflight/LICENSE
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -304,7 +304,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-** github.com/docker/docker-credential-helpers/credentials; version v0.8.1 - https://github.com/docker/docker-credential-helpers/blob/v0.8.1/LICENSE
+** github.com/docker/docker-credential-helpers/credentials; version v0.8.2 - https://github.com/docker/docker-credential-helpers/blob/v0.8.2/LICENSE
 
 Copyright (c) 2016 David Calavera
 
