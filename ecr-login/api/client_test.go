@@ -79,6 +79,33 @@ func TestExtractRegistry(t *testing.T) {
 		},
 		hasError: false,
 	}, {
+		serverURL: "123456789012.dkr.ecr.us-isob-east-1.sc2s.sgov.gov",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-isob-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "123456789012.dkr.ecr.eu-isoe-west-1.cloud.adc-e.uk",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "eu-isoe-west-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "123456789012.dkr.ecr.us-isof-east-1.csp.hci.ic.gov",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-isof-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
 		serverURL: "123456789012.dkr.ecr-fips.us-gov-west-1.amazonaws.com",
 		registry: &Registry{
 			ID:      "123456789012",
