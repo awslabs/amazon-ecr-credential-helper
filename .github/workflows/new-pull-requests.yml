@@ -1,0 +1,27 @@
+name: "New Pull Requests"
+
+on:
+  # It is safe to use pull_request_target here because we are not checking out
+  # code from the pull request branch.
+  #
+  # See https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+  pull_request_target:
+
+permissions:
+  contents: read
+
+jobs:
+  label:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      # Use label configuration from main instead of from the pull request branch
+      # to mitigate running untrusted workflows with write permissions.
+      - uses: actions/labeler@v5
+        with:
+          configuration-path: '.github/new-pull-request-labels.yml'
+          sync-labels: true
