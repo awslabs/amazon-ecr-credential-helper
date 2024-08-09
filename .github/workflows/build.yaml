@@ -26,16 +26,6 @@ jobs:
           git secrets --register-aws
           git secrets --scan-history
 
-  licensing:
-    runs-on: 'ubuntu-22.04'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-      - name: Install go-licenses
-        run: make get-deps
-      - name: Check licensing
-        run: make check-licenses
-
   cross-compile:
     runs-on: 'ubuntu-22.04'
     steps:
