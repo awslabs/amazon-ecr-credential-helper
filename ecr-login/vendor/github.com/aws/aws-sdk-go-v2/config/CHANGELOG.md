@@ -1,3 +1,19 @@
+# v1.27.33 (2024-09-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.27.32 (2024-09-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.27.31 (2024-08-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.27.30 (2024-08-23)
+
+* **Bug Fix**: Don't fail credentials unit tests if credentials are found on a file
+
 # v1.27.29 (2024-08-22)
 
 * **Dependency Update**: Updated to the latest SDK module versions
