@@ -1,3 +1,15 @@
+# v1.17.32 (2024-09-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.17.31 (2024-09-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.17.30 (2024-08-26)
+
+* **Bug Fix**: Save SSO cached token expiry in UTC to ensure cross-SDK compatibility.
+
 # v1.17.29 (2024-08-22)
 
 * **Dependency Update**: Updated to the latest SDK module versions
