@@ -2,6 +2,14 @@
 * Enhancement - Updated ECR pattern to match C2S environments. ([#433](https://github.com/awslabs/amazon-ecr-credential-helper/issues/433))
 * Feature (Experimental) - Added support for building Windows ARM credential helper binaries. ([#795](https://github.com/awslabs/amazon-ecr-credential-helper/issues/795))
 
+# 0.7.1
+
+**Note: v0.7.1 is functionally equivalent to v0.7.0. We have decided to create a duplicate release to reflect a more accurate changelog, since our v0.7.0 release did not contain
+any direct/indirect security patches.**
+
+* Feature - Allow callers to set log output. ([#309](https://github.com/awslabs/amazon-ecr-credential-helper/pull/309) and [#312](https://github.com/awslabs/amazon-ecr-credential-helper/pull/312))
+* Upgrade dependencies for bug fixes.
+  
 # 0.7.0
 
 * Feature - Allow callers to set log output. ([#309](https://github.com/awslabs/amazon-ecr-credential-helper/pull/309) and [#312](https://github.com/awslabs/amazon-ecr-credential-helper/pull/312))
