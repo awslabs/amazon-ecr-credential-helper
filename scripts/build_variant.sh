@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -28,6 +28,6 @@ export TARGET_GOARCH="$2"
 ECR_LOGIN_VERSION="$3"
 ECR_LOGIN_GITCOMMIT_SHA="$4"
 
-./scripts/build_binary.sh "./bin/${TARGET_GOOS}-${TARGET_GOARCH}" $ECR_LOGIN_VERSION $ECR_LOGIN_GITCOMMIT_SHA
+./scripts/build_binary.sh "${ROOT}/bin/${TARGET_GOOS}-${TARGET_GOARCH}" $ECR_LOGIN_VERSION $ECR_LOGIN_GITCOMMIT_SHA
 
 echo "Built ecr-login for ${TARGET_GOOS}-${TARGET_GOARCH}-${ECR_LOGIN_VERSION}"

@@ -1,4 +1,4 @@
-// Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -66,6 +66,42 @@ func TestExtractRegistry(t *testing.T) {
 			ID:      "210987654321",
 			FIPS:    false,
 			Region:  "cn-north-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "210987654321.dkr.ecr.us-iso-east-1.c2s.ic.gov",
+		registry: &Registry{
+			ID:      "210987654321",
+			FIPS:    false,
+			Region:  "us-iso-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "123456789012.dkr.ecr.us-isob-east-1.sc2s.sgov.gov",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-isob-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "123456789012.dkr.ecr.eu-isoe-west-1.cloud.adc-e.uk",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "eu-isoe-west-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		serverURL: "123456789012.dkr.ecr.us-isof-east-1.csp.hci.ic.gov",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-isof-east-1",
 			Service: ServiceECR,
 		},
 		hasError: false,

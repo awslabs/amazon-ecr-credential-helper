@@ -1,0 +1,30 @@
+name: 3rd Party License Request
+description: File a request for usage of a 3rd party license in the Amazon ECR credential helpers project.
+title: "[3rd Party License Request]: "
+labels: "license-request"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this request!
+
+  - type: textarea
+    id: license-request
+    attributes:
+      label: License request
+      value: |
+        License: <link to license>
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: |
+        Briefly describe the use case the dependency would resolve.
+    validations:
+      required: true
+
+  - type: textarea
+    id: other-solutions
+    attributes:
+      label: Other solutions considered

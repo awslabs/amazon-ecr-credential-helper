@@ -7,35 +7,49 @@ on:
     branches: [ main, amazonlinux ]
 
 jobs:
-  build:
+  git-secrets:
+    runs-on: 'ubuntu-22.04'
+    steps:
+      - name: Pull latest awslabs/git-secrets repo
+        uses: actions/checkout@v4
+        with:
+          repository: awslabs/git-secrets
+          ref: 1.3.0
+          fetch-tags: true
+          path: git-secrets
+      - name: Install git secrets from source
+        run: sudo make install
+        working-directory: git-secrets
+      - uses: actions/checkout@v4
+      - name: Scan repository for git secrets
+        run: |
+          git secrets --register-aws
+          git secrets --scan-history
+
+  cross-compile:
+    runs-on: 'ubuntu-22.04'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-compile all variants
+        run: make all-variants-in-docker
+
+  unit-test:
     strategy:
       matrix:
-        go: ['1.15', '1.16', '1.17', '1.18']
+        go: ['1.21', '1.22']
 
         # Intentionally use specific versions instead of "latest" to
         # make this build reproducible.
-        os: ['ubuntu-22.04', 'macos-12']
+        os: ['ubuntu-22.04', 'macos-12', 'windows-2022']
 
       # Build all variants regardless of failures
       fail-fast: false
-    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: unit-test (${{ matrix.os }} / Go ${{ matrix.go }})
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-      - run: make get-deps
-        if: ${{ matrix.go >= '1.17' }}
-
-      # Apple Silicon is not supported by Go < 1.16.
-      # https://go.dev/blog/go1.16
-      - name: Cross-compile all variants
-        run: make all-variants
-        if: ${{ matrix.go >= '1.16' }}
-      - name: Cross-compile all variants except for Apple Silicon
-        run: make linux-amd64 linux-arm64 darwin-amd64 windows-amd64
-        if: ${{ matrix.go < '1.16' }}
-
       - run: make test

@@ -1,4 +1,4 @@
-# Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -19,31 +19,39 @@ SOURCEDIR=./ecr-login
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 VERSION := $(shell cat VERSION)
 GITFILES := $(shell test -d .git && find ".git/" -type f)
-BINARY_NAME=docker-credential-ecr-login
-LOCAL_BINARY=bin/local/$(BINARY_NAME)
+UID:=$(shell id -u)
+GID:=$(shell id -g)
 
-LINUX_AMD64_BINARY=bin/linux-amd64/$(BINARY_NAME)
-LINUX_ARM64_BINARY=bin/linux-arm64/$(BINARY_NAME)
-DARWIN_AMD64_BINARY=bin/darwin-amd64/$(BINARY_NAME)
-DARWIN_ARM64_BINARY=bin/darwin-arm64/$(BINARY_NAME)
-WINDOWS_AMD64_BINARY=bin/windows-amd64/$(BINARY_NAME).exe
+BINPATH:=$(abspath ./bin)
+BINARY_NAME=docker-credential-ecr-login
+LOCAL_BINARY=$(BINPATH)/local/$(BINARY_NAME)
+
+LINUX_AMD64_BINARY=$(BINPATH)/linux-amd64/$(BINARY_NAME)
+LINUX_ARM64_BINARY=$(BINPATH)/linux-arm64/$(BINARY_NAME)
+DARWIN_AMD64_BINARY=$(BINPATH)/darwin-amd64/$(BINARY_NAME)
+DARWIN_ARM64_BINARY=$(BINPATH)/darwin-arm64/$(BINARY_NAME)
+WINDOWS_AMD64_BINARY=$(BINPATH)/windows-amd64/$(BINARY_NAME).exe
+WINDOWS_ARM64_BINARY=$(BINPATH)/windows-arm64/$(BINARY_NAME).exe
 
 include Makefile.amazonlinux
 
 .PHONY: docker
-docker: Dockerfile GITCOMMIT_SHA
-	mkdir -p bin
+docker: build-in-docker
+
+%-in-docker: GITCOMMIT_SHA
 	docker run --rm \
-	-e TARGET_GOOS=$(TARGET_GOOS) \
-	-e TARGET_GOARCH=$(TARGET_GOARCH) \
-	-v '$(shell pwd)/bin':/go/src/github.com/awslabs/amazon-ecr-credential-helper/bin \
-	$(shell docker build -q .)
+		--user $(UID):$(GID) \
+		--env TARGET_GOOS=$(TARGET_GOOS) \
+		--env TARGET_GOARCH=$(TARGET_GOARCH) \
+		--volume $(ROOT):/go/src/github.com/awslabs/amazon-ecr-credential-helper \
+		$(shell docker build -q .) \
+		make $(subst -in-docker,,$@)
 
 .PHONY: build
 build: $(LOCAL_BINARY)
 
 $(LOCAL_BINARY): $(SOURCES) GITCOMMIT_SHA
-	./scripts/build_binary.sh ./bin/local $(VERSION) $(shell cat GITCOMMIT_SHA)
+	./scripts/build_binary.sh $(BINPATH)/local $(VERSION) $(shell cat GITCOMMIT_SHA)
 	@echo "Built ecr-login"
 
 .PHONY: test
@@ -51,7 +59,7 @@ test:
 	cd $(SOURCEDIR) && go test -v -timeout 30s -short -cover ./...
 
 .PHONY: all-variants
-all-variants: linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64
+all-variants: linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64 windows-arm64
 
 .PHONY: linux-amd64
 linux-amd64: $(LINUX_AMD64_BINARY)
@@ -77,7 +85,13 @@ $(DARWIN_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
 windows-amd64: $(WINDOWS_AMD64_BINARY)
 $(WINDOWS_AMD64_BINARY): $(SOURCES) GITCOMMIT_SHA
 	./scripts/build_variant.sh windows amd64 $(VERSION) $(shell cat GITCOMMIT_SHA)
-	@mv ./bin/windows-amd64/$(BINARY_NAME) ./$(WINDOWS_AMD64_BINARY)
+	@mv $(BINPATH)/windows-amd64/$(BINARY_NAME) $(WINDOWS_AMD64_BINARY)
+
+.PHONY: windows-arm64
+windows-arm64: $(WINDOWS_ARM64_BINARY)
+$(WINDOWS_ARM64_BINARY): $(SOURCES) GITCOMMIT_SHA
+	./scripts/build_variant.sh windows arm64 $(VERSION) $(shell cat GITCOMMIT_SHA)
+	@mv $(BINPATH)/windows-arm64/$(BINARY_NAME) $(WINDOWS_ARM64_BINARY)
 
 GITCOMMIT_SHA: $(GITFILES)
 	git rev-parse --short=7 HEAD > GITCOMMIT_SHA
@@ -105,6 +119,10 @@ gogenerate:
 .PHONY: get-deps
 get-deps:
 	go install golang.org/x/tools/cmd/goimports@698251aaa532d49ac69d2c416b0241afb2f65ea5
+
+.PHONY: licenses
+licenses:
+	./scripts/build_third_party_licenses.sh
 
 .PHONY: clean
 clean: .clean-amazonlinux
