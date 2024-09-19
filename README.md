@@ -11,6 +11,26 @@ The Amazon ECR Docker Credential Helper is a
 for the Docker daemon that makes it easier to use
 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/).
 
+## Table of Contents
+  * [Prerequisites](#prerequisites)
+  * [Installing](#installing)
+    + [Amazon Linux 2023 (AL2023)](#amazon-linux-2023-al2023)
+    + [Amazon Linux 2 (AL2)](#amazon-linux-2-al2)
+    + [Mac OS](#mac-os)
+    + [Debian Buster (and future versions)](#debian-buster-and-future-versions)
+    + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
+    + [Arch Linux](#arch-linux)
+    + [Alpine Linux](#alpine-linux)
+    + [From Source](#from-source)
+  * [Configuration](#configuration)
+    + [Docker](#docker)
+    + [AWS credentials](#aws-credentials)
+    + [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper-1)
+  * [Usage](#usage)
+  * [Troubleshooting](#troubleshooting)
+  * [Security disclosures](#security-disclosures)
+  * [License](#license)
+
 ## Prerequisites
 
 You must have at least Docker 1.11 installed on your system.
@@ -20,9 +40,20 @@ use different AWS credentials.
 
 ## Installing
 
-### Amazon Linux 2
+### Amazon Linux 2023 (AL2023)
+You can install the Amazon ECR Credential Helper from the Amazon Linux 2023 repositories.
+
+```bash
+$ sudo dnf install -y amazon-ecr-credential-helper
+```
+
+Once you have installed the credential helper, see the
+[Configuration section](#configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Amazon Linux 2 (AL2)
 You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
-extras](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-linux-ami-basics.html#extras-library).
+extras](https://docs.aws.amazon.com/linux/al2/ug/al2-extras.html).
 
 ```bash
 $ sudo amazon-linux-extras enable docker
@@ -30,7 +61,7 @@ $ sudo yum install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Mac OS
@@ -51,7 +82,7 @@ $ sudo port install docker-credential-helper-ecr
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Debian Buster (and future versions)
@@ -69,7 +100,7 @@ $ sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Ubuntu 19.04 Disco Dingo and newer
@@ -85,7 +116,7 @@ $ sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ### Arch Linux
@@ -100,14 +131,37 @@ $ makepkg -si
 ```
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
+
+### Alpine Linux
+A community-maintained package is available in the [Alpine Linux aports Repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login).
+
+[![Alpine Linux Edge package](https://repology.org/badge/version-for-repo/alpine_edge/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+
+```bash
+$ apk add docker-credential-ecr-login
+```
+> [!NOTE] 
+> Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
+
+Once you have installed the credential helper, see the
+[Configuration section](#configuration) for instructions on how to configure
+Docker to work with the helper.
+
+### Windows
+Windows executables are available via [GitHub releases](https://github.com/awslabs/amazon-ecr-credential-helper/releases).
+
+> [!NOTE]
+> Windows ARM support is considered [experimental](#experimental-features).
+>
+> See https://github.com/awslabs/amazon-ecr-credential-helper/issues/795
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
-1.15 or later, `git` and `make` installed on your system.
+1.19 or later, `git` and `make` installed on your system.
 
-If you just installed Go, make sure you also have added it to your PATH or 
+If you just installed Go, make sure you also have added it to your PATH or
 Environment Vars (Windows). For example:
 
 ```
@@ -127,31 +181,32 @@ running `docker-credential-ecr-login` will output: `command not found`
 
 You can install this via the `go` command line tool.
 
-For go version 1.16 and newer run :
+To install run:
 
 ```
 go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
 ```
 
-or with an older version of go run :
-
-```
-go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
-```
+> [!WARNING]
+> Disclaimer: the [Dockerfile](./Dockerfile) in this repository is used to test cross-compilation of the
+> Amazon ECR credential helper binaries in GitHub Actions CI and as a developer utility for building locally from source.
+> It is a reference implementation and not security hardened for building and running production containers.
 
 If you already have Docker environment, just clone this repository anywhere
-and run `make docker`. This command builds the binary with Go inside the Docker
+and run `make build-in-docker`. This command builds the binary with Go inside the Docker
 container and output it to local directory.
 
 With `TARGET_GOOS` environment variable, you can also cross compile the binary.
 
 Once you have installed the credential helper, see the
-[Configuration section](#Configuration) for instructions on how to configure
+[Configuration section](#configuration) for instructions on how to configure
 Docker to work with the helper.
 
 ## Configuration
 
 ### Docker
+
+There is no need to use `docker login` or `docker logout`.
 
 Place the `docker-credential-ecr-login` binary on your `PATH` and set the
 contents of your `~/.docker/config.json` file to be:
@@ -208,7 +263,7 @@ include:
 * An [IAM role for Amazon EC2](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
 
 To use credentials associated with a different named profile in the shared credentials file (`~/.aws/credentials`), you
-may set the `AWS_PROFILE` environment variable. 
+may set the `AWS_PROFILE` environment variable.
 
 The Amazon ECR Docker Credential Helper reads and supports some configuration options specified in the AWS
 shared configuration file (`~/.aws/config`).  To disable these options, you must set the `AWS_SDK_LOAD_CONFIG` environment
@@ -225,18 +280,19 @@ variable to `false`.  The supported options include:
 The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
 CLI and the AWS SDKs. For more information about configuring AWS credentials,
 see
-[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+[Configuration and Credential Files](http://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 in the *AWS Command Line Interface User Guide*.
 
 The credentials must have a policy applied that
-[allows access to Amazon ECR](http://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html).
+[allows access to Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security-iam-awsmanpol.html).
 
-### Amazon ECR Docker Credential Helper 
+### Amazon ECR Docker Credential Helper
 
-| Environment Variable  | Sample Value  | Description                                                        |
-| --------------------- | ------------- | ------------------------------------------------------------------ |
-| AWS_ECR_DISABLE_CACHE | true          | Disables the local file auth cache if set to a non-empty value     |
-| AWS_ECR_CACHE_DIR     | ~/.ecr        | Specifies the local file auth cache directory location             |
+| Environment Variable         | Sample Value  | Description                                                        |
+| ---------------------------- | ------------- | ------------------------------------------------------------------ |
+| AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
+| AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
+| AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
 
 ## Usage
 
@@ -268,6 +324,19 @@ Logs from the Amazon ECR Docker Credential Helper are stored in `~/.ecr/log`.
 
 For more information about Amazon ECR, see the the
 [Amazon Elastic Container Registry User Guide](http://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html).
+
+## Experimental features
+
+Features marked as experimental are optionally made available to users to test and provide feedback.
+
+If you test any experimental feaures, you can give feedback via the feature's tracking issue regarding:
+* Your experience with the feature
+* Issues or problems
+* Suggested improvements
+
+Experimental features are incomplete in design and implementation. Backwards incompatible
+changes may be introduced at any time or support dropped entirely. Therefore experimental 
+features are **not recommended** for use in production environments.
 
 ## Security disclosures
 

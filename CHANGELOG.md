@@ -1,3 +1,12 @@
+# 0.9.0
+* Enhancement - Added support for environment variable `AWS_ECR_IGNORE_CREDS_STORAGE=true` to ignore ADD and DELETE requests. This makes tools that try to `docker login` work with registries managed the amazon-ecr-credential-helper. ([#102](https://github.com/awslabs/amazon-ecr-credential-helper/issues/102) and [#847](https://github.com/awslabs/amazon-ecr-credential-helper/pull/847))
+* Enhancement - Updated ECR pattern for new isolated regions. ([#850](https://github.com/awslabs/amazon-ecr-credential-helper/pull/850))
+* Upgraded dependencies.
+
+# 0.8.0
+* Enhancement - Updated ECR pattern to match C2S environments. ([#433](https://github.com/awslabs/amazon-ecr-credential-helper/issues/433))
+* Feature (Experimental) - Added support for building Windows ARM credential helper binaries. ([#795](https://github.com/awslabs/amazon-ecr-credential-helper/issues/795))
+
 # 0.7.1
 
 **Note: v0.7.1 is functionally equivalent to v0.7.0. We have decided to create a duplicate release to reflect a more accurate changelog, since our v0.7.0 release did not contain

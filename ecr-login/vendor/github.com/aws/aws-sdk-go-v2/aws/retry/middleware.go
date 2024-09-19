@@ -2,10 +2,14 @@ package retry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws/middleware/private/metrics"
+	internalcontext "github.com/aws/aws-sdk-go-v2/internal/context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsmiddle "github.com/aws/aws-sdk-go-v2/aws/middleware"
@@ -37,6 +41,10 @@ type Attempt struct {
 	retryer       aws.RetryerV2
 	requestCloner RequestCloner
 }
+
+// define the threshold at which we will consider certain kind of errors to be probably
+// caused by clock skew
+const skewThreshold = 4 * time.Minute
 
 // NewAttemptMiddleware returns a new Attempt retry middleware.
 func NewAttemptMiddleware(retryer aws.Retryer, requestCloner RequestCloner, optFns ...func(*Attempt)) *Attempt {
@@ -84,6 +92,9 @@ func (r *Attempt) HandleFinalize(ctx context.Context, in smithymiddle.FinalizeIn
 			MaxAttempts:      maxAttempts,
 			AttemptClockSkew: attemptClockSkew,
 		})
+
+		// Setting clock skew to be used on other context (like signing)
+		ctx = internalcontext.SetAttemptSkewContext(ctx, attemptClockSkew)
 
 		var attemptResult AttemptResult
 		out, attemptResult, releaseRetryToken, err = r.handleAttempt(attemptCtx, attemptInput, releaseRetryToken, next)
@@ -184,6 +195,8 @@ func (r *Attempt) handleAttempt(
 		return out, attemptResult, nopRelease, err
 	}
 
+	err = wrapAsClockSkew(ctx, err)
+
 	//------------------------------
 	// Is Retryable and Should Retry
 	//------------------------------
@@ -225,6 +238,13 @@ func (r *Attempt) handleAttempt(
 	// that time. Potentially early exist if the sleep is canceled via the
 	// context.
 	retryDelay, reqErr := r.retryer.RetryDelay(attemptNum, err)
+	mctx := metrics.Context(ctx)
+	if mctx != nil {
+		attempt, err := mctx.Data().LatestAttempt()
+		if err != nil {
+			attempt.RetryDelay = retryDelay
+		}
+	}
 	if reqErr != nil {
 		return out, attemptResult, releaseRetryToken, reqErr
 	}
@@ -237,6 +257,37 @@ func (r *Attempt) handleAttempt(
 	attemptResult.Retried = true
 
 	return out, attemptResult, releaseRetryToken, err
+}
+
+// errors that, if detected when we know there's a clock skew,
+// can be retried and have a high chance of success
+var possibleSkewCodes = map[string]struct{}{
+	"InvalidSignatureException": {},
+	"SignatureDoesNotMatch":     {},
+	"AuthFailure":               {},
+}
+
+var definiteSkewCodes = map[string]struct{}{
+	"RequestExpired":       {},
+	"RequestInTheFuture":   {},
+	"RequestTimeTooSkewed": {},
+}
+
+// wrapAsClockSkew checks if this error could be related to a clock skew
+// error and if so, wrap the error.
+func wrapAsClockSkew(ctx context.Context, err error) error {
+	var v interface{ ErrorCode() string }
+	if !errors.As(err, &v) {
+		return err
+	}
+	if _, ok := definiteSkewCodes[v.ErrorCode()]; ok {
+		return &retryableClockSkewError{Err: err}
+	}
+	_, isPossibleSkewCode := possibleSkewCodes[v.ErrorCode()]
+	if skew := internalcontext.GetAttemptSkewContext(ctx); skew > skewThreshold && isPossibleSkewCode {
+		return &retryableClockSkewError{Err: err}
+	}
+	return err
 }
 
 // MetricsHeader attaches SDK request metric header for retries to the transport
@@ -320,10 +371,12 @@ func AddRetryMiddlewares(stack *smithymiddle.Stack, options AddRetryMiddlewaresO
 		middleware.LogAttempts = options.LogRetryAttempts
 	})
 
-	if err := stack.Finalize.Add(attempt, smithymiddle.After); err != nil {
+	// index retry to before signing, if signing exists
+	if err := stack.Finalize.Insert(attempt, "Signing", smithymiddle.Before); err != nil {
 		return err
 	}
-	if err := stack.Finalize.Add(&MetricsHeader{}, smithymiddle.After); err != nil {
+
+	if err := stack.Finalize.Insert(&MetricsHeader{}, attempt.ID(), smithymiddle.After); err != nil {
 		return err
 	}
 	return nil
