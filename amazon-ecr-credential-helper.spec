@@ -139,7 +139,7 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
-* Wed 18 Sep 2023 Christopher R. Miller <milrchr@amazon.com> - 0.9.0-1
+* Wed Sep 18 2024 Christopher R. Miller <milrchr@amazon.com> - 0.9.0-1
 - Update to v0.9.0
 - Enhancement - Updated ECR pattern to match C2S environments
 - Enhancement - Added support for environment variable AWS_ECR_IGNORE_CREDS_STORAGE=true to ignore ADD and DELETE requests. This makes tools that try to docker login work with registries managed the amazon-ecr-credential-helper
