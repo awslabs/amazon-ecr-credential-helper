@@ -142,7 +142,7 @@ A community-maintained package is available in the [Alpine Linux aports Reposito
 ```bash
 $ apk add docker-credential-ecr-login
 ```
-> [!NOTE] 
+> [!NOTE]
 > Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
 
 Once you have installed the credential helper, see the
@@ -219,7 +219,7 @@ contents of your `~/.docker/config.json` file to be:
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
 
-The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens: 
+The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens:
 
 ```json
 {
@@ -293,6 +293,7 @@ The credentials must have a policy applied that
 | AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
+| AWS_ECR_USE_DEFAULT_REGISTRY | true          | Uses the default registry when the provided one cannot be parsed   |
 
 ## Usage
 
@@ -335,7 +336,7 @@ If you test any experimental feaures, you can give feedback via the feature's tr
 * Suggested improvements
 
 Experimental features are incomplete in design and implementation. Backwards incompatible
-changes may be introduced at any time or support dropped entirely. Therefore experimental 
+changes may be introduced at any time or support dropped entirely. Therefore experimental
 features are **not recommended** for use in production environments.
 
 ## Security disclosures
