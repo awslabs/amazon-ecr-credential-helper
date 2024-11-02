@@ -21,6 +21,7 @@ for the Docker daemon that makes it easier to use
     + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
     + [Arch Linux](#arch-linux)
     + [Alpine Linux](#alpine-linux)
+    + [Windows](#windows)
     + [From Source](#from-source)
   * [Configuration](#configuration)
     + [Docker](#docker)
