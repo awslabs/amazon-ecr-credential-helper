@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	ecr "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
+	config "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config/registry"
 	mock_api "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/mocks"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/assert"
@@ -88,6 +89,48 @@ func TestGetError(t *testing.T) {
 	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
 	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
 		return nil, errors.New("test error")
+	}
+
+	username, password, err := helper.Get(proxyEndpoint)
+	assert.True(t, credentials.IsErrCredentialsNotFound(err))
+	assert.Empty(t, username)
+	assert.Empty(t, password)
+}
+
+func TestGetProfileError(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	helper := NewECRHelper(WithClientFactory(factory))
+
+	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		return nil, errors.New("test error")
+	}
+	config.GetRegistryProfile = func(url string) (string, error) {
+		return "", fmt.Errorf("Some error")
+	}
+
+	username, password, err := helper.Get(proxyEndpoint)
+	assert.True(t, credentials.IsErrCredentialsNotFound(err))
+	assert.Empty(t, username)
+	assert.Empty(t, password)
+}
+
+func TestGetProfileSuccess(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	helper := NewECRHelper(WithClientFactory(factory))
+
+	factory.NewClientWithProfileFn = func(region, profile string) (ecr.Client, error) {
+        return client, nil
+    }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		return nil, errors.New("test error")
+	}
+	config.GetRegistryProfile = func(url string) (string, error) {
+		return "some_profile", nil
 	}
 
 	username, password, err := helper.Get(proxyEndpoint)
