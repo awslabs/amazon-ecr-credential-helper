@@ -18,23 +18,27 @@ type RegistryConfigs struct {
     RegistryConfigs map[string]RegistryConfig `yaml:"registryConfigs"`
 }
 
-var RegistryConfigPath = getRegistryConfigPath()
-var RegistryConfigFilePath = filepath.Join(RegistryConfigPath, "registryConfig.yaml")
-var GetRegistryProfile = getRegistryProfile // Provide override for mocking
+const ENV_AWS_ECR_REGISTRY_CONFIG_PATH = "AWS_ECR_REGISTRY_CONFIG_PATH"
+
+var (
+    RegistryConfigPath = getRegistryConfigPath()
+    RegistryConfigFilePath = filepath.Join(RegistryConfigPath, "registryConfig.yaml")
+    GetRegistryProfile = getRegistryProfile // Provide override for mocking
+)
 
 // Function to determine the RegistryConfigPath
 func getRegistryConfigPath() string {
 	// Get the path from the environment variable
-	path := os.Getenv("AWS_ECR_REGISTRY_CONFIG_PATH")
+	path := os.Getenv(ENV_AWS_ECR_REGISTRY_CONFIG_PATH)
 	if path == "" {
 		expandedPath, err := os.UserHomeDir()
 		if err != nil {
 			expandedPath = "." // Fallback to the current directory if home directory cannot be resolved
 		}
-		return filepath.Join(expandedPath, ".ecr") // Combine with the .ecr folder
+		return filepath.Join(expandedPath, ".ecr")
 	}
 
-    logrus.WithField("AWS_ECR_REGISTRY_CONFIG_PATH", path).Debug("Using custom registry config path from environment variables.")
+    logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, path).Debug("Using custom registry config path from environment variables.")
 	return path
 }
 
@@ -48,7 +52,7 @@ func getRegistryConfig(registry string) (*RegistryConfig, error) {
     if err != nil {
         if os.IsNotExist(err) {
             // The default scenario
-            logrus.WithField("AWS_ECR_REGISTRY_CONFIG_PATH", RegistryConfigFilePath).Debug("No custom registry config file found. Using default credentials.")
+            logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, RegistryConfigFilePath).Debug("No custom registry config file found. Using default credentials.")
             return nil, nil
         }
         return nil, fmt.Errorf("failed to read config file: %w", err)
