@@ -298,7 +298,7 @@ The credentials must have a policy applied that
 | AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
-| AWS_ECR_REGISTRY_CONFIG_PATH | ~/.ecr        | Specifies the local file config directory location               |
+| AWS_ECR_REGISTRY_CONFIG_PATH | ~/.ecr        | Specifies the local file config directory location                 |
 
 #### Configure an AWS profile per registry
 
