@@ -59,7 +59,7 @@ func TestGetRegistryProfile_NoProfileForRepo(t *testing.T) {
         Build()
 
     tempFilePath := createTempYAMLFile(t, testRegistryConfigs)
-    RegistryConfigPath = tempFilePath
+    RegistryConfigFilePath = tempFilePath
 
 	// Act
     profile, err := GetRegistryProfile("some-other-repository")
@@ -79,12 +79,12 @@ func TestGetRegistryProfile_ValidRepo(t *testing.T) {
         Build()
 
     tempFilePath := createTempYAMLFile(t, testRegistryConfigs)
-    RegistryConfigPath = tempFilePath
+    RegistryConfigFilePath = tempFilePath
 
 	// Act
     resultProfile, err := GetRegistryProfile(repository)
 
     // Assert
-    assert.Equal(t, resultProfile, profile)
+    assert.Equal(t, profile, resultProfile)
     assert.Nil(t, err)
 }
