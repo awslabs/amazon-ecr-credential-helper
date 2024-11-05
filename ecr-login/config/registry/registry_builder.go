@@ -15,9 +15,9 @@ func NewRegistryConfigBuilder() *RegistryConfigBuilder {
 }
 
 // Adds a new registry configuration with the given name and credential.
-func (b *RegistryConfigBuilder) AddRegistryConfigWithProfile(pattern string, profile string) *RegistryConfigBuilder {
+func (b *RegistryConfigBuilder) AddRegistryConfigWithProfile(registry string, profile string) *RegistryConfigBuilder {
     entry := RegistryConfigEntry{
-        Pattern: pattern,
+        Registry: registry,
         Config:  RegistryConfig{Profile: profile},
     }
     b.config.RegistryConfigs = append(b.config.RegistryConfigs, entry) // Append to the slice

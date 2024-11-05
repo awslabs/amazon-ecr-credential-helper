@@ -15,7 +15,7 @@ type RegistryConfig struct {
 }
 
 type RegistryConfigEntry struct {
-    Pattern string         `yaml:"pattern"`
+    Registry string        `yaml:"registry"`
     Config  RegistryConfig `yaml:"config"`
 }
 
@@ -31,7 +31,7 @@ var (
     GetRegistryProfile = getRegistryProfile // Provide override for mocking
 )
 
-// Helper to match registry with wildard patterns
+// Helper to match registry with wildcard prefix and suffix patterns
 func matchesPattern(pattern, registry string) bool {
     if pattern == "*" {
         return true
@@ -45,7 +45,7 @@ func matchesPattern(pattern, registry string) bool {
     return pattern == registry // Exact match
 }
 
-// Function to determine the RegistryConfigPath
+// Function to get the RegistryConfigPath
 func getRegistryConfigPath() string {
 	// Get the path from the environment variable
     if configPath := os.Getenv(ENV_AWS_ECR_REGISTRY_CONFIG_PATH); configPath != "" {
@@ -80,7 +80,7 @@ func getRegistryConfig(registry string) (*RegistryConfig, error) {
 
     // Look for the registry configuration with wildcards support in file order
     for _, entry := range configs.RegistryConfigs {
-        if matchesPattern(entry.Pattern, registry) {
+        if matchesPattern(entry.Registry, registry) {
             return &entry.Config, nil
         }
     }
@@ -88,8 +88,8 @@ func getRegistryConfig(registry string) (*RegistryConfig, error) {
     return nil, nil // Return nil if registry is not found
 }
 
-// GetRegistryProfile attempts to retrieve a profile from the RegistryConfig for the specified registry.
-// Returns a the profile string if found, or nil if not found.
+// GetRegistryProfile attempts to retrieve a profile from the RegistryConfig for the specified registry pattern.
+// Returns the profile string if found, or empty string if not found.
 func getRegistryProfile(registry string) (string, error) {
     config, err := getRegistryConfig(registry)
     if err != nil {

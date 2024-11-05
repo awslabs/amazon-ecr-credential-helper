@@ -313,7 +313,7 @@ The general format for the file is highlighted below.
 
 ```yaml
 registryConfigs:
-  - pattern: <registry_matching_pattern>
+  - registry: <registry_matching_pattern>
     config:
       profile: "<AWS_PROFILE_NAME>"
 ```
@@ -322,13 +322,13 @@ For example:
 
 ```yaml
 registryConfigs:
-  - pattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com"
+  - registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com"
     config:
       profile: "some_profile"
-  - pattern: "987654321000.us-east-1.amazonaws.com"
+  - registry: "987654321000.us-east-1.amazonaws.com"
     config:
       profile: "another_profile"
-  - pattern: "*.us-east-1.amazonaws.com"
+  - registry: "*.us-east-1.amazonaws.com"
     config:
       profile: "fallback_profile"
 ```

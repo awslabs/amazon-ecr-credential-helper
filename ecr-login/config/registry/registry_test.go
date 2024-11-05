@@ -180,14 +180,12 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
         registryPattern string
         registryConfigs *RegistryConfigs
         expectedProfile string
-        expectedError   bool
     }{
         {
             name: "No config",
             registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
             registryConfigs: nil,
             expectedProfile: "",
-            expectedError: false,
         },
         {
             name: "Exact match",
@@ -196,7 +194,6 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("123456789000.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
                 Build(),
             expectedProfile: "production",
-            expectedError: false,
         },
         {
             name: "No match",
@@ -205,7 +202,23 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("987654321000.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
                 Build(),
             expectedProfile: "",
-            expectedError: false,
+        },
+        {
+            name: "Duplicate match use first match",
+            registryPattern: "987654321000.us-east-1.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("987654321000.us-east-1.amazonaws.com", "production").
+                AddRegistryConfigWithProfile("987654321000.us-east-1.amazonaws.com", "other_profile").
+                Build(),
+            expectedProfile: "production",
+        },
+        {
+            name: "Unsupported complex wildcard, no match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("*.dkr.ecr.*.amazonaws.com", "production").
+                Build(),
+            expectedProfile: "",
         },
         {
             name: "Wildcard prefix single match",
@@ -214,7 +227,6 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("*.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
                 Build(),
             expectedProfile: "production",
-            expectedError: false,
         },
         {
             name: "Wildcard prefix first match",
@@ -224,7 +236,6 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("123456789000.dkr.ecr.ap-southeast-2.amazonaws.com", "some_other_profile").
                 Build(),
             expectedProfile: "production",
-            expectedError: false,
         },
         {
             name: "Wildcard suffix single match",
@@ -233,7 +244,6 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("123456789000.*", "production").
                 Build(),
             expectedProfile: "production",
-            expectedError: false,
         },
         {
             name: "Wildcard suffix first match",
@@ -244,7 +254,6 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("*.dkr.ecr.ap-southeast-2.amazonaws.com", "yet_another_profile").
                 Build(),
             expectedProfile: "production",
-            expectedError: false,
         },
         {
             name: "Wildcard fallback match",
@@ -254,8 +263,7 @@ func TestGetRegistryProfileWildcards(t *testing.T) {
                 AddRegistryConfigWithProfile("*.us-east-1.amazonaws.com", "fallback_profile").
                 Build(),
             expectedProfile: "fallback_profile",
-            expectedError: false,
-        },    
+        },
     }
 
     for _, tc := range testCases {
