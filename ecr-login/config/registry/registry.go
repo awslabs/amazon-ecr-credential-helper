@@ -29,17 +29,11 @@ var (
 // Function to determine the RegistryConfigPath
 func getRegistryConfigPath() string {
 	// Get the path from the environment variable
-	path := os.Getenv(ENV_AWS_ECR_REGISTRY_CONFIG_PATH)
-	if path == "" {
-		expandedPath, err := os.UserHomeDir()
-		if err != nil {
-			expandedPath = "." // Fallback to the current directory if home directory cannot be resolved
-		}
-		return filepath.Join(expandedPath, ".ecr")
+    if configPath := os.Getenv(ENV_AWS_ECR_REGISTRY_CONFIG_PATH); configPath != "" {
+        logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, configPath).Debug("Using custom registry config path from environment variables.")
+		return configPath
 	}
-
-    logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, path).Debug("Using custom registry config path from environment variables.")
-	return path
+	return "~/.ecr"
 }
 
 // GetRegistryConfig attempts to retrieve a RegistryConfig for the specified registry.
