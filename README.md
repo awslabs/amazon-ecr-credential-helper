@@ -306,22 +306,31 @@ In some instances, like when using SSO, you may want to override the default pro
 This can be achieved by creating a `registryConfig.yaml` file in the `~/.ecr` directory. To override this directory set the
 `AWS_ECR_REGISTRY_CONFIG_PATH` environment variable. This file configures registries to use a specific `AWS_Profile` as 
 defined in your AWS config. If no entry is found for a given repository it will fallback to the default AWS credentials.
-The general format for the file is:
+
+_NOTE: The 'pattern' supports *only* prefix or suffix wildcards or exact matches. The order is important and only the first matching pattern will apply._
+
+The general format for the file is highlighted below. 
 
 ```yaml
 registryConfigs:
-  <registry>:
-    profile: "<AWS_PROFILE_NAME>"
+  - pattern: <registry_matching_pattern>
+    config:
+      profile: "<AWS_PROFILE_NAME>"
 ```
 
 For example:
 
 ```yaml
 registryConfigs:
-  123456789000.dkr.ecr.ap-southeast-2.amazonaws.com:
-    profile: "Profile1"
-  987654321000.dkr.ecr.ap-southeast-2.amazonaws.com:
-    profile: "Profile2"
+  - pattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com"
+    config:
+      profile: "some_profile"
+  - pattern: "987654321000.us-east-1.amazonaws.com"
+    config:
+      profile: "another_profile"
+  - pattern: "*.us-east-1.amazonaws.com"
+    config:
+      profile: "fallback_profile"
 ```
 
 ## Usage

@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -56,10 +55,67 @@ func setupEnvVar(t *testing.T, key, value string) {
     // Restore value after test finishes
     t.Cleanup(func() { os.Setenv(key, original) })
 }
+func TestMatchesPattern(t *testing.T) {
+    testCases := []struct {
+        name        string
+        registry    string
+        pattern     string
+        shouldMatch bool
+    }{
+        {
+            name: "Exact match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            shouldMatch: true,
+        },
+        {
+            name: "No match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "987654321000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            shouldMatch: false,
+        },
+        {
+            name: "Suffix wildcard match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "123456789000.*",
+            shouldMatch: true,
+        },
+        {
+            name: "Prefix wildcard match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "*.dkr.ecr.ap-southeast-2.amazonaws.com",
+            shouldMatch: true,
+        },
+        {
+            name: "Wildcard",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "*",
+            shouldMatch: true,
+        },
+        {
+            name: "Wildcard no match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "*.dkr.ecr.us-east-1.amazonaws.com",
+            shouldMatch: false,
+        },
+        {
+            name: "Not supported double wildcard match",
+            registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            pattern: "*.dkr.ecr.*.amazonaws.com",
+            shouldMatch: false,
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            match := matchesPattern(tc.pattern, tc.registry)
+            assert.Equal(t, tc.shouldMatch, match)
+        })
+    }
+}
 
 func TestGetRegistryConfigPath_NoEnvVar(t *testing.T) {
-    homedir, _ := os.UserHomeDir()
-	expectedPath := filepath.Join(homedir, ".ecr")
+	expectedPath := "~/.ecr"
 
     setupEnvVar(t, "AWS_ECR_REGISTRY_CONFIG_PATH", "")
 
@@ -77,12 +133,12 @@ func TestGetRegistryConfigPath_WithEnvVar(t *testing.T) {
 	assert.Equal(t, expectedPath, path, "Expected path to match environment variable")
 }
 
-func TestGetRegistryConfig_ValidRegistryAndConfig(t *testing.T) {
+func TestGetRegistryConfig_ExactRegistryAndConfig(t *testing.T) {
     registry := "some-registry"
     profile := "another-profile"
 
     testRegistryConfigs := NewRegistryConfigBuilder().
-        AddRegistryWithProfile(registry, profile).
+        AddRegistryConfigWithProfile(registry, profile).
         Build()
 
     setupTestConfig(t, testRegistryConfigs)
@@ -118,43 +174,102 @@ func TestGetRegistryConfig_ConfigFileNotFound(t *testing.T) {
     assert.NoError(t, err, "Expected no error when the config file cannot be found, got error instead")
 }
 
-func TestGetRegistryProfile_NoRegistryConfiguration(t *testing.T) {
-    profile, err := GetRegistryProfile("some_registry")
+func TestGetRegistryProfileWildcards(t *testing.T) {
+    testCases := []struct {
+        name            string
+        registryPattern string
+        registryConfigs *RegistryConfigs
+        expectedProfile string
+        expectedError   bool
+    }{
+        {
+            name: "No config",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: nil,
+            expectedProfile: "",
+            expectedError: false,
+        },
+        {
+            name: "Exact match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("123456789000.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
+                Build(),
+            expectedProfile: "production",
+            expectedError: false,
+        },
+        {
+            name: "No match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("987654321000.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
+                Build(),
+            expectedProfile: "",
+            expectedError: false,
+        },
+        {
+            name: "Wildcard prefix single match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("*.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
+                Build(),
+            expectedProfile: "production",
+            expectedError: false,
+        },
+        {
+            name: "Wildcard prefix first match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("*.dkr.ecr.ap-southeast-2.amazonaws.com", "production").
+                AddRegistryConfigWithProfile("123456789000.dkr.ecr.ap-southeast-2.amazonaws.com", "some_other_profile").
+                Build(),
+            expectedProfile: "production",
+            expectedError: false,
+        },
+        {
+            name: "Wildcard suffix single match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("123456789000.*", "production").
+                Build(),
+            expectedProfile: "production",
+            expectedError: false,
+        },
+        {
+            name: "Wildcard suffix first match",
+            registryPattern: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("123456789000.*", "production").
+                AddRegistryConfigWithProfile("123456789000.dkr.ecr.ap-southeast-2.amazonaws.com", "some_other_profile").
+                AddRegistryConfigWithProfile("*.dkr.ecr.ap-southeast-2.amazonaws.com", "yet_another_profile").
+                Build(),
+            expectedProfile: "production",
+            expectedError: false,
+        },
+        {
+            name: "Wildcard fallback match",
+            registryPattern: "123456789000.dkr.ecr.us-east-1.amazonaws.com",
+            registryConfigs: NewRegistryConfigBuilder().
+                AddRegistryConfigWithProfile("987654321000.us-east-1.amazonaws.com", "production").
+                AddRegistryConfigWithProfile("*.us-east-1.amazonaws.com", "fallback_profile").
+                Build(),
+            expectedProfile: "fallback_profile",
+            expectedError: false,
+        },    
+    }
 
-	assert.Equal(t, profile, "", "Expected no profile to be returned when no configuration is set, found profile instead")
-    assert.NoError(t, err, "Expected no error when no configuration is set, got error instead")
-}
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            if (tc.registryConfigs != nil && len(tc.registryConfigs.RegistryConfigs) > 0) {
+                setupTestConfig(t, tc.registryConfigs)
+            }
 
-func TestGetRegistryProfile_ValidRegistry(t *testing.T) {
-    registry := "some-registry"
-    profile := "another-profile"
-
-    testRegistryConfigs := NewRegistryConfigBuilder().
-        AddRegistryWithProfile(registry, profile).
-        Build()
-
-    setupTestConfig(t, testRegistryConfigs)
-
-    resultProfile, err := GetRegistryProfile(registry)
-
-    assert.Equal(t, profile, resultProfile, "Expect returned profile to match YAML configuration, got mismatch instead")
-    assert.NoError(t, err, "Expected not error for a valid registry profile configuration, got error")
-}
-
-func TestGetRegistryProfile_NoProfileForRepo(t *testing.T) {
-    registry := "some-registry"
-    profile := "another-profile"
-    
-    testRegistryConfigs := NewRegistryConfigBuilder().
-        AddRegistryWithProfile(registry, profile).
-        Build()
-
-    setupTestConfig(t, testRegistryConfigs)
-
-    profile, err := GetRegistryProfile("some-other-registry")
-
-    assert.Equal(t, profile, "", "Expected no explicit profile (i.e. \"\") for registry, got a profile")
-    assert.NoError(t, err, "Expected no error for registry without configuration, got error")
+            resultProfile, err := GetRegistryProfile(tc.registryPattern)
+            
+            assert.Equal(t, tc.expectedProfile, resultProfile)
+            assert.NoError(t, err, "expected no error")
+        })
+    }
 }
 
 func TestGetRegistryProfile_InvalidYaml(t *testing.T) {

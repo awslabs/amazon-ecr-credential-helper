@@ -14,8 +14,13 @@ type RegistryConfig struct {
     Profile string `yaml:"profile"`
 }
 
+type RegistryConfigEntry struct {
+    Pattern string         `yaml:"pattern"`
+    Config  RegistryConfig `yaml:"config"`
+}
+
 type RegistryConfigs struct {
-    RegistryConfigs map[string]RegistryConfig `yaml:"registryConfigs"`
+    RegistryConfigs []RegistryConfigEntry `yaml:"registryConfigs"`
 }
 
 const ENV_AWS_ECR_REGISTRY_CONFIG_PATH = "AWS_ECR_REGISTRY_CONFIG_PATH"
@@ -25,6 +30,20 @@ var (
     RegistryConfigFilePath = filepath.Join(RegistryConfigPath, "registryConfig.yaml")
     GetRegistryProfile = getRegistryProfile // Provide override for mocking
 )
+
+// Helper to match registry with wildard patterns
+func matchesPattern(pattern, registry string) bool {
+    if pattern == "*" {
+        return true
+    }
+    if strings.HasPrefix(pattern, "*") && strings.HasSuffix(registry, pattern[1:]) {
+        return true
+    }
+    if strings.HasSuffix(pattern, "*") && strings.HasPrefix(registry, pattern[:len(pattern)-1]) {
+        return true
+    }
+    return pattern == registry // Exact match
+}
 
 // Function to determine the RegistryConfigPath
 func getRegistryConfigPath() string {
@@ -45,8 +64,8 @@ func getRegistryConfig(registry string) (*RegistryConfig, error) {
     fileData, err := os.ReadFile(RegistryConfigFilePath)
     if err != nil {
         if os.IsNotExist(err) {
-            // The default scenario
-            logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, RegistryConfigFilePath).Debug("No custom registry config file found. Using default credentials.")
+            logrus.WithField(ENV_AWS_ECR_REGISTRY_CONFIG_PATH, RegistryConfigFilePath).
+                Debug("No custom registry config file found. Using default credentials.")
             return nil, nil
         }
         return nil, fmt.Errorf("failed to read config file: %w", err)
@@ -59,9 +78,11 @@ func getRegistryConfig(registry string) (*RegistryConfig, error) {
         return nil, fmt.Errorf("failed to parse config file: %w", err)
     }
 
-    // Look for the registry configuration
-    if config, exists := configs.RegistryConfigs[registry]; exists {
-        return &config, nil // Return pointer to found config
+    // Look for the registry configuration with wildcards support in file order
+    for _, entry := range configs.RegistryConfigs {
+        if matchesPattern(entry.Pattern, registry) {
+            return &entry.Config, nil
+        }
     }
 
     return nil, nil // Return nil if registry is not found
