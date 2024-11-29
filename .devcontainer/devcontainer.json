@@ -1,0 +1,19 @@
+{
+    "name": "amazon-ecr-credential-helper",
+
+    "build": {
+      "context": "..",
+      "dockerfile": "../Dockerfile"
+    },
+
+    "workspaceFolder": "/go/src/github.com/awslabs/amazon-ecr-credential-helper",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/go/src/github.com/awslabs/amazon-ecr-credential-helper,type=bind,consistency=cached",
+  
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "golang.go"
+        ]
+      }
+    }
+}
