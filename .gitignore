@@ -2,3 +2,10 @@
 GITCOMMIT_SHA
 *.tar.gz
 *.tar
+
+# Snaps
+*.snap
+parts/
+prime/
+stage/
+snap/.snapcraft
