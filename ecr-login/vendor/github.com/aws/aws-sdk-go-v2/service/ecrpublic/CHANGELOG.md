@@ -1,3 +1,11 @@
+# v1.29.1 (2025-01-03)
+
+* No change notes available for this release.
+
+# v1.29.0 (2024-12-28)
+
+* **Feature**: Restoring custom endpoint functionality for ECR Public
+
 # v1.28.1 (2024-12-26)
 
 * No change notes available for this release.
