@@ -209,8 +209,21 @@ Docker to work with the helper.
 
 There is no need to use `docker login` or `docker logout`.
 
-Place the `docker-credential-ecr-login` binary on your `PATH` and set the
-contents of your `~/.docker/config.json` file to be:
+Place the `docker-credential-ecr-login` binary on your `PATH`.
+On Windows, depending on whether the executable is ran in the User or System context, the corresponding `Path` user or system variable needs to be used.
+
+Following that the configuration for the docker client needs to be updated in `~/.docker/config.json` to use the **ecr-login** helper.
+Depending on the operating system and context under which docker client will be executed, this configuration can be found in different places.
+  
+On Linux systems:
+- `/home/<username>/.docker/config.json` for **user** context
+- `/root/.docker/config.json` for **root** context
+  
+On Windows:
+- `C:\Users\<username>\.docker\config.json` for **user** context
+- `C:\Windows\System32\config\systemprofile\.docker\config.json` for the **SYSTEM** context
+
+Set the contents of the file to the following:
 
 ```json
 {
@@ -259,7 +272,7 @@ If you need to authenticate with multiple registries, including non-ECR registri
 
 ### AWS credentials
 
-The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations.  Standard ones
+The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations. Standard ones
 include:
 
 * The shared credentials file (`~/.aws/credentials`)
