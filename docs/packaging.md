@@ -18,7 +18,7 @@ the following operating systems:
 * Mac OS X (with the Homebrew package manager)
   ([source](https://github.com/Homebrew/homebrew-core/blob/master/Formula/d/docker-credential-helper-ecr.rb))
 * NixOS (and the Nix package manager)
-  ([source](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/amazon-ecr-credential-helper/default.nix))
+  ([source](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/am/amazon-ecr-credential-helper/package.nix))
 * Arch Linux (in the Arch User Repository)
   ([source](https://aur.archlinux.org/packages/amazon-ecr-credential-helper))
 
