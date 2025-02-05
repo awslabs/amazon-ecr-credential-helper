@@ -23,6 +23,7 @@ type MockClientFactory struct {
 	NewClientWithOptionsFn      func(opts api.Options) api.Client
 	NewClientFromRegionFn       func(region string) api.Client
 	NewClientWithFipsEndpointFn func(region string) (api.Client, error)
+	NewClientWithProfileFn      func(region string, credential string) (api.Client, error)
 	NewClientWithDefaultsFn     func() api.Client
 }
 
@@ -40,6 +41,10 @@ func (m MockClientFactory) NewClientFromRegion(region string) api.Client {
 
 func (m MockClientFactory) NewClientWithFipsEndpoint(region string) (api.Client, error) {
 	return m.NewClientWithFipsEndpointFn(region)
+}
+
+func (m MockClientFactory) NewClientWithProfile(region string, credential string) (api.Client, error) {
+	return m.NewClientWithProfileFn(region, credential)
 }
 
 func (m MockClientFactory) NewClientWithDefaults() api.Client {
