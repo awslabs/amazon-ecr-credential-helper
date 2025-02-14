@@ -109,7 +109,11 @@ func (self ECRHelper) Delete(serverURL string) error {
 
 func loadCustomMappings() (map[string]string, error) {
 	mappings := make(map[string]string)
-	data, err := os.ReadFile("custom.json")
+	configPath := os.Getenv("AWS_ECR_CUSTOM_MAP_PATH")
+	if configPath == "" {
+		configPath = "custom.json"
+	}
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return mappings, nil

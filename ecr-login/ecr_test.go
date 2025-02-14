@@ -224,12 +224,18 @@ func TestDeleteNotImplemented(t *testing.T) {
 
 func TestCustomMapping(t *testing.T) {
 	// Create temporary custom.json
+	tmpFile, err := os.CreateTemp("", "custom*.json")
+	assert.NoError(t, err)
+	defer os.Remove(tmpFile.Name())
+
 	content := []byte(`{
 		"docker.io": "123456789012.dkr.ecr.us-west-2.amazonaws.com"
 	}`)
-	err := os.WriteFile("custom.json", content, 0644)
+	err = os.WriteFile(tmpFile.Name(), content, 0644)
 	assert.NoError(t, err)
-	defer os.Remove("custom.json")
+
+	// Set environment variable to use temp file
+	t.Setenv("AWS_ECR_CUSTOM_MAP_PATH", tmpFile.Name())
 
 	factory := &mock_api.MockClientFactory{}
 	client := &mock_api.MockClient{}
