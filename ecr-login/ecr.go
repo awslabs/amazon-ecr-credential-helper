@@ -14,6 +14,7 @@
 package ecr
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,8 +29,9 @@ import (
 var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
-	clientFactory api.ClientFactory
-	logger        *logrus.Logger
+	clientFactory  api.ClientFactory
+	logger         *logrus.Logger
+	customMappings map[string]string
 }
 
 type Option func(*ECRHelper)
@@ -105,7 +107,41 @@ func (self ECRHelper) Delete(serverURL string) error {
 	}
 }
 
-func (self ECRHelper) Get(serverURL string) (string, string, error) {
+func loadCustomMappings() (map[string]string, error) {
+	mappings := make(map[string]string)
+	data, err := os.ReadFile("custom.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return mappings, nil
+		}
+		return nil, err
+	}
+
+	if err := json.Unmarshal(data, &mappings); err != nil {
+		return nil, err
+	}
+	return mappings, nil
+}
+
+func (self *ECRHelper) Get(serverURL string) (string, string, error) {
+	// Load custom mappings if not already loaded
+	if self.customMappings == nil {
+		var err error
+		self.customMappings, err = loadCustomMappings()
+		if err != nil {
+			logrus.WithError(err).Warning("Failed to load custom mappings")
+		}
+	}
+
+	// Check for custom mapping
+	if mappedURL, exists := self.customMappings[serverURL]; exists {
+		logrus.WithFields(logrus.Fields{
+			"original": serverURL,
+			"mapped":   mappedURL,
+		}).Debug("Using custom registry mapping")
+		serverURL = mappedURL
+	}
+
 	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
 		self.logger.

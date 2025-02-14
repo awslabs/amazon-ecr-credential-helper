@@ -221,3 +221,34 @@ func TestDeleteNotImplemented(t *testing.T) {
 		})
 	}
 }
+
+func TestCustomMapping(t *testing.T) {
+	// Create temporary custom.json
+	content := []byte(`{
+		"docker.io": "123456789012.dkr.ecr.us-west-2.amazonaws.com"
+	}`)
+	err := os.WriteFile("custom.json", content, 0644)
+	assert.NoError(t, err)
+	defer os.Remove("custom.json")
+
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	helper := NewECRHelper(WithClientFactory(factory))
+
+	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
+	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+		// Verify that the mapped URL is being used
+		assert.Equal(t, "123456789012.dkr.ecr.us-west-2.amazonaws.com", serverURL)
+		return &ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: "https://" + serverURL,
+		}, nil
+	}
+
+	username, password, err := helper.Get("docker.io")
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUsername, username)
+	assert.Equal(t, expectedPassword, password)
+}
