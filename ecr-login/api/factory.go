@@ -38,6 +38,7 @@ type ClientFactory interface {
 	NewClientWithOptions(opts Options) Client
 	NewClientFromRegion(region string) Client
 	NewClientWithFipsEndpoint(region string) (Client, error)
+	NewClientWithProfile(region string, credential string) (Client, error)
 	NewClientWithDefaults() Client
 }
 
@@ -65,6 +66,21 @@ func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(regio
 		userAgentLoadOption,
 		config.WithRegion(region),
 		config.WithEndpointDiscovery(aws.EndpointDiscoveryEnabled),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig}), nil
+}
+
+// NewClientWithProfile overrides the default profile in a given region
+func (defaultClientFactory DefaultClientFactory) NewClientWithProfile(region string, credential string) (Client, error) {
+	awsConfig, err := config.LoadDefaultConfig(
+		context.TODO(),
+		userAgentLoadOption,
+		config.WithRegion(region),
+		config.WithSharedConfigProfile(credential),
 	)
 	if err != nil {
 		return nil, err
