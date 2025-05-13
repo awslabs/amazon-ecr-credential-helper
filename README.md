@@ -45,7 +45,7 @@ use different AWS credentials.
 You can install the Amazon ECR Credential Helper from the Amazon Linux 2023 repositories.
 
 ```bash
-$ sudo dnf install -y amazon-ecr-credential-helper
+sudo dnf install -y amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -57,8 +57,8 @@ You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
 extras](https://docs.aws.amazon.com/linux/al2/ug/al2-extras.html).
 
 ```bash
-$ sudo amazon-linux-extras enable docker
-$ sudo yum install amazon-ecr-credential-helper
+sudo amazon-linux-extras enable docker
+sudo yum install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -71,7 +71,7 @@ A community-maintained Homebrew formula is available in the core tap.
 [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ brew install docker-credential-helper-ecr
+brew install docker-credential-helper-ecr
 ```
 
 On macOS, another community-maintained installation method is to use MacPorts.
@@ -79,7 +79,7 @@ On macOS, another community-maintained installation method is to use MacPorts.
 [![MacPorts package](https://repology.org/badge/version-for-repo/macports/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo port install docker-credential-helper-ecr
+sudo port install docker-credential-helper-ecr
 ```
 
 Once you have installed the credential helper, see the
@@ -96,8 +96,8 @@ archives.  This package will also be included in future releases of Debian.
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo apt update
-$ sudo apt install amazon-ecr-credential-helper
+sudo apt update
+sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -112,8 +112,8 @@ Dingo (and newer) archives.
 [![Ubuntu 22.04 package](https://repology.org/badge/version-for-repo/ubuntu_22_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo apt update
-$ sudo apt install amazon-ecr-credential-helper
+sudo apt update
+sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -126,9 +126,9 @@ A community-maintained package is available in the Arch User Repository.
 [![AUR package](https://repology.org/badge/version-for-repo/aur/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
-$ cd amazon-ecr-credential-helper
-$ makepkg -si
+git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
+cd amazon-ecr-credential-helper
+makepkg -si
 ```
 
 Once you have installed the credential helper, see the
@@ -141,7 +141,7 @@ A community-maintained package is available in the [Alpine Linux aports Reposito
 [![Alpine Linux Edge package](https://repology.org/badge/version-for-repo/alpine_edge/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ apk add docker-credential-ecr-login
+apk add docker-credential-ecr-login
 ```
 > [!NOTE] 
 > Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
@@ -166,8 +166,8 @@ If you just installed Go, make sure you also have added it to your PATH or
 Environment Vars (Windows). For example:
 
 ```
-$ export GOPATH=$HOME/go
-$ export PATH=$PATH:$GOPATH/bin
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
 ```
 
 Or in Windows:
