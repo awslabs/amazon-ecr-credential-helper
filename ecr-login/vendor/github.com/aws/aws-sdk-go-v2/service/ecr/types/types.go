@@ -156,16 +156,21 @@ type EncryptionConfiguration struct {
 	// encrypted using server-side encryption with Key Management Service key stored in
 	// KMS. When you use KMS to encrypt your data, you can either use the default
 	// Amazon Web Services managed KMS key for Amazon ECR, or specify your own KMS key,
-	// which you already created. For more information, see [Protecting data using server-side encryption with an KMS key stored in Key Management Service (SSE-KMS)]in the Amazon Simple
-	// Storage Service Console Developer Guide.
+	// which you already created.
+	//
+	// If you use the KMS_DSSE encryption type, the contents of the repository will be
+	// encrypted with two layers of encryption using server-side encryption with the
+	// KMS Management Service key stored in KMS. Similar to the KMS encryption type,
+	// you can either use the default Amazon Web Services managed KMS key for Amazon
+	// ECR, or specify your own KMS key, which you've already created.
 	//
 	// If you use the AES256 encryption type, Amazon ECR uses server-side encryption
 	// with Amazon S3-managed encryption keys which encrypts the images in the
-	// repository using an AES256 encryption algorithm. For more information, see [Protecting data using server-side encryption with Amazon S3-managed encryption keys (SSE-S3)]in
-	// the Amazon Simple Storage Service Console Developer Guide.
+	// repository using an AES256 encryption algorithm.
 	//
-	// [Protecting data using server-side encryption with Amazon S3-managed encryption keys (SSE-S3)]: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
-	// [Protecting data using server-side encryption with an KMS key stored in Key Management Service (SSE-KMS)]: https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html
+	// For more information, see [Amazon ECR encryption at rest] in the Amazon Elastic Container Registry User Guide.
+	//
+	// [Amazon ECR encryption at rest]: https://docs.aws.amazon.com/AmazonECR/latest/userguide/encryption-at-rest.html
 	//
 	// This member is required.
 	EncryptionType EncryptionType
@@ -221,11 +226,20 @@ type EnhancedImageScanFinding struct {
 	// The description of the finding.
 	Description *string
 
+	// If a finding discovered in your environment has an exploit available.
+	ExploitAvailable *string
+
 	// The Amazon Resource Number (ARN) of the finding.
 	FindingArn *string
 
 	// The date and time that the finding was first observed.
 	FirstObservedAt *time.Time
+
+	// Details on whether a fix is available through a version update. This value can
+	// be YES , NO , or PARTIAL . A PARTIAL fix means that some, but not all, of the
+	// packages identified in the finding have fixes available through updated
+	// versions.
+	FixAvailable *string
 
 	// The date and time that the finding was last observed.
 	LastObservedAt *time.Time
@@ -312,10 +326,10 @@ type ImageDetail struct {
 	// If the image is a manifest list, this will be the max size of all manifests in
 	// the list.
 	//
-	// Beginning with Docker version 1.9, the Docker client compresses image layers
+	// Starting with Docker version 1.9, the Docker client compresses image layers
 	// before pushing them to a V2 Docker registry. The output of the docker images
-	// command shows the uncompressed image size, so it may return a larger image size
-	// than the image sizes returned by DescribeImages.
+	// command shows the uncompressed image size. Therefore, Docker might return a
+	// larger image than the image sizes returned by DescribeImages.
 	ImageSizeInBytes *int64
 
 	// The list of tags associated with this image.
@@ -612,6 +626,9 @@ type PullThroughCacheRule struct {
 	// rule.
 	CredentialArn *string
 
+	// The ARN of the IAM role associated with the pull through cache rule.
+	CustomRoleArn *string
+
 	// The Amazon ECR repository prefix associated with the pull through cache rule.
 	EcrRepositoryPrefix *string
 
@@ -629,6 +646,9 @@ type PullThroughCacheRule struct {
 
 	// The upstream registry URL associated with the pull through cache rule.
 	UpstreamRegistryUrl *string
+
+	// The upstream repository prefix associated with the pull through cache rule.
+	UpstreamRepositoryPrefix *string
 
 	noSmithyDocumentSerde
 }
@@ -809,7 +829,7 @@ type RepositoryCreationTemplate struct {
 	// template.
 	Prefix *string
 
-	// he repository policy to apply to repositories created using the template. A
+	// The repository policy to apply to repositories created using the template. A
 	// repository policy is a permissions policy associated with a repository to
 	// control access permissions.
 	RepositoryPolicy *string
@@ -973,6 +993,9 @@ type VulnerablePackage struct {
 
 	// The file path of the vulnerable package.
 	FilePath *string
+
+	// The version of the package that contains the vulnerability fix.
+	FixedInVersion *string
 
 	// The name of the vulnerable package.
 	Name *string

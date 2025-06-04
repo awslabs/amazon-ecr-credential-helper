@@ -1,3 +1,10 @@
+# 0.10.0
+* Enhancement - Updated ECR pattern for ECR dual-stack endpoints for IPv6 support. ([#967](https://github.com/awslabs/amazon-ecr-credential-helper/issues/967))
+
+# 0.9.1
+* Drop golang 1.21 support.
+* Upgrade dependencies.
+
 # 0.9.0
 * Enhancement - Added support for environment variable `AWS_ECR_IGNORE_CREDS_STORAGE=true` to ignore ADD and DELETE requests. This makes tools that try to `docker login` work with registries managed the amazon-ecr-credential-helper. ([#102](https://github.com/awslabs/amazon-ecr-credential-helper/issues/102) and [#847](https://github.com/awslabs/amazon-ecr-credential-helper/pull/847))
 * Enhancement - Updated ECR pattern for new isolated regions. ([#850](https://github.com/awslabs/amazon-ecr-credential-helper/pull/850))

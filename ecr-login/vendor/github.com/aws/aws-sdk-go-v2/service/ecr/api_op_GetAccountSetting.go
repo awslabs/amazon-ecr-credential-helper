@@ -10,7 +10,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Retrieves the basic scan type version name.
+// Retrieves the account setting value for the specified setting name.
 func (c *Client) GetAccountSetting(ctx context.Context, params *GetAccountSettingInput, optFns ...func(*Options)) (*GetAccountSettingOutput, error) {
 	if params == nil {
 		params = &GetAccountSettingInput{}
@@ -28,7 +28,8 @@ func (c *Client) GetAccountSetting(ctx context.Context, params *GetAccountSettin
 
 type GetAccountSettingInput struct {
 
-	// Basic scan type version name.
+	// The name of the account setting, such as BASIC_SCAN_TYPE_VERSION or
+	// REGISTRY_POLICY_SCOPE .
 	//
 	// This member is required.
 	Name *string
@@ -38,11 +39,12 @@ type GetAccountSettingInput struct {
 
 type GetAccountSettingOutput struct {
 
-	// Retrieves the basic scan type version name.
+	// Retrieves the name of the account setting.
 	Name *string
 
-	// Retrieves the value that specifies what basic scan type is being used:
-	// AWS_NATIVE or CLAIR .
+	// The setting value for the setting name. The following are valid values for the
+	// basic scan type being used: AWS_NATIVE or CLAIR . The following are valid values
+	// for the registry policy scope being used: V1 or V2 .
 	Value *string
 
 	// Metadata pertaining to the operation's result.
@@ -94,6 +96,9 @@ func (c *Client) addOperationGetAccountSettingMiddlewares(stack *middleware.Stac
 	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
+	if err = addSpanRetryLoop(stack, options); err != nil {
+		return err
+	}
 	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
@@ -110,6 +115,9 @@ func (c *Client) addOperationGetAccountSettingMiddlewares(stack *middleware.Stac
 		return err
 	}
 	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetAccountSettingValidationMiddleware(stack); err != nil {
@@ -131,6 +139,18 @@ func (c *Client) addOperationGetAccountSettingMiddlewares(stack *middleware.Stac
 		return err
 	}
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil

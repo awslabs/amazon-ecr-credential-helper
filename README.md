@@ -21,6 +21,7 @@ for the Docker daemon that makes it easier to use
     + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
     + [Arch Linux](#arch-linux)
     + [Alpine Linux](#alpine-linux)
+    + [Windows](#windows)
     + [From Source](#from-source)
   * [Configuration](#configuration)
     + [Docker](#docker)
@@ -44,7 +45,7 @@ use different AWS credentials.
 You can install the Amazon ECR Credential Helper from the Amazon Linux 2023 repositories.
 
 ```bash
-$ sudo dnf install -y amazon-ecr-credential-helper
+sudo dnf install -y amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -56,8 +57,8 @@ You can install the Amazon ECR Credential Helper from the [`docker` or `ecs`
 extras](https://docs.aws.amazon.com/linux/al2/ug/al2-extras.html).
 
 ```bash
-$ sudo amazon-linux-extras enable docker
-$ sudo yum install amazon-ecr-credential-helper
+sudo amazon-linux-extras enable docker
+sudo yum install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -70,7 +71,7 @@ A community-maintained Homebrew formula is available in the core tap.
 [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ brew install docker-credential-helper-ecr
+brew install docker-credential-helper-ecr
 ```
 
 On macOS, another community-maintained installation method is to use MacPorts.
@@ -78,7 +79,7 @@ On macOS, another community-maintained installation method is to use MacPorts.
 [![MacPorts package](https://repology.org/badge/version-for-repo/macports/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo port install docker-credential-helper-ecr
+sudo port install docker-credential-helper-ecr
 ```
 
 Once you have installed the credential helper, see the
@@ -95,8 +96,8 @@ archives.  This package will also be included in future releases of Debian.
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo apt update
-$ sudo apt install amazon-ecr-credential-helper
+sudo apt update
+sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -111,8 +112,8 @@ Dingo (and newer) archives.
 [![Ubuntu 22.04 package](https://repology.org/badge/version-for-repo/ubuntu_22_04/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ sudo apt update
-$ sudo apt install amazon-ecr-credential-helper
+sudo apt update
+sudo apt install amazon-ecr-credential-helper
 ```
 
 Once you have installed the credential helper, see the
@@ -125,9 +126,9 @@ A community-maintained package is available in the Arch User Repository.
 [![AUR package](https://repology.org/badge/version-for-repo/aur/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
-$ cd amazon-ecr-credential-helper
-$ makepkg -si
+git clone https://aur.archlinux.org/amazon-ecr-credential-helper.git
+cd amazon-ecr-credential-helper
+makepkg -si
 ```
 
 Once you have installed the credential helper, see the
@@ -140,7 +141,7 @@ A community-maintained package is available in the [Alpine Linux aports Reposito
 [![Alpine Linux Edge package](https://repology.org/badge/version-for-repo/alpine_edge/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 
 ```bash
-$ apk add docker-credential-ecr-login
+apk add docker-credential-ecr-login
 ```
 > [!NOTE] 
 > Badge only shows edge, check [repository](https://pkgs.alpinelinux.org/packages?name=docker-credential-ecr-login) for stable releases or add `--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community`
@@ -165,8 +166,8 @@ If you just installed Go, make sure you also have added it to your PATH or
 Environment Vars (Windows). For example:
 
 ```
-$ export GOPATH=$HOME/go
-$ export PATH=$PATH:$GOPATH/bin
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
 ```
 
 Or in Windows:
@@ -208,8 +209,21 @@ Docker to work with the helper.
 
 There is no need to use `docker login` or `docker logout`.
 
-Place the `docker-credential-ecr-login` binary on your `PATH` and set the
-contents of your `~/.docker/config.json` file to be:
+Place the `docker-credential-ecr-login` binary on your `PATH`.
+On Windows, depending on whether the executable is ran in the User or System context, the corresponding `Path` user or system variable needs to be used.
+
+Following that the configuration for the docker client needs to be updated in `~/.docker/config.json` to use the **ecr-login** helper.
+Depending on the operating system and context under which docker client will be executed, this configuration can be found in different places.
+  
+On Linux systems:
+- `/home/<username>/.docker/config.json` for **user** context
+- `/root/.docker/config.json` for **root** context
+  
+On Windows:
+- `C:\Users\<username>\.docker\config.json` for **user** context
+- `C:\Windows\System32\config\systemprofile\.docker\config.json` for the **SYSTEM** context
+
+Set the contents of the file to the following:
 
 ```json
 {
@@ -218,22 +232,6 @@ contents of your `~/.docker/config.json` file to be:
 ```
 This configures the Docker daemon to use the credential helper for all Amazon
 ECR registries.
-
-The Amazon ECR Docker Credential Helper can be used alongside your existing docker login authentication tokens: 
-
-```json
-{
-	"credsStore": "ecr-login",
-	"auths": {
-		"https://index.docker.io/v1/": {
-			"auth": [docker.io-auth-token]
-		},
-		"registry.gitlab.com": {
-			"auth": [gitlab-auth-token]
-		},
-	}
-}
-```
 
 With Docker 1.13.0 or greater, you can configure Docker to use different
 credential helpers for different ECR registries. To use this credential helper for
@@ -252,9 +250,29 @@ ECR registry:
 This is useful if you use `docker` to operate on registries that use different
 authentication credentials.
 
+If you need to authenticate with multiple registries, including non-ECR registries, you can combine credHelpers with auths. For example:
+```json
+{
+  "credHelpers": {
+    "<aws_account_id>.dkr.ecr.<region>.amazonaws.com": "ecr-login"
+  },
+  "auths": {
+      "ghcr.io": {
+        "auth": [GITHUB_PERSONAL_ACCESS_TOKEN]
+      },
+      "https://index.docker.io/v1/": {
+        "auth": [docker.io-auth-token]
+      },
+      "registry.gitlab.com": {
+        "auth": [gitlab-auth-token]
+      }
+	}
+}
+```
+
 ### AWS credentials
 
-The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations.  Standard ones
+The Amazon ECR Docker Credential Helper allows you to use AWS credentials stored in different locations. Standard ones
 include:
 
 * The shared credentials file (`~/.aws/credentials`)

@@ -61,7 +61,37 @@ func TestExtractRegistry(t *testing.T) {
 		},
 		hasError: false,
 	}, {
+		// Dual-stack endpoint
+		serverURL: "123456789012.dkr-ecr.us-west-2.on.aws",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-west-2",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		// Dual-stack FIPS endpoint
+		serverURL: "123456789012.dkr-ecr-fips.us-west-2.on.aws",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    true,
+			Region:  "us-west-2",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
 		serverURL: "210987654321.dkr.ecr.cn-north-1.amazonaws.com.cn/foo",
+		registry: &Registry{
+			ID:      "210987654321",
+			FIPS:    false,
+			Region:  "cn-north-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		// IPv6 CN
+		serverURL: "210987654321.dkr.ecr.cn-north-1.on.amazonwebservices.com.cn",
 		registry: &Registry{
 			ID:      "210987654321",
 			FIPS:    false,
@@ -106,11 +136,31 @@ func TestExtractRegistry(t *testing.T) {
 		},
 		hasError: false,
 	}, {
+		// IPv6 GovCloud
+		serverURL: "123456789012.dkr-ecr.us-gov-east-1.on.aws",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "us-gov-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
 		serverURL: "123456789012.dkr.ecr-fips.us-gov-west-1.amazonaws.com",
 		registry: &Registry{
 			ID:      "123456789012",
 			FIPS:    true,
 			Region:  "us-gov-west-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
+		// IPv6 GovCloud FIPS
+		serverURL: "123456789012.dkr-ecr-fips.us-gov-east-1.on.aws",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    true,
+			Region:  "us-gov-east-1",
 			Service: ServiceECR,
 		},
 		hasError: false,
@@ -146,6 +196,10 @@ func TestExtractRegistry(t *testing.T) {
 		hasError:  true,
 	}, {
 		serverURL: "210987654321.dkr.ecr.cn-north-1.amazonaws.com.cn.fake.example.com.cn",
+		hasError:  true,
+	}, {
+		// China region IPv6 endpoints are "on.amazonwebservices.com.cn"
+		serverURL: "210987654321.dkr.ecr.cn-north-1.on.aws.com.cn",
 		hasError:  true,
 	}, {
 		serverURL: "https://public.ecr.aws.fake.example.com",

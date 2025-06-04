@@ -36,11 +36,11 @@ jobs:
   unit-test:
     strategy:
       matrix:
-        go: ['1.21', '1.22']
+        go: ['1.22', '1.23']
 
         # Intentionally use specific versions instead of "latest" to
         # make this build reproducible.
-        os: ['ubuntu-22.04', 'macos-12', 'windows-2022']
+        os: ['ubuntu-22.04', 'macos-13', 'windows-2022']
 
       # Build all variants regardless of failures
       fail-fast: false
