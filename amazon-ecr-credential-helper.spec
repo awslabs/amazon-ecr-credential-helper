@@ -139,7 +139,7 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
-* Wed June 4 2025 Shubhranshu Mahapatra <shubhum@amazon.com> - 0.10.0-1
+* Wed Jun 4 2025 Shubhranshu Mahapatra <shubhum@amazon.com> - 0.10.0-1
 - Update to v0.10.0
 - Enhancement - Updated ECR pattern for ECR dual-stack endpoints for IPv6 support. 
 - Upgraded dependencies
