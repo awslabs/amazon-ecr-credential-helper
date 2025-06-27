@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"regexp"
 	"strings"
@@ -25,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
-	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
 )
@@ -116,12 +116,12 @@ func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.
-		WithField("service", registry.Service).
-		WithField("registry", registry.ID).
-		WithField("region", registry.Region).
-		WithField("serverURL", serverURL).
-		Debug("Retrieving credentials")
+	slog.With(
+		"service", registry.Service,
+		"registry", registry.ID,
+		"region", registry.Region,
+		"serverURL", serverURL,
+	).Debug("Retrieving credentials")
 	switch registry.Service {
 	case ServiceECR:
 		return c.GetCredentialsByRegistryID(registry.ID)
@@ -136,13 +136,13 @@ func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, er
 	cachedEntry := c.credentialCache.Get(registryID)
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
-			logrus.WithField("registry", registryID).Debug("Using cached token")
+			slog.With("registry", registryID).Debug("Using cached token")
 			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 		}
-		logrus.
-			WithField("requestedAt", cachedEntry.RequestedAt).
-			WithField("expiresAt", cachedEntry.ExpiresAt).
-			Debug("Cached token is no longer valid")
+		slog.With(
+			"requestedAt", cachedEntry.RequestedAt,
+			"expiresAt", cachedEntry.ExpiresAt,
+		).Debug("Cached token is no longer valid")
 	}
 
 	auth, err := c.getAuthorizationToken(registryID)
@@ -151,7 +151,7 @@ func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, er
 	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
 	// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
 	if err != nil && cachedEntry != nil {
-		logrus.WithError(err).Info("Got error fetching authorization token. Falling back to cached token.")
+		slog.With("error", err).Info("Got error fetching authorization token. Falling back to cached token.")
 		return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 	}
 	return auth, err
@@ -161,13 +161,13 @@ func (c *defaultClient) GetPublicCredentials() (*Auth, error) {
 	cachedEntry := c.credentialCache.GetPublic()
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
-			logrus.WithField("registry", ecrPublicName).Debug("Using cached token")
+			slog.With("registry", ecrPublicName).Debug("Using cached token")
 			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 		}
-		logrus.
-			WithField("requestedAt", cachedEntry.RequestedAt).
-			WithField("expiresAt", cachedEntry.ExpiresAt).
-			Debug("Cached token is no longer valid")
+		slog.With(
+			"requestedAt", cachedEntry.RequestedAt,
+			"expiresAt", cachedEntry.ExpiresAt,
+		).Debug("Cached token is no longer valid")
 	}
 
 	auth, err := c.getPublicAuthorizationToken()
@@ -175,7 +175,7 @@ func (c *defaultClient) GetPublicCredentials() (*Auth, error) {
 	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
 	// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
 	if err != nil && cachedEntry != nil {
-		logrus.WithError(err).Info("Got error fetching authorization token. Falling back to cached token.")
+		slog.With("error", err).Info("Got error fetching authorization token. Falling back to cached token.")
 		return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 	}
 	return auth, err
@@ -185,18 +185,18 @@ func (c *defaultClient) ListCredentials() ([]*Auth, error) {
 	// prime the cache with default authorization tokens
 	_, err := c.GetCredentialsByRegistryID("")
 	if err != nil {
-		logrus.WithError(err).Debug("couldn't get authorization token for default registry")
+		slog.With("error", err).Debug("couldn't get authorization token for default registry")
 	}
 	_, err = c.GetPublicCredentials()
 	if err != nil {
-		logrus.WithError(err).Debug("couldn't get authorization token for public registry")
+		slog.With("error", err).Debug("couldn't get authorization token for public registry")
 	}
 
 	auths := make([]*Auth, 0)
 	for _, authEntry := range c.credentialCache.List() {
 		auth, err := extractToken(authEntry.AuthorizationToken, authEntry.ProxyEndpoint)
 		if err != nil {
-			logrus.WithError(err).Debug("Could not extract token")
+			slog.With("error", err).Debug("Could not extract token")
 		} else {
 			auths = append(auths, auth)
 		}
@@ -208,10 +208,10 @@ func (c *defaultClient) ListCredentials() ([]*Auth, error) {
 func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
 	var input *ecr.GetAuthorizationTokenInput
 	if registryID == "" {
-		logrus.Debug("Calling ECR.GetAuthorizationToken for default registry")
+		slog.Debug("Calling ECR.GetAuthorizationToken for default registry")
 		input = &ecr.GetAuthorizationTokenInput{}
 	} else {
-		logrus.WithField("registry", registryID).Debug("Calling ECR.GetAuthorizationToken")
+		slog.With("registry", registryID).Debug("Calling ECR.GetAuthorizationToken")
 		input = &ecr.GetAuthorizationTokenInput{
 			RegistryIds: []string{registryID},
 		}

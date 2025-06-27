@@ -15,18 +15,14 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/sirupsen/logrus"
 )
 
 func SetupLogger() {
-	logrusConfig()
-}
-
-func logrusConfig() {
 	logdir, err := homedir.Expand(GetCacheDir() + "/log")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "log: failed to find directory: %v", err)
@@ -43,6 +39,5 @@ func logrusConfig() {
 	if err != nil {
 		return
 	}
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.SetOutput(file)
+	slog.SetDefault(slog.New(slog.NewTextHandler(file, &slog.HandlerOptions{Level: slog.LevelDebug})))
 }
