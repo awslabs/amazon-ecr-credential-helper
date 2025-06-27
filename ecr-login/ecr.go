@@ -17,9 +17,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
 	"github.com/docker/docker-credential-helpers/credentials"
@@ -29,7 +28,7 @@ var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
 	clientFactory api.ClientFactory
-	logger        *logrus.Logger
+	logger        *slog.Logger
 }
 
 type Option func(*ECRHelper)
@@ -48,9 +47,7 @@ func WithClientFactory(clientFactory api.ClientFactory) Option {
 // to another location.
 func WithLogger(w io.Writer) Option {
 	return func(e *ECRHelper) {
-		logger := logrus.New()
-		logger.Out = w
-		e.logger = logger
+		e.logger = slog.New(slog.NewTextHandler(w, nil))
 	}
 }
 
@@ -59,7 +56,7 @@ func WithLogger(w io.Writer) Option {
 func NewECRHelper(opts ...Option) *ECRHelper {
 	e := &ECRHelper{
 		clientFactory: api.DefaultClientFactory{},
-		logger:        logrus.StandardLogger(),
+		logger:        slog.Default(),
 	}
 	for _, o := range opts {
 		o(e)
@@ -80,12 +77,12 @@ func shouldIgnoreCredsStorage() bool {
 func (self ECRHelper) Add(creds *credentials.Credentials) error {
 	if shouldIgnoreCredsStorage() {
 		self.logger.
-			WithField("serverURL", creds.ServerURL).
-			Warning("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
+			With("serverURL", creds.ServerURL).
+			Warn("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
 				"ecr-login does not require 'docker login', and does not support persisting temporary ECR-issued credentials.")
 		return nil
 	} else {
-		self.logger.Warning("Add() is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
+		self.logger.Warn("Add() is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
 		return notImplemented
 	}
 }
@@ -95,12 +92,12 @@ func (self ECRHelper) Add(creds *credentials.Credentials) error {
 func (self ECRHelper) Delete(serverURL string) error {
 	if shouldIgnoreCredsStorage() {
 		self.logger.
-			WithField("serverURL", serverURL).
-			Warning("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
+			With("serverURL", serverURL).
+			Warn("Ignoring request to store credentials since AWS_ECR_IGNORE_CREDS_STORAGE env variable is set." +
 				"ecr-login does not require 'docker login', and does not support persisting temporary ECR-issued credentials.")
 		return nil
 	} else {
-		self.logger.Warning("Delete() credentials is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
+		self.logger.Warn("Delete() credentials is not supported by the ecr-login credentials helper as all issued credentials are temporary. Consider setting the AWS_ECR_IGNORE_CREDS_STORAGE env variable (see documentation for details).")
 		return notImplemented
 	}
 }
@@ -109,8 +106,8 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	registry, err := api.ExtractRegistry(serverURL)
 	if err != nil {
 		self.logger.
-			WithError(err).
-			WithField("serverURL", serverURL).
+			With("error", err).
+			With("serverURL", serverURL).
 			Error("Error parsing the serverURL")
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
@@ -119,7 +116,7 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 	if registry.FIPS {
 		client, err = self.clientFactory.NewClientWithFipsEndpoint(registry.Region)
 		if err != nil {
-			self.logger.WithError(err).Error("Error resolving FIPS endpoint")
+			self.logger.With("error", err).Error("Error resolving FIPS endpoint")
 			return "", "", credentials.NewErrCredentialsNotFound()
 		}
 	} else {
@@ -128,7 +125,7 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 
 	auth, err := client.GetCredentials(serverURL)
 	if err != nil {
-		self.logger.WithError(err).Error("Error retrieving credentials")
+		self.logger.With("error", err).Error("Error retrieving credentials")
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 	return auth.Username, auth.Password, nil
@@ -140,7 +137,7 @@ func (self ECRHelper) List() (map[string]string, error) {
 
 	auths, err := client.ListCredentials()
 	if err != nil {
-		self.logger.WithError(err).Error("Error listing credentials")
+		self.logger.With("error", err).Error("Error listing credentials")
 		return nil, fmt.Errorf("ecr: could not list credentials: %v", err)
 	}
 

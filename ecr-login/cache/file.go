@@ -16,10 +16,9 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
-
-	"github.com/sirupsen/logrus"
 )
 
 const registryCacheVersion = "1.0"
@@ -63,22 +62,22 @@ func NewFileCredentialsCache(path string, filename string, cachePrefixKey string
 }
 
 func (f *fileCredentialCache) Get(registry string) *AuthEntry {
-	logrus.WithField("registry", registry).Debug("Checking file cache")
+	slog.With("registry", registry).Debug("Checking file cache")
 	registryCache := f.init()
 	return registryCache.Registries[f.cachePrefixKey+registry]
 }
 
 func (f *fileCredentialCache) GetPublic() *AuthEntry {
-	logrus.Debug("Checking file cache for ECR Public")
+	slog.Debug("Checking file cache for ECR Public")
 	registryCache := f.init()
 	return registryCache.Registries[f.publicCacheKey]
 }
 
 func (f *fileCredentialCache) Set(registry string, entry *AuthEntry) {
-	logrus.
-		WithField("registry", registry).
-		WithField("service", entry.Service).
-		Debug("Saving credentials to file cache")
+	slog.With(
+		"registry", registry,
+		"service", entry.Service,
+	).Debug("Saving credentials to file cache")
 	registryCache := f.init()
 
 	key := f.cachePrefixKey + registry
@@ -89,7 +88,7 @@ func (f *fileCredentialCache) Set(registry string, entry *AuthEntry) {
 
 	err := f.save(registryCache)
 	if err != nil {
-		logrus.WithError(err).Info("Could not save cache")
+		slog.With("error", err).Info("Could not save cache")
 	}
 }
 
@@ -110,7 +109,7 @@ func (f *fileCredentialCache) List() []*AuthEntry {
 func (f *fileCredentialCache) Clear() {
 	err := os.Remove(f.fullFilePath())
 	if err != nil {
-		logrus.WithError(err).Info("Could not clear cache")
+		slog.With("error", err).Info("Could not clear cache")
 	}
 }
 
@@ -151,7 +150,7 @@ func (f *fileCredentialCache) save(registryCache *RegistryCache) error {
 func (f *fileCredentialCache) init() *RegistryCache {
 	registryCache, err := f.load()
 	if err != nil {
-		logrus.WithError(err).Info("Could not load existing cache")
+		slog.With("error", err).Info("Could not load existing cache")
 		f.Clear()
 		registryCache = newRegistryCache()
 	}
