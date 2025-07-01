@@ -139,6 +139,10 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Jul 01 2025 arjunry <arjunry@amazon.com> - 0.10.1-1
+- Update to v0.10.1
+'- Update spec to v0.10.1'
+
 * Tue Jul 1 2025 Arjun Raja Yogidas <arjunry@amazon.com> - 0.10.1-1
 - Update to v0.10.1
 - fix CVE-2025-0913 and CVE-2025-4673
