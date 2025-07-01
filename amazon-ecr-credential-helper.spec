@@ -15,7 +15,7 @@
 %define debug_package %{nil}
 %endif
 Name:           amazon-ecr-credential-helper
-Version:        0.10.0
+Version:        0.10.1
 Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.23.8
+BuildRequires: golang >= 1.23.10
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -139,6 +139,10 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Tue Jul 1 2025 Arjun Raja Yogidas <arjunry@amazon.com> - 0.10.1-1
+- Update to v0.10.1
+- fix CVE-2025-0913 and CVE-2025-4673
+- Upgraded dependencies
 * Wed Jun 4 2025 Shubhranshu Mahapatra <shubhum@amazon.com> - 0.10.0-1
 - Update to v0.10.0
 - Enhancement - Updated ECR pattern for ECR dual-stack endpoints for IPv6 support. 
