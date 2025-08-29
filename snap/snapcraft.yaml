@@ -1,0 +1,34 @@
+name: docker-credential-ecr-login
+version: '0.2.0-dev'
+summary: Amazon ECR Credential Helper for Docker
+description: |
+  A Docker helper to automatically manage credentials for Amazon ECR.
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+#confinement: devmode # use 'strict' once you have the right plugs and slots
+confinement: classic
+
+apps:
+  docker-credential-ecr-login:
+    command: docker-credential-ecr-login
+#    plugs:
+#      - home
+#      - network
+
+parts:
+  docker-credential-ecr-login:
+    source: .
+    plugin: go
+    go-importpath: github.com/awslabs/amazon-ecr-credential-helper
+    override-build: |
+      BUILDDIR=$(pwd)
+      INSTALLDIR=${BUILDDIR}/../install
+      export GOPATH=$(pwd)/../go
+      cd ../go/src/github.com/awslabs/amazon-ecr-credential-helper
+      make
+      cp bin/local/docker-credential-ecr-login $INSTALLDIR
+      mkdir -p $INSTALLDIR/usr/share/doc/docker-credential-ecr-login
+      cp LICENSE NOTICE THIRD-PARTY-LICENSES $INSTALLDIR/usr/share/doc/docker-credential-ecr-login
+      gzip --keep --force docs/docker-credential-ecr-login.1
+      mkdir -p $INSTALLDIR/usr/share/man/man1
+      cp docs/docker-credential-ecr-login.1.gz $INSTALLDIR/usr/share/man/man1
