@@ -112,6 +112,13 @@ var partitions = []Partition{
 				SupportsFIPS:       nil,
 				SupportsDualStack:  nil,
 			},
+			"ap-southeast-6": {
+				Name:               nil,
+				DnsSuffix:          nil,
+				DualStackDnsSuffix: nil,
+				SupportsFIPS:       nil,
+				SupportsDualStack:  nil,
+			},
 			"ap-southeast-7": {
 				Name:               nil,
 				DnsSuffix:          nil,
@@ -304,7 +311,7 @@ var partitions = []Partition{
 			DnsSuffix:            "amazonaws.eu",
 			DualStackDnsSuffix:   "api.amazonwebservices.eu",
 			SupportsFIPS:         true,
-			SupportsDualStack:    false,
+			SupportsDualStack:    true,
 			ImplicitGlobalRegion: "eusc-de-east-1",
 		},
 		Regions: map[string]RegionOverrides{
@@ -325,7 +332,7 @@ var partitions = []Partition{
 			DnsSuffix:            "c2s.ic.gov",
 			DualStackDnsSuffix:   "api.aws.ic.gov",
 			SupportsFIPS:         true,
-			SupportsDualStack:    false,
+			SupportsDualStack:    true,
 			ImplicitGlobalRegion: "us-iso-east-1",
 		},
 		Regions: map[string]RegionOverrides{
@@ -360,7 +367,7 @@ var partitions = []Partition{
 			DnsSuffix:            "sc2s.sgov.gov",
 			DualStackDnsSuffix:   "api.aws.scloud",
 			SupportsFIPS:         true,
-			SupportsDualStack:    false,
+			SupportsDualStack:    true,
 			ImplicitGlobalRegion: "us-isob-east-1",
 		},
 		Regions: map[string]RegionOverrides{
@@ -388,7 +395,7 @@ var partitions = []Partition{
 			DnsSuffix:            "cloud.adc-e.uk",
 			DualStackDnsSuffix:   "api.cloud-aws.adc-e.uk",
 			SupportsFIPS:         true,
-			SupportsDualStack:    false,
+			SupportsDualStack:    true,
 			ImplicitGlobalRegion: "eu-isoe-west-1",
 		},
 		Regions: map[string]RegionOverrides{
@@ -416,7 +423,7 @@ var partitions = []Partition{
 			DnsSuffix:            "csp.hci.ic.gov",
 			DualStackDnsSuffix:   "api.aws.hci.ic.gov",
 			SupportsFIPS:         true,
-			SupportsDualStack:    false,
+			SupportsDualStack:    true,
 			ImplicitGlobalRegion: "us-isof-south-1",
 		},
 		Regions: map[string]RegionOverrides{
