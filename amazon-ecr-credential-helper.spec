@@ -140,7 +140,6 @@ rm -rf %{buildroot}
 
 %changelog
 * Thu Sep 25 2025 swpnlg <swpnlg@amazon.com> - 0.10.1-2
-- Update to v0.10.1
 - Update golang version
 - Remediate CVE-2025-4673 and CVE-2025-22874
 
