@@ -139,10 +139,8 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
-* Thu Sep 25 2025 swpnlg <swpnlg@amazon.com> - 0.10.1-2
+* Thu Sep 25 2025 Swapnanil Gupta <swpnlg@amazon.com> - 0.10.1-2
 - Update golang version
-- Remediate CVE-2025-4673 and CVE-2025-22874
-
 * Tue Jul 1 2025 Arjun Raja Yogidas <arjunry@amazon.com> - 0.10.1-1
 - Update to v0.10.1
 - fix CVE-2025-0913 and CVE-2025-4673
