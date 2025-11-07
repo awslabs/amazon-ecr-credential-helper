@@ -1,3 +1,51 @@
+# v1.35.5 (2025-11-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.23.2 which should convey some passive reduction of overall allocations, especially when not using the metrics system.
+
+# v1.35.4 (2025-10-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.3 (2025-10-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.2 (2025-10-16)
+
+* **Dependency Update**: Bump minimum Go version to 1.23.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.1 (2025-09-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.35.0 (2025-09-23)
+
+* **Feature**: This release includes exception definition and documentation updates.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.5 (2025-09-22)
+
+* No change notes available for this release.
+
+# v1.34.4 (2025-09-10)
+
+* No change notes available for this release.
+
+# v1.34.3 (2025-09-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.2 (2025-08-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.34.1 (2025-08-27)
+
+* **Dependency Update**: Update to smithy-go v1.23.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.34.0 (2025-08-26)
 
 * **Feature**: Remove incorrect endpoint tests
