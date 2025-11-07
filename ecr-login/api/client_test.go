@@ -165,6 +165,15 @@ func TestExtractRegistry(t *testing.T) {
 		},
 		hasError: false,
 	}, {
+		serverURL: "123456789012.dkr.ecr.eusc-de-east-1.amazonaws.eu",
+		registry: &Registry{
+			ID:      "123456789012",
+			FIPS:    false,
+			Region:  "eusc-de-east-1",
+			Service: ServiceECR,
+		},
+		hasError: false,
+	}, {
 		serverURL: "https://public.ecr.aws",
 		registry: &Registry{
 			Service: ServiceECRPublic,
