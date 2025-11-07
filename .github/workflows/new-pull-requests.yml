@@ -21,7 +21,7 @@ jobs:
     steps:
       # Use label configuration from main instead of from the pull request branch
       # to mitigate running untrusted workflows with write permissions.
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v6
         with:
           configuration-path: '.github/new-pull-request-labels.yml'
           sync-labels: true
