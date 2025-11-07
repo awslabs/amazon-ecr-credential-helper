@@ -1,6 +1,11 @@
+# 0.11.0
+* Add support for AWS EUSC partition ([#1034](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1034)).
+* Upgrade dependencies.
+
 # 0.10.1
 * Drop golang 1.22 support.
 * Upgrade dependencies.
+
 # 0.10.0
 * Enhancement - Updated ECR pattern for ECR dual-stack endpoints for IPv6 support. ([#967](https://github.com/awslabs/amazon-ecr-credential-helper/issues/967))
 
