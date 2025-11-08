@@ -12,25 +12,29 @@ for the Docker daemon that makes it easier to use
 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/).
 
 ## Table of Contents
-  * [Prerequisites](#prerequisites)
-  * [Installing](#installing)
-    + [Amazon Linux 2023 (AL2023)](#amazon-linux-2023-al2023)
-    + [Amazon Linux 2 (AL2)](#amazon-linux-2-al2)
-    + [Mac OS](#mac-os)
-    + [Debian Buster (and future versions)](#debian-buster-and-future-versions)
-    + [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
-    + [Arch Linux](#arch-linux)
-    + [Alpine Linux](#alpine-linux)
-    + [Windows](#windows)
-    + [From Source](#from-source)
-  * [Configuration](#configuration)
-    + [Docker](#docker)
-    + [AWS credentials](#aws-credentials)
-    + [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper-1)
-  * [Usage](#usage)
-  * [Troubleshooting](#troubleshooting)
-  * [Security disclosures](#security-disclosures)
-  * [License](#license)
+- [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Installing](#installing)
+    - [Amazon Linux 2023 (AL2023)](#amazon-linux-2023-al2023)
+    - [Amazon Linux 2 (AL2)](#amazon-linux-2-al2)
+    - [Mac OS](#mac-os)
+    - [Debian Buster (and future versions)](#debian-buster-and-future-versions)
+    - [Ubuntu 19.04 Disco Dingo and newer](#ubuntu-1904-disco-dingo-and-newer)
+    - [Arch Linux](#arch-linux)
+    - [Alpine Linux](#alpine-linux)
+    - [Windows](#windows)
+    - [From Source](#from-source)
+  - [Configuration](#configuration)
+    - [Docker](#docker)
+    - [AWS credentials](#aws-credentials)
+    - [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper-1)
+      - [Configure an AWS profile per registry](#configure-an-aws-profile-per-registry)
+  - [Usage](#usage)
+  - [Troubleshooting](#troubleshooting)
+  - [Experimental features](#experimental-features)
+  - [Security disclosures](#security-disclosures)
+  - [License](#license)
 
 ## Prerequisites
 
@@ -312,6 +316,40 @@ The credentials must have a policy applied that
 | AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
+| AWS_ECR_REGISTRY_CONFIG_PATH | ~/.ecr        | Specifies the local file config directory location                 |
+
+#### Configure an AWS profile per registry
+
+In some instances, like when using SSO, you may want to override the default profile or credential resolution per registry.
+This can be achieved by creating a `registryConfig.yaml` file in the `~/.ecr` directory. To override this directory set the
+`AWS_ECR_REGISTRY_CONFIG_PATH` environment variable. This file configures registries to use a specific `AWS_Profile` as 
+defined in your AWS config. If no entry is found for a given repository it will fallback to the default AWS credentials.
+
+_NOTE: The 'pattern' supports *only* prefix or suffix wildcards or exact matches. The order is important and only the first matching pattern will apply._
+
+The general format for the file is highlighted below. 
+
+```yaml
+registryConfigs:
+  - registry: <registry_matching_pattern>
+    config:
+      profile: "<AWS_PROFILE_NAME>"
+```
+
+For example:
+
+```yaml
+registryConfigs:
+  - registry: "123456789000.dkr.ecr.ap-southeast-2.amazonaws.com"
+    config:
+      profile: "some_profile"
+  - registry: "987654321000.us-east-1.amazonaws.com"
+    config:
+      profile: "another_profile"
+  - registry: "*.us-east-1.amazonaws.com"
+    config:
+      profile: "fallback_profile"
+```
 
 ## Usage
 

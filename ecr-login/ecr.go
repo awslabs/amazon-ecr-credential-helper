@@ -19,10 +19,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/api"
+	config "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config/registry"
 	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/sirupsen/logrus"
 )
 
 var notImplemented = errors.New("not implemented")
@@ -115,11 +115,26 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
+	profile, err := config.GetRegistryProfile(serverURL)
+	if err != nil {
+		self.logger.
+			WithError(err).
+			WithField("AWS profile", profile).
+			Errorf("Error fetching profile from config for repository %v", serverURL)
+		return "", "", credentials.NewErrCredentialsNotFound()
+	}
+
 	var client api.Client
 	if registry.FIPS {
 		client, err = self.clientFactory.NewClientWithFipsEndpoint(registry.Region)
 		if err != nil {
 			self.logger.WithError(err).Error("Error resolving FIPS endpoint")
+			return "", "", credentials.NewErrCredentialsNotFound()
+		}
+	} else if profile != "" {
+		client, err = self.clientFactory.NewClientWithProfile(registry.Region, profile)
+		if err != nil {
+			self.logger.WithError(err).Errorf("Error retrieving profile (%s) from AWS config", profile)
 			return "", "", credentials.NewErrCredentialsNotFound()
 		}
 	} else {
