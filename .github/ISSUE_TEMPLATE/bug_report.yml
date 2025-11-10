@@ -1,0 +1,41 @@
+name: Bug Report
+description: Submit a bug report to improve amazon-ecr-credential-helper
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: |
+        Briefly describe the problem/bug you are experiencing.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+
+  - type: textarea
+    attributes:
+      label: Describe the results you expected
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Logs / Screenshots
+      description: Please attach logs and/or screenshots from both docker and the credential helper (found under `~/.ecr/logs`)
+
+  - type: textarea
+    attributes:
+      label: System information
+      value: |
+        1. amazon-ecr-credential-helper version:
+        2. docker version:
+        3. environment (e.g. EKS, EC2, Windows):
+    validations:
+      required: true
+

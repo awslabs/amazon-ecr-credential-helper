@@ -90,9 +90,10 @@ Docker to work with the helper.
 You can install the Amazon ECR Credential Helper from the Debian Buster
 archives.  This package will also be included in future releases of Debian.
 
-[![Debian 10 package](https://repology.org/badge/version-for-repo/debian_10/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian 11 package](https://repology.org/badge/version-for-repo/debian_11/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian 12 package](https://repology.org/badge/version-for-repo/debian_12/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Debian 13 package](https://repology.org/badge/version-for-repo/debian_13/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
+[![Debian 14 package](https://repology.org/badge/version-for-repo/debian_14/amazon-ecr-credential-helper.svg)](https://repology.org/project/amazon-ecr-credential-helper/versions)
 [![Debian Unstable package](https://repology.org/badge/version-for-repo/debian_unstable/amazon-ecr-credential-helper.svg)](https://repology.org/metapackage/amazon-ecr-credential-helper/versions)
 
 ```bash
