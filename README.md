@@ -12,6 +12,7 @@ for the Docker daemon that makes it easier to use
 [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/).
 
 ## Table of Contents
+
   * [Prerequisites](#prerequisites)
   * [Installing](#installing)
     + [Amazon Linux 2023 (AL2023)](#amazon-linux-2023-al2023)
@@ -22,6 +23,7 @@ for the Docker daemon that makes it easier to use
     + [Arch Linux](#arch-linux)
     + [Alpine Linux](#alpine-linux)
     + [Windows](#windows)
+    + [From mise software package manager](#from-mise-software-package-manager)
     + [From Source](#from-source)
   * [Configuration](#configuration)
     + [Docker](#docker)
@@ -29,6 +31,7 @@ for the Docker daemon that makes it easier to use
     + [Amazon ECR Docker Credential Helper](#amazon-ecr-docker-credential-helper-1)
   * [Usage](#usage)
   * [Troubleshooting](#troubleshooting)
+  * [Experimental features](#experimental-features)
   * [Security disclosures](#security-disclosures)
   * [License](#license)
 
@@ -158,6 +161,13 @@ Windows executables are available via [GitHub releases](https://github.com/awsla
 > Windows ARM support is considered [experimental](#experimental-features).
 >
 > See https://github.com/awslabs/amazon-ecr-credential-helper/issues/795
+
+### From mise software package manager
+To install from [mise](https://github.com/jdx/mise) polyglot package tool manager, you can directly install using a command like this one specifying the version you want to install:
+
+```shell
+mise use -g amazon-ecr-credential-helper@latest
+```
 
 ### From Source
 To build and install the Amazon ECR Docker Credential Helper, we suggest Go
