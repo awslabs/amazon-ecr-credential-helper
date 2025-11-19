@@ -306,6 +306,10 @@ variable to `false`.  The supported options include:
   bug](https://github.com/kubernetes-sigs/external-dns/pull/1185) and may need to employ a workaround adjusting the
   Kubernetes `securityContext`.*)
 
+Configuration options which are known to be *not* supported include:
+
+* Roles using `mfa_serial` (see the [MFA](#mfa) section for a workaround)
+
 The Amazon ECR Docker Credential Helper uses the same credentials as the AWS
 CLI and the AWS SDKs. For more information about configuring AWS credentials,
 see
@@ -338,6 +342,16 @@ For example:
 `AWS_PROFILE=myprofile docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag`
 
 There is no need to use `docker login` or `docker logout`.
+
+### MFA
+
+The Amazon ECR Docker Credential helper does not currently work with AWS profiles requiring MFA as it does not prompt for a token.
+If you use a profile which requires an MFA token you can work around this by using the AWS STS service to [request temporary security credentials](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_request.html).
+One option for generating temporary credentials is to use the [`aws-vault`](https://github.com/99designs/aws-vault) tool:
+
+```sh
+aws-vault exec myprofile -- docker pull 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-repository:my-tag
+```
 
 ## Troubleshooting
 
