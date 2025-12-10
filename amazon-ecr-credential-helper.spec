@@ -16,7 +16,7 @@
 %endif
 Name:           amazon-ecr-credential-helper
 Version:        0.11.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.24.9
+BuildRequires: golang >= 1.24.11
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -139,6 +139,10 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Wed Dec 10 2025 davbson <davbson@amazon.com> - 0.11.0-2
+- Update to v0.11.0
+Rebuild with golang 1.24.11
+
 * Mon Nov 10 2025 davbson <davbson@amazon.com> - 0.11.0-1
 - Update to v0.11.0
 - Add support for AWS EUSC partition ([#1034](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1034)).
