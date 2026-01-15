@@ -11,7 +11,7 @@ require (
 	github.com/aws/smithy-go v1.23.2
 	github.com/docker/docker-credential-helpers v0.9.4
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 )
 
