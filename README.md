@@ -319,7 +319,7 @@ The credentials must have a policy applied that
 
 | Environment Variable         | Sample Value  | Description                                                        |
 | ---------------------------- | ------------- | ------------------------------------------------------------------ |
-| AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value     |
+| AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value. When disabled, the credential helper will not store or read cached ECR authorization tokens from the local filesystem, requiring fresh credentials to be fetched from AWS for each Docker operation. This may be useful in environments where persisting credentials to disk is not desired, though it will result in additional API calls to ECR.  |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
 
