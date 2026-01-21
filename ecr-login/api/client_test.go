@@ -14,8 +14,11 @@
 package api
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -743,4 +746,190 @@ func compareAuthEntry(t *testing.T, actual *cache.AuthEntry, expected *cache.Aut
 	assert.Equal(t, expected.ProxyEndpoint, actual.ProxyEndpoint)
 	assert.Equal(t, expected.ExpiresAt, actual.ExpiresAt)
 	assert.WithinDuration(t, expected.RequestedAt, actual.RequestedAt, 5*time.Second)
+}
+
+func TestSanitizeURLError(t *testing.T) {
+	sensitiveURL := "https://ecr.amazonaws.com/v2/auth?token=secret-token-12345&session=abc123"
+	expectedURL := "https://ecr.amazonaws.com/v2/auth?session=redacted&token=redacted"
+
+	testCases := []struct {
+		name      string
+		inputErr  error
+		expectNil bool
+		checkFunc func(t *testing.T, result error)
+	}{
+		{
+			name:      "nil error returns nil",
+			inputErr:  nil,
+			expectNil: true,
+		},
+		{
+			name:     "non-url.Error passes through unchanged",
+			inputErr: errors.New("some other error"),
+			checkFunc: func(t *testing.T, result error) {
+				assert.Equal(t, "some other error", result.Error())
+			},
+		},
+		{
+			name: "url.Error URL is sanitized",
+			inputErr: &url.Error{
+				Op:  "Get",
+				URL: sensitiveURL,
+				Err: errors.New("connection refused"),
+			},
+			checkFunc: func(t *testing.T, result error) {
+				var urlErr *url.Error
+				assert.True(t, errors.As(result, &urlErr))
+				assert.Equal(t, "Get", urlErr.Op)
+				assert.Equal(t, expectedURL, urlErr.URL)
+				assert.Equal(t, "connection refused", urlErr.Err.Error())
+				assert.NotContains(t, result.Error(), "secret-token-12345")
+				assert.NotContains(t, result.Error(), "abc123")
+			},
+		},
+		{
+			name: "wrapped url.Error is sanitized",
+			inputErr: fmt.Errorf("failed to call service: %w", &url.Error{
+				Op:  "Post",
+				URL: sensitiveURL,
+				Err: errors.New("timeout"),
+			}),
+			checkFunc: func(t *testing.T, result error) {
+				var urlErr *url.Error
+				assert.True(t, errors.As(result, &urlErr))
+				assert.Equal(t, expectedURL, urlErr.URL)
+				assert.NotContains(t, result.Error(), "secret-token-12345")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := sanitizeURLError(tc.inputErr)
+
+			if tc.expectNil {
+				assert.Nil(t, result)
+				return
+			}
+
+			assert.NotNil(t, result)
+			if tc.checkFunc != nil {
+				tc.checkFunc(t, result)
+			}
+		})
+	}
+}
+
+func TestECRClientWrapper(t *testing.T) {
+	sensitiveURL := "https://ecr.amazonaws.com/v2/auth?token=secret-token-12345"
+
+	t.Run("sanitizes url.Error", func(t *testing.T) {
+		urlErr := &url.Error{
+			Op:  "Post",
+			URL: sensitiveURL,
+			Err: errors.New("connection refused"),
+		}
+		mock := &mock_api.MockECRAPI{
+			GetAuthorizationTokenFn: func(_ *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+				return nil, urlErr
+			},
+		}
+		client := NewECRClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecr.GetAuthorizationTokenInput{})
+
+		assert.Error(t, err)
+		assert.NotContains(t, err.Error(), sensitiveURL)
+		assert.NotContains(t, err.Error(), "secret-token-12345")
+		assert.Contains(t, err.Error(), "Post")
+		assert.Contains(t, err.Error(), "connection refused")
+
+		// Verify it's still a url.Error
+		var resultURLErr *url.Error
+		assert.True(t, errors.As(err, &resultURLErr))
+	})
+
+	t.Run("passes through non-url.Error unchanged", func(t *testing.T) {
+		regularErr := errors.New("some other error")
+		mock := &mock_api.MockECRAPI{
+			GetAuthorizationTokenFn: func(_ *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+				return nil, regularErr
+			},
+		}
+		client := NewECRClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecr.GetAuthorizationTokenInput{})
+
+		assert.Equal(t, regularErr, err)
+	})
+
+	t.Run("returns nil error when no error", func(t *testing.T) {
+		mock := &mock_api.MockECRAPI{
+			GetAuthorizationTokenFn: func(_ *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
+				return nil, nil
+			},
+		}
+		client := NewECRClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecr.GetAuthorizationTokenInput{})
+
+		assert.NoError(t, err)
+	})
+}
+
+func TestECRPublicClientWrapper(t *testing.T) {
+	sensitiveURL := "https://api.ecr-public.us-east-1.amazonaws.com/?token=secret-token-12345"
+
+	t.Run("sanitizes url.Error", func(t *testing.T) {
+		urlErr := &url.Error{
+			Op:  "Post",
+			URL: sensitiveURL,
+			Err: errors.New("connection refused"),
+		}
+		mock := &mock_api.MockECRPublicAPI{
+			GetAuthorizationTokenFn: func(_ *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+				return nil, urlErr
+			},
+		}
+		client := NewECRPublicClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecrpublic.GetAuthorizationTokenInput{})
+
+		assert.Error(t, err)
+		assert.NotContains(t, err.Error(), sensitiveURL)
+		assert.NotContains(t, err.Error(), "secret-token-12345")
+		assert.Contains(t, err.Error(), "Post")
+		assert.Contains(t, err.Error(), "connection refused")
+
+		// Verify it's still a url.Error
+		var resultURLErr *url.Error
+		assert.True(t, errors.As(err, &resultURLErr))
+	})
+
+	t.Run("passes through non-url.Error unchanged", func(t *testing.T) {
+		regularErr := errors.New("some other error")
+		mock := &mock_api.MockECRPublicAPI{
+			GetAuthorizationTokenFn: func(_ *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+				return nil, regularErr
+			},
+		}
+		client := NewECRPublicClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecrpublic.GetAuthorizationTokenInput{})
+
+		assert.Equal(t, regularErr, err)
+	})
+
+	t.Run("returns nil error when no error", func(t *testing.T) {
+		mock := &mock_api.MockECRPublicAPI{
+			GetAuthorizationTokenFn: func(_ *ecrpublic.GetAuthorizationTokenInput) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+				return nil, nil
+			},
+		}
+		client := NewECRPublicClientWrapper(mock)
+
+		_, err := client.GetAuthorizationToken(context.Background(), &ecrpublic.GetAuthorizationTokenInput{})
+
+		assert.NoError(t, err)
+	})
 }
