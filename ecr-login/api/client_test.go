@@ -177,16 +177,37 @@ func TestExtractRegistry(t *testing.T) {
 		serverURL: "https://public.ecr.aws",
 		registry: &Registry{
 			Service: ServiceECRPublic,
+			Name:    "public.ecr.aws",
+		},
+	}, {
+		serverURL: "https://ecr-public.aws.com",
+		registry: &Registry{
+			Service: ServiceECRPublic,
+			Name:    "ecr-public.aws.com",
 		},
 	}, {
 		serverURL: "public.ecr.aws",
 		registry: &Registry{
 			Service: ServiceECRPublic,
+			Name:    "public.ecr.aws",
+		},
+	}, {
+		serverURL: "ecr-public.aws.com",
+		registry: &Registry{
+			Service: ServiceECRPublic,
+			Name:    "ecr-public.aws.com",
 		},
 	}, {
 		serverURL: "https://public.ecr.aws/amazonlinux",
 		registry: &Registry{
 			Service: ServiceECRPublic,
+			Name:    "public.ecr.aws",
+		},
+	}, {
+		serverURL: "https://ecr-public.aws.com/amazonlinux",
+		registry: &Registry{
+			Service: ServiceECRPublic,
+			Name:    "ecr-public.aws.com",
 		},
 	}, {
 		serverURL: ".dkr.ecr.not-real.amazonaws.com",
@@ -608,7 +629,7 @@ func TestListCredentialsEmpty(t *testing.T) {
 		Service:            cache.ServiceECR,
 	}
 	authEntry2 := &cache.AuthEntry{
-		ProxyEndpoint:      ecrPublicEndpoint,
+		ProxyEndpoint:      ecrPublicEndpoint(ecrPublicName),
 		RequestedAt:        time.Now(),
 		ExpiresAt:          expiresAt,
 		AuthorizationToken: authorizationToken,
@@ -654,7 +675,7 @@ func TestListCredentialsEmpty(t *testing.T) {
 	assert.Equal(t, auths[0].ProxyEndpoint, testProxyEndpoint)
 	assert.Equal(t, auths[1].Username, expectedUsername)
 	assert.Equal(t, auths[1].Password, expectedPassword)
-	assert.Equal(t, auths[1].ProxyEndpoint, ecrPublicEndpoint)
+	assert.Equal(t, auths[1].ProxyEndpoint, ecrPublicEndpoint(ecrPublicName))
 }
 
 func TestListCredentialsBadBase64AuthToken(t *testing.T) {
