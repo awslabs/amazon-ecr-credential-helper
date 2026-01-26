@@ -16,6 +16,7 @@ package api
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -28,6 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
+	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 )
 
 const (
@@ -109,6 +111,56 @@ type ECRAPI interface {
 
 type ECRPublicAPI interface {
 	GetAuthorizationToken(context.Context, *ecrpublic.GetAuthorizationTokenInput, ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
+}
+
+// sanitizeURLError checks if an error contains a url.Error and returns
+// a sanitized version with sensitive URL information redacted.
+func sanitizeURLError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		return &url.Error{
+			Op:  urlErr.Op,
+			URL: config.RedactURL(urlErr.URL),
+			Err: urlErr.Err,
+		}
+	}
+	return err
+}
+
+// ecrClientWrapper wraps an ECRAPI and sanitizes url.Error from responses.
+type ecrClientWrapper struct {
+	client ECRAPI
+}
+
+// NewECRClientWrapper creates a new ECRAPI wrapper that sanitizes sensitive
+// information from url.Error before returning errors.
+func NewECRClientWrapper(client ECRAPI) ECRAPI {
+	return &ecrClientWrapper{client: client}
+}
+
+func (w *ecrClientWrapper) GetAuthorizationToken(ctx context.Context, input *ecr.GetAuthorizationTokenInput, opts ...func(*ecr.Options)) (*ecr.GetAuthorizationTokenOutput, error) {
+	output, err := w.client.GetAuthorizationToken(ctx, input, opts...)
+	return output, sanitizeURLError(err)
+}
+
+// ecrPublicClientWrapper wraps an ECRPublicAPI and sanitizes url.Error from responses.
+type ecrPublicClientWrapper struct {
+	client ECRPublicAPI
+}
+
+// NewECRPublicClientWrapper creates a new ECRPublicAPI wrapper that sanitizes
+// sensitive information from url.Error before returning errors.
+func NewECRPublicClientWrapper(client ECRPublicAPI) ECRPublicAPI {
+	return &ecrPublicClientWrapper{client: client}
+}
+
+func (w *ecrPublicClientWrapper) GetAuthorizationToken(ctx context.Context, input *ecrpublic.GetAuthorizationTokenInput, opts ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error) {
+	output, err := w.client.GetAuthorizationToken(ctx, input, opts...)
+	return output, sanitizeURLError(err)
 }
 
 // GetCredentials returns username, password, and proxyEndpoint
