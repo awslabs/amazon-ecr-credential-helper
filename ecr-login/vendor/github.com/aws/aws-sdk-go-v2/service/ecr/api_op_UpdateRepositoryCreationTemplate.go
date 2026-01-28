@@ -42,8 +42,8 @@ type UpdateRepositoryCreationTemplateInput struct {
 	Prefix *string
 
 	// Updates the list of enumerable strings representing the Amazon ECR repository
-	// creation scenarios that this template will apply towards. The two supported
-	// scenarios are PULL_THROUGH_CACHE and REPLICATION
+	// creation scenarios that this template will apply towards. The supported
+	// scenarios are PULL_THROUGH_CACHE , REPLICATION , and CREATE_ON_PUSH
 	AppliedFor []types.RCTAppliedFor
 
 	// The ARN of the role to be assumed by Amazon ECR. This role must be in the same
@@ -65,8 +65,8 @@ type UpdateRepositoryCreationTemplateInput struct {
 	// repository will be immutable which will prevent them from being overwritten.
 	ImageTagMutability types.ImageTagMutability
 
-	// Updates a repository with filters that define which image tags can override the
-	// default image tag mutability setting.
+	// A list of filters that specify which image tags should be excluded from the
+	// repository creation template's image tag mutability setting.
 	ImageTagMutabilityExclusionFilters []types.ImageTagMutabilityExclusionFilter
 
 	// Updates the lifecycle policy associated with the specified repository creation
@@ -195,40 +195,7 @@ func (c *Client) addOperationUpdateRepositoryCreationTemplateMiddlewares(stack *
 	if err = addInterceptAttempt(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptExecution(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptTransmit(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
