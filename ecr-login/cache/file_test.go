@@ -23,10 +23,12 @@ import (
 )
 
 const (
-	testRegistryName   = "testRegistry"
-	testCachePrefixKey = "prefix-"
-	testPublicCacheKey = "public-"
-	testFilename       = "test.json"
+	testRegistryName         = "testRegistry"
+	testCachePrefixKey       = "prefix-"
+	testPublicCacheKey       = "public-"
+	testLegacyCachePrefixKey = "legacy-prefix-"
+	testLegacyPublicCacheKey = "legacy-public-"
+	testFilename             = "test.json"
 )
 
 var (
@@ -57,7 +59,7 @@ func TestAuthEntryInValid(t *testing.T) {
 }
 
 func TestCredentials(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
 
 	credentialCache.Set(testRegistryName, &testAuthEntry)
 
@@ -80,7 +82,7 @@ func TestCredentials(t *testing.T) {
 }
 
 func TestCredentialsPublic(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
 
 	credentialCache.Set(testRegistryName, &testPublicAuthEntry)
 
@@ -103,7 +105,7 @@ func TestCredentialsPublic(t *testing.T) {
 }
 
 func TestPreviousVersionCache(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
 
 	registryCache := newRegistryCache()
 	registryCache.Version = "0.1"
@@ -119,7 +121,7 @@ func TestPreviousVersionCache(t *testing.T) {
 const testBadJson = "{nope not good json at all."
 
 func TestInvalidCache(t *testing.T) {
-	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey)
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
 
 	file, err := os.Create(testFullFillename)
 	assert.NoError(t, err)
@@ -132,4 +134,147 @@ func TestInvalidCache(t *testing.T) {
 	assert.Nil(t, entry)
 
 	credentialCache.Clear()
+}
+
+// TestLegacyKeyBackwardCompatibility tests that credentials stored with legacy MD5-based keys
+func TestLegacyKeyBackwardCompatibility(t *testing.T) {
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	legacyKey := testLegacyCachePrefixKey + testRegistryName
+	registryCache.Registries[legacyKey] = &testAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.Get(testRegistryName)
+	assert.NotNil(t, entry, "Should be able to retrieve credentials stored with legacy MD5 key as fallback")
+	assert.Equal(t, testAuthEntry.AuthorizationToken, entry.AuthorizationToken)
+	assert.Equal(t, testAuthEntry.ProxyEndpoint, entry.ProxyEndpoint)
+	assert.Equal(t, testAuthEntry.Service, entry.Service)
+
+	registryCache, err := credentialCache.(*fileCredentialCache).load()
+	assert.NoError(t, err)
+	assert.NotNil(t, registryCache.Registries[legacyKey], "Legacy key should still exist")
+	newKey := testCachePrefixKey + testRegistryName
+	assert.Nil(t, registryCache.Registries[newKey], "New key should not exist (no auto-migration)")
+}
+
+// TestLegacyPublicKeyBackwardCompatibility tests that public credentials stored with legacy MD5-based keys
+func TestLegacyPublicKeyBackwardCompatibility(t *testing.T) {
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	registryCache.Registries[testLegacyPublicCacheKey] = &testPublicAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.GetPublic()
+	assert.NotNil(t, entry, "Should be able to retrieve public credentials stored with legacy MD5 key as fallback")
+	assert.Equal(t, testPublicAuthEntry.AuthorizationToken, entry.AuthorizationToken)
+	assert.Equal(t, testPublicAuthEntry.ProxyEndpoint, entry.ProxyEndpoint)
+	assert.Equal(t, testPublicAuthEntry.Service, entry.Service)
+
+	registryCache, err := credentialCache.(*fileCredentialCache).load()
+	assert.NoError(t, err)
+	assert.NotNil(t, registryCache.Registries[testLegacyPublicCacheKey], "Legacy public key should still exist")
+	assert.Nil(t, registryCache.Registries[testPublicCacheKey], "New public key should not exist (no auto-migration)")
+}
+
+// TestNewKeyPreferredOverLegacy tests that when both new and legacy keys exist,
+// the new FIPS-compatible key is preferred
+func TestNewKeyPreferredOverLegacy(t *testing.T) {
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	legacyKey := testLegacyCachePrefixKey + testRegistryName
+	newKey := testCachePrefixKey + testRegistryName
+
+	legacyEntry := testAuthEntry
+	legacyEntry.AuthorizationToken = "legacyToken"
+	registryCache.Registries[legacyKey] = &legacyEntry
+
+	newEntry := testAuthEntry
+	newEntry.AuthorizationToken = "newToken"
+	registryCache.Registries[newKey] = &newEntry
+
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.Get(testRegistryName)
+	assert.NotNil(t, entry)
+	assert.Equal(t, "newToken", entry.AuthorizationToken, "Should prefer new FIPS-compatible key over legacy key")
+
+	credentialCache.Clear()
+}
+
+// TestFipsModeOnlySkipsLegacyLookup tests that when GODEBUG=fips140=only is set,
+// legacy MD5-based cache lookups are skipped.
+func TestFipsModeOnlySkipsLegacyLookup(t *testing.T) {
+	os.Setenv("GODEBUG", "fips140=only")
+	defer os.Unsetenv("GODEBUG")
+
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	legacyKey := testLegacyCachePrefixKey + testRegistryName
+	registryCache.Registries[legacyKey] = &testAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.Get(testRegistryName)
+	assert.Nil(t, entry, "Should return nil in FIPS mode when only legacy MD5 key exists")
+}
+
+// TestFipsModeOnSkipsLegacyLookup tests that when GODEBUG=fips140=on is set,
+// legacy MD5-based cache lookups are skipped.
+func TestFipsModeOnSkipsLegacyLookup(t *testing.T) {
+	os.Setenv("GODEBUG", "fips140=on")
+	defer os.Unsetenv("GODEBUG")
+
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	legacyKey := testLegacyCachePrefixKey + testRegistryName
+	registryCache.Registries[legacyKey] = &testAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	// Try to retrieve - should return nil because FIPS mode skips MD5 lookup
+	entry := credentialCache.Get(testRegistryName)
+	assert.Nil(t, entry, "Should return nil in FIPS mode when only legacy MD5 key exists")
+}
+
+// TestFipsModeOnlySkipsLegacyPublicLookup tests that when GODEBUG=fips140=only is set,
+// legacy MD5-based public cache lookups are skipped.
+func TestFipsModeOnlySkipsLegacyPublicLookup(t *testing.T) {
+	os.Setenv("GODEBUG", "fips140=only")
+	defer os.Unsetenv("GODEBUG")
+
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	registryCache.Registries[testLegacyPublicCacheKey] = &testPublicAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.GetPublic()
+	assert.Nil(t, entry, "Should return nil in FIPS mode when only legacy MD5 key exists for public")
+}
+
+// TestFipsModeWithNewKey tests that FIPS mode still works with SHA-256 keys
+func TestFipsModeWithNewKey(t *testing.T) {
+	os.Setenv("GODEBUG", "fips140=only")
+	defer os.Unsetenv("GODEBUG")
+
+	credentialCache := NewFileCredentialsCache(testPath, testFilename, testCachePrefixKey, testPublicCacheKey, testLegacyCachePrefixKey, testLegacyPublicCacheKey)
+	defer credentialCache.Clear()
+
+	registryCache := newRegistryCache()
+	newKey := testCachePrefixKey + testRegistryName
+	registryCache.Registries[newKey] = &testAuthEntry
+	credentialCache.(*fileCredentialCache).save(registryCache)
+
+	entry := credentialCache.Get(testRegistryName)
+	assert.NotNil(t, entry, "Should find credentials with SHA-256 key in FIPS mode")
+	assert.Equal(t, testAuthEntry.AuthorizationToken, entry.AuthorizationToken)
 }

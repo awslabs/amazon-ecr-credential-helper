@@ -15,8 +15,8 @@ jobs:
     name: lychee
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: lycheeverse/lychee-action@v2.7.0
+      - uses: actions/checkout@v6
+      - uses: lycheeverse/lychee-action@v2.8.0
         with:
           fail: true
           args: --exclude-path ecr-login/vendor --timeout 30 --no-progress './**/*.md'
