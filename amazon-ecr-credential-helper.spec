@@ -15,8 +15,8 @@
 %define debug_package %{nil}
 %endif
 Name:           amazon-ecr-credential-helper
-Version:        0.11.0
-Release:        3%{?dist}
+Version:        0.12.0
+Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.24.12
+BuildRequires: golang >= 1.25.8
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -139,6 +139,10 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Wed Mar 25 2026 davbson <davbson@amazon.com> - 0.12.0-1
+- Update to v0.12.0
+- Rebuild with golang 1.25.8
+
 * Mon Jan 26 2026 swpnlg <swpnlg@amazon.com> - 0.11.0-3
 - Update to v0.11.0
 - Rebuild with golang 1.24.12
