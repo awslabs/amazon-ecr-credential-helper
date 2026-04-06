@@ -1,3 +1,10 @@
+# 0.12.0
+* Support dual stack ECR public endpoint ([#1055](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1055))
+* Migrate MD5 to SHA256 for cache key ([#1064](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1064)).
+* Add url redactor ([#1056](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1056)).
+* Drop golang 1.24 support.
+* Upgrade dependencies.
+
 # 0.11.0
 * Add support for AWS EUSC partition ([#1034](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1034)).
 * Upgrade dependencies.
