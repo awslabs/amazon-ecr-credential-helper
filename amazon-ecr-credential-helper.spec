@@ -140,7 +140,6 @@ rm -rf %{buildroot}
 
 %changelog
 * Mon May 18 2026 ayushkp <ayushkp@amazon.com> - 0.12.0-3
-- Update to v0.12.0
 - Rebuild with golang 1.25.10
 
 * Wed Apr 29 2026 arjunry <arjunry@amazon.com> - 0.12.0-2
