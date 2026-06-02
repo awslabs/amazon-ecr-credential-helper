@@ -15,6 +15,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -34,11 +35,11 @@ type Options struct {
 
 // ClientFactory is a factory for creating clients to interact with ECR
 type ClientFactory interface {
-	NewClient(awsConfig aws.Config) Client
-	NewClientWithOptions(opts Options) Client
-	NewClientFromRegion(region string) Client
-	NewClientWithFipsEndpoint(region string) (Client, error)
-	NewClientWithDefaults() Client
+	NewClient(ctx context.Context, awsConfig aws.Config) (Client, error)
+	NewClientWithOptions(ctx context.Context, opts Options) (Client, error)
+	NewClientFromRegion(ctx context.Context, region string) (Client, error)
+	NewClientWithFipsEndpoint(ctx context.Context, region string) (Client, error)
+	NewClientWithDefaults(ctx context.Context) (Client, error)
 }
 
 // DefaultClientFactory is a default implementation of the ClientFactory
@@ -49,59 +50,59 @@ var userAgentLoadOption = config.WithAPIOptions([]func(*middleware.Stack) error{
 })
 
 // NewClientWithDefaults creates the client and defaults region
-func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults() Client {
-	awsConfig, err := config.LoadDefaultConfig(context.TODO(), userAgentLoadOption)
+func (defaultClientFactory DefaultClientFactory) NewClientWithDefaults(ctx context.Context) (Client, error) {
+	awsConfig, err := config.LoadDefaultConfig(ctx, userAgentLoadOption)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("loading default AWS config: %w", err)
 	}
 
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig})
+	return defaultClientFactory.NewClientWithOptions(ctx, Options{Config: awsConfig})
 }
 
 // NewClientWithFipsEndpoint overrides the default ECR service endpoint in a given region to use the FIPS endpoint
-func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(region string) (Client, error) {
+func (defaultClientFactory DefaultClientFactory) NewClientWithFipsEndpoint(ctx context.Context, region string) (Client, error) {
 	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
+		ctx,
 		userAgentLoadOption,
 		config.WithRegion(region),
 		config.WithEndpointDiscovery(aws.EndpointDiscoveryEnabled),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loading AWS config for FIPS endpoint in %s: %w", region, err)
 	}
 
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig}), nil
+	return defaultClientFactory.NewClientWithOptions(ctx, Options{Config: awsConfig})
 }
 
 // NewClientFromRegion uses the region to create the client
-func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(region string) Client {
+func (defaultClientFactory DefaultClientFactory) NewClientFromRegion(ctx context.Context, region string) (Client, error) {
 	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
+		ctx,
 		userAgentLoadOption,
 		config.WithRegion(region),
 	)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("loading AWS config for %s: %w", region, err)
 	}
 
-	return defaultClientFactory.NewClientWithOptions(Options{
+	return defaultClientFactory.NewClientWithOptions(ctx, Options{
 		Config: awsConfig,
 	})
 }
 
 // NewClient Create new client with AWS Config
-func (defaultClientFactory DefaultClientFactory) NewClient(awsConfig aws.Config) Client {
-	return defaultClientFactory.NewClientWithOptions(Options{Config: awsConfig})
+func (defaultClientFactory DefaultClientFactory) NewClient(ctx context.Context, awsConfig aws.Config) (Client, error) {
+	return defaultClientFactory.NewClientWithOptions(ctx, Options{Config: awsConfig})
 }
 
 // NewClientWithOptions Create new client with Options
-func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(opts Options) Client {
+func (defaultClientFactory DefaultClientFactory) NewClientWithOptions(ctx context.Context, opts Options) (Client, error) {
 	// The ECR Public API is only available in us-east-1 today
 	publicConfig := opts.Config.Copy()
 	publicConfig.Region = "us-east-1"
 	return &defaultClient{
 		ecrClient:       NewECRClientWrapper(ecr.NewFromConfig(opts.Config)),
 		ecrPublicClient: NewECRPublicClientWrapper(ecrpublic.NewFromConfig(publicConfig)),
-		credentialCache: cache.BuildCredentialsCache(opts.Config, opts.CacheDir),
-	}
+		credentialCache: cache.BuildCredentialsCache(ctx, opts.Config, opts.CacheDir),
+	}, nil
 }

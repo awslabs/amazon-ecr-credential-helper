@@ -87,9 +87,9 @@ func ExtractRegistry(input string) (*Registry, error) {
 
 // Client used for calling ECR service
 type Client interface {
-	GetCredentials(serverURL string) (*Auth, error)
-	GetCredentialsByRegistryID(registryID string) (*Auth, error)
-	ListCredentials() ([]*Auth, error)
+	GetCredentials(ctx context.Context, serverURL string) (*Auth, error)
+	GetCredentialsByRegistryID(ctx context.Context, registryID string) (*Auth, error)
+	ListCredentials(ctx context.Context) ([]*Auth, error)
 }
 
 // Auth credentials returned by ECR service to allow docker login
@@ -164,7 +164,7 @@ func (w *ecrPublicClientWrapper) GetAuthorizationToken(ctx context.Context, inpu
 }
 
 // GetCredentials returns username, password, and proxyEndpoint
-func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
+func (c *defaultClient) GetCredentials(ctx context.Context, serverURL string) (*Auth, error) {
 	registry, err := ExtractRegistry(serverURL)
 	if err != nil {
 		return nil, err
@@ -178,15 +178,15 @@ func (c *defaultClient) GetCredentials(serverURL string) (*Auth, error) {
 		Debug("Retrieving credentials")
 	switch registry.Service {
 	case ServiceECR:
-		return c.GetCredentialsByRegistryID(registry.ID)
+		return c.GetCredentialsByRegistryID(ctx, registry.ID)
 	case ServiceECRPublic:
-		return c.GetPublicCredentials(registry.Name)
+		return c.GetPublicCredentials(ctx, registry.Name)
 	}
 	return nil, fmt.Errorf("unknown service %q", registry.Service)
 }
 
 // GetCredentialsByRegistryID returns username, password, and proxyEndpoint
-func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, error) {
+func (c *defaultClient) GetCredentialsByRegistryID(ctx context.Context, registryID string) (*Auth, error) {
 	cachedEntry := c.credentialCache.Get(registryID)
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
@@ -199,7 +199,7 @@ func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, er
 			Debug("Cached token is no longer valid")
 	}
 
-	auth, err := c.getAuthorizationToken(registryID)
+	auth, err := c.getAuthorizationToken(ctx, registryID)
 
 	// if we have a cached token, fall back to avoid failing the request. This may result an expired token
 	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
@@ -211,7 +211,7 @@ func (c *defaultClient) GetCredentialsByRegistryID(registryID string) (*Auth, er
 	return auth, err
 }
 
-func (c *defaultClient) GetPublicCredentials(registry string) (*Auth, error) {
+func (c *defaultClient) GetPublicCredentials(ctx context.Context, registry string) (*Auth, error) {
 	cachedEntry := c.credentialCache.GetPublic()
 	if cachedEntry != nil {
 		if cachedEntry.IsValid(time.Now()) {
@@ -224,7 +224,7 @@ func (c *defaultClient) GetPublicCredentials(registry string) (*Auth, error) {
 			Debug("Cached token is no longer valid")
 	}
 
-	auth, err := c.getPublicAuthorizationToken(registry)
+	auth, err := c.getPublicAuthorizationToken(ctx, registry)
 	// if we have a cached token, fall back to avoid failing the request. This may result an expired token
 	// being returned, but if there is a 500 or timeout from the service side, we'd like to attempt to re-use an
 	// old token. We invalidate tokens prior to their expiration date to help mitigate this scenario.
@@ -235,13 +235,13 @@ func (c *defaultClient) GetPublicCredentials(registry string) (*Auth, error) {
 	return auth, err
 }
 
-func (c *defaultClient) ListCredentials() ([]*Auth, error) {
+func (c *defaultClient) ListCredentials(ctx context.Context) ([]*Auth, error) {
 	// prime the cache with default authorization tokens
-	_, err := c.GetCredentialsByRegistryID("")
+	_, err := c.GetCredentialsByRegistryID(ctx, "")
 	if err != nil {
 		logrus.WithError(err).Debug("couldn't get authorization token for default registry")
 	}
-	_, err = c.GetPublicCredentials(ecrPublicName)
+	_, err = c.GetPublicCredentials(ctx, ecrPublicName)
 	if err != nil {
 		logrus.WithError(err).Debug("couldn't get authorization token for public registry")
 	}
@@ -259,7 +259,7 @@ func (c *defaultClient) ListCredentials() ([]*Auth, error) {
 	return auths, nil
 }
 
-func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) {
+func (c *defaultClient) getAuthorizationToken(ctx context.Context, registryID string) (*Auth, error) {
 	var input *ecr.GetAuthorizationTokenInput
 	if registryID == "" {
 		logrus.Debug("Calling ECR.GetAuthorizationToken for default registry")
@@ -271,7 +271,7 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 		}
 	}
 
-	output, err := c.ecrClient.GetAuthorizationToken(context.TODO(), input)
+	output, err := c.ecrClient.GetAuthorizationToken(ctx, input)
 	if err != nil || output == nil {
 		if err == nil {
 			if registryID == "" {
@@ -310,10 +310,10 @@ func (c *defaultClient) getAuthorizationToken(registryID string) (*Auth, error) 
 	return nil, fmt.Errorf("No AuthorizationToken found for %s", registryID)
 }
 
-func (c *defaultClient) getPublicAuthorizationToken(registry string) (*Auth, error) {
+func (c *defaultClient) getPublicAuthorizationToken(ctx context.Context, registry string) (*Auth, error) {
 	var input *ecrpublic.GetAuthorizationTokenInput
 
-	output, err := c.ecrPublicClient.GetAuthorizationToken(context.TODO(), input)
+	output, err := c.ecrPublicClient.GetAuthorizationToken(ctx, input)
 	if err != nil {
 		return nil, fmt.Errorf("ecr: failed to get authorization token: %w", err)
 	}

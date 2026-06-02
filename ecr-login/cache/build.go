@@ -29,7 +29,7 @@ import (
 	ecrconfig "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 )
 
-func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache {
+func BuildCredentialsCache(ctx context.Context, config aws.Config, cacheDir string) CredentialsCache {
 	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
 		logrus.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
 		return NewNullCredentialsCache()
@@ -48,7 +48,7 @@ func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache 
 
 	cacheFilename := "cache.json"
 
-	credentials, err := config.Credentials.Retrieve(context.TODO())
+	credentials, err := config.Credentials.Retrieve(ctx)
 	if err != nil {
 		logrus.WithError(err).Debug("Could not fetch credentials for cache prefix, disabling cache")
 		return NewNullCredentialsCache()

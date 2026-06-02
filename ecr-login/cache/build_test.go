@@ -14,6 +14,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -41,7 +42,7 @@ func TestFactoryBuildFileCache(t *testing.T) {
 		Credentials: credentials.NewStaticCredentialsProvider(testAccessKey, testSecretKey, testToken),
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)
@@ -57,7 +58,7 @@ func TestFactoryBuildNullCacheWithoutCredentials(t *testing.T) {
 		Credentials: aws.AnonymousCredentials{},
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	_, ok := cache.(*nullCredentialsCache)
@@ -70,7 +71,7 @@ func TestFactoryBuildNullCache(t *testing.T) {
 
 	config := aws.Config{Region: testRegion}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 	_, ok := cache.(*nullCredentialsCache)
 	assert.True(t, ok, "built cache is a nullCredentialsCache")
@@ -133,7 +134,7 @@ func TestLegacyKeysNotGeneratedInFipsSimulation(t *testing.T) {
 		Credentials: credentials.NewStaticCredentialsProvider(testAccessKey, testSecretKey, testToken),
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)

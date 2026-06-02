@@ -14,6 +14,7 @@
 package ecr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -61,8 +62,8 @@ func TestGetSuccess(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
-	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+	factory.NewClientFromRegionFn = func(_ context.Context, _ string) (ecr.Client, error) { return client, nil }
+	client.GetCredentialsFn = func(_ context.Context, serverURL string) (*ecr.Auth, error) {
 		if serverURL != proxyEndpoint {
 			return nil, fmt.Errorf("unexpected input: %s", serverURL)
 		}
@@ -85,8 +86,8 @@ func TestGetError(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	factory.NewClientFromRegionFn = func(_ string) ecr.Client { return client }
-	client.GetCredentialsFn = func(serverURL string) (*ecr.Auth, error) {
+	factory.NewClientFromRegionFn = func(_ context.Context, _ string) (ecr.Client, error) { return client, nil }
+	client.GetCredentialsFn = func(_ context.Context, serverURL string) (*ecr.Auth, error) {
 		return nil, errors.New("test error")
 	}
 
@@ -111,8 +112,8 @@ func TestListSuccess(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
-	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {
+	factory.NewClientWithDefaultsFn = func(_ context.Context) (ecr.Client, error) { return client, nil }
+	client.ListCredentialsFn = func(_ context.Context) ([]*ecr.Auth, error) {
 		return []*ecr.Auth{{
 			Username:      expectedUsername,
 			Password:      expectedPassword,
@@ -132,8 +133,8 @@ func TestListFailure(t *testing.T) {
 
 	helper := NewECRHelper(WithClientFactory(factory))
 
-	factory.NewClientWithDefaultsFn = func() ecr.Client { return client }
-	client.ListCredentialsFn = func() ([]*ecr.Auth, error) {
+	factory.NewClientWithDefaultsFn = func(_ context.Context) (ecr.Client, error) { return client, nil }
+	client.ListCredentialsFn = func(_ context.Context) ([]*ecr.Auth, error) {
 		return nil, errors.New("nope")
 	}
 
@@ -221,3 +222,85 @@ func TestDeleteNotImplemented(t *testing.T) {
 		})
 	}
 }
+
+func TestGetPropagatesContext(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	ctx := context.WithValue(context.Background(), contextKey("test"), "value")
+	helper := NewECRHelper(WithClientFactory(factory), WithContext(ctx))
+
+	factory.NewClientFromRegionFn = func(gotCtx context.Context, _ string) (ecr.Client, error) {
+		assert.Equal(t, ctx, gotCtx, "factory should receive the context from WithContext")
+		return client, nil
+	}
+	client.GetCredentialsFn = func(gotCtx context.Context, serverURL string) (*ecr.Auth, error) {
+		assert.Equal(t, ctx, gotCtx, "client should receive the context from WithContext")
+		return &ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: proxyEndpointUrl,
+		}, nil
+	}
+
+	username, password, err := helper.Get(proxyEndpoint)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedUsername, username)
+	assert.Equal(t, expectedPassword, password)
+}
+
+func TestGetFipsPropagatesContext(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	ctx := context.WithValue(context.Background(), contextKey("test"), "fips")
+	helper := NewECRHelper(WithClientFactory(factory), WithContext(ctx))
+
+	fipsEndpoint := "123456789012.dkr.ecr-fips.us-gov-west-1.amazonaws.com"
+
+	factory.NewClientWithFipsEndpointFn = func(gotCtx context.Context, _ string) (ecr.Client, error) {
+		assert.Equal(t, ctx, gotCtx, "factory should receive the context from WithContext")
+		return client, nil
+	}
+	client.GetCredentialsFn = func(gotCtx context.Context, _ string) (*ecr.Auth, error) {
+		assert.Equal(t, ctx, gotCtx, "client should receive the context from WithContext")
+		return &ecr.Auth{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: "https://" + fipsEndpoint,
+		}, nil
+	}
+
+	username, password, err := helper.Get(fipsEndpoint)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedUsername, username)
+	assert.Equal(t, expectedPassword, password)
+}
+
+func TestListPropagatesContext(t *testing.T) {
+	factory := &mock_api.MockClientFactory{}
+	client := &mock_api.MockClient{}
+
+	ctx := context.WithValue(context.Background(), contextKey("test"), "value")
+	helper := NewECRHelper(WithClientFactory(factory), WithContext(ctx))
+
+	factory.NewClientWithDefaultsFn = func(gotCtx context.Context) (ecr.Client, error) {
+		assert.Equal(t, ctx, gotCtx, "factory should receive the context from WithContext")
+		return client, nil
+	}
+	client.ListCredentialsFn = func(gotCtx context.Context) ([]*ecr.Auth, error) {
+		assert.Equal(t, ctx, gotCtx, "client should receive the context from WithContext")
+		return []*ecr.Auth{{
+			Username:      expectedUsername,
+			Password:      expectedPassword,
+			ProxyEndpoint: proxyEndpointUrl,
+		}}, nil
+	}
+
+	serverList, err := helper.List()
+	assert.NoError(t, err)
+	assert.Len(t, serverList, 1)
+}
+
+// contextKey is a private type for context keys in tests to avoid collisions.
+type contextKey string
