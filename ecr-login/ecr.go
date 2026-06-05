@@ -14,6 +14,7 @@
 package ecr
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -29,6 +30,9 @@ import (
 var notImplemented = errors.New("not implemented")
 
 type ECRHelper struct {
+	// ctx is stored because the credentials.Helper interface methods
+	// do not accept a context parameter.
+	ctx context.Context
 	clientFactory api.ClientFactory
 	logger        *logrus.Logger
 }
@@ -56,10 +60,18 @@ func WithLogger(w io.Writer) Option {
 	}
 }
 
+// WithContext sets the context used for network calls made by the helper.
+func WithContext(ctx context.Context) Option {
+	return func(e *ECRHelper) {
+		e.ctx = ctx
+	}
+}
+
 // NewECRHelper returns a new ECRHelper with the given options to override
 // default behavior.
 func NewECRHelper(opts ...Option) *ECRHelper {
 	e := &ECRHelper{
+		ctx:           context.Background(),
 		clientFactory: api.DefaultClientFactory{},
 		logger:        logrus.StandardLogger(),
 	}
@@ -119,16 +131,16 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 
 	var client api.Client
 	if registry.FIPS {
-		client, err = self.clientFactory.NewClientWithFipsEndpoint(registry.Region)
-		if err != nil {
-			self.logger.WithError(err).Error("Error resolving FIPS endpoint")
-			return "", "", credentials.NewErrCredentialsNotFound()
-		}
+		client, err = self.clientFactory.NewClientWithFipsEndpoint(self.ctx, registry.Region)
 	} else {
-		client = self.clientFactory.NewClientFromRegion(registry.Region)
+		client, err = self.clientFactory.NewClientFromRegion(self.ctx, registry.Region)
+	}
+	if err != nil {
+		self.logger.WithError(err).Error("Error creating ECR client")
+		return "", "", credentials.NewErrCredentialsNotFound()
 	}
 
-	auth, err := client.GetCredentials(serverURL)
+	auth, err := client.GetCredentials(self.ctx, serverURL)
 	if err != nil {
 		self.logger.WithError(err).Error("Error retrieving credentials")
 		return "", "", credentials.NewErrCredentialsNotFound()
@@ -138,9 +150,13 @@ func (self ECRHelper) Get(serverURL string) (string, string, error) {
 
 func (self ECRHelper) List() (map[string]string, error) {
 	self.logger.Debug("Listing credentials")
-	client := self.clientFactory.NewClientWithDefaults()
+	client, err := self.clientFactory.NewClientWithDefaults(self.ctx)
+	if err != nil {
+		self.logger.WithError(err).Error("Error creating ECR client")
+		return nil, fmt.Errorf("ecr: could not create client: %v", err)
+	}
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(self.ctx)
 	if err != nil {
 		self.logger.WithError(err).Error("Error listing credentials")
 		return nil, fmt.Errorf("ecr: could not list credentials: %v", err)
