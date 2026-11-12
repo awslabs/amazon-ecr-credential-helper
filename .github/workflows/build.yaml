@@ -8,7 +8,7 @@ on:
 
 jobs:
   git-secrets:
-    runs-on: 'ubuntu-22.04'
+    runs-on: 'ubuntu-24.04'
     steps:
       - name: Pull latest awslabs/git-secrets repo
         uses: actions/checkout@v7
@@ -27,7 +27,7 @@ jobs:
           git secrets --scan-history
 
   cross-compile:
-    runs-on: 'ubuntu-22.04'
+    runs-on: 'ubuntu-24.04'
     steps:
       - uses: actions/checkout@v7
       - name: Cross-compile all variants
