@@ -1,3 +1,9 @@
+# 0.13.0
+* Support ECR global token ([#1129](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1129))
+* Use AccountID instaed of AccessKeyID for credential cache prefix ([#1109](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1109))
+* Propagate context through requests ([#1092](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1092))
+* Upgrade dependencies.
+
 # 0.12.0
 * Support dual stack ECR public endpoint ([#1055](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1055))
 * Migrate MD5 to SHA256 for cache key ([#1064](https://github.com/awslabs/amazon-ecr-credential-helper/pull/1064)).
