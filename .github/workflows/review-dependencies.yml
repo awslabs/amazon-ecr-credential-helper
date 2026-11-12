@@ -8,7 +8,7 @@ on:
 
 jobs:
   review:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     permissions:
       # Write permissions needed to comment review results on PR.
