@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.60.0
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.41.0
 	github.com/aws/smithy-go v1.28.8
-	github.com/docker/docker-credential-helpers v0.9.6
+	github.com/docker/docker-credential-helpers v0.9.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.12.1
