@@ -118,7 +118,7 @@ github.com/aws/smithy-go/traits
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
-# github.com/docker/docker-credential-helpers v0.9.6
+# github.com/docker/docker-credential-helpers v0.9.12
 ## explicit; go 1.21
 github.com/docker/docker-credential-helpers/credentials
 # github.com/mitchellh/go-homedir v1.1.0
