@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
+	"github.com/aws/aws-sdk-go-v2/service/signin"
 	"github.com/sirupsen/logrus"
 
 	"github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cache"
@@ -37,6 +38,8 @@ const (
 	programName            = "docker-credential-ecr-login"
 	ecrPublicName          = "public.ecr.aws"
 	ecrPublicDualStackName = "ecr-public.aws.com"
+	signInGrantType        = "client_credentials"
+	signInResource         = "ecr.amazonaws.com"
 )
 
 var ecrPattern = regexp.MustCompile(`^(\d{12})\.dkr[\.\-]ecr(\-fips)?\.([a-zA-Z0-9][a-zA-Z0-9-_]*)\.(amazonaws\.(?:com(?:\.cn)?|eu)|on\.(?:aws|amazonwebservices\.com\.cn)|sc2s\.sgov\.gov|c2s\.ic\.gov|cloud\.adc-e\.uk|csp\.hci\.ic\.gov)$`)
@@ -85,6 +88,18 @@ func ExtractRegistry(input string) (*Registry, error) {
 	}, nil
 }
 
+func canonicalProxyEndpoint(input string) (string, error) {
+	input = strings.TrimPrefix(input, proxyEndpointScheme)
+	serverURL, err := url.Parse(proxyEndpointScheme + input)
+	if err != nil {
+		return "", err
+	}
+	if serverURL.Hostname() == "" {
+		return "", fmt.Errorf("%q is not a valid repository URI for Amazon Elastic Container Registry.", input)
+	}
+	return proxyEndpointScheme + serverURL.Hostname(), nil
+}
+
 // Client used for calling ECR service
 type Client interface {
 	GetCredentials(ctx context.Context, serverURL string) (*Auth, error)
@@ -102,6 +117,7 @@ type Auth struct {
 type defaultClient struct {
 	ecrClient       ECRAPI
 	ecrPublicClient ECRPublicAPI
+	signInClient    SignInAPI
 	credentialCache cache.CredentialsCache
 }
 
@@ -111,6 +127,10 @@ type ECRAPI interface {
 
 type ECRPublicAPI interface {
 	GetAuthorizationToken(context.Context, *ecrpublic.GetAuthorizationTokenInput, ...func(*ecrpublic.Options)) (*ecrpublic.GetAuthorizationTokenOutput, error)
+}
+
+type SignInAPI interface {
+	CreateBearerToken(context.Context, *signin.CreateBearerTokenInput, ...func(*signin.Options)) (*signin.CreateBearerTokenOutput, error)
 }
 
 // sanitizeURLError checks if an error contains a url.Error and returns
@@ -163,6 +183,22 @@ func (w *ecrPublicClientWrapper) GetAuthorizationToken(ctx context.Context, inpu
 	return output, sanitizeURLError(err)
 }
 
+// signInClientWrapper wraps a SignInAPI and sanitizes url.Error from responses.
+type signInClientWrapper struct {
+	client SignInAPI
+}
+
+// NewSignInClientWrapper creates a new SignInAPI wrapper that sanitizes sensitive
+// information from url.Error before returning errors.
+func NewSignInClientWrapper(client SignInAPI) SignInAPI {
+	return &signInClientWrapper{client: client}
+}
+
+func (w *signInClientWrapper) CreateBearerToken(ctx context.Context, input *signin.CreateBearerTokenInput, opts ...func(*signin.Options)) (*signin.CreateBearerTokenOutput, error) {
+	output, err := w.client.CreateBearerToken(ctx, input, opts...)
+	return output, sanitizeURLError(err)
+}
+
 // GetCredentials returns username, password, and proxyEndpoint
 func (c *defaultClient) GetCredentials(ctx context.Context, serverURL string) (*Auth, error) {
 	registry, err := ExtractRegistry(serverURL)
@@ -178,11 +214,68 @@ func (c *defaultClient) GetCredentials(ctx context.Context, serverURL string) (*
 		Debug("Retrieving credentials")
 	switch registry.Service {
 	case ServiceECR:
+		if err := config.ValidateTokenType(); err != nil {
+			return nil, err
+		}
+		if config.IsGlobalToken() {
+			return c.GetGlobalCredentials(ctx, serverURL, registry.Region)
+		}
 		return c.GetCredentialsByRegistryID(ctx, registry.ID)
 	case ServiceECRPublic:
 		return c.GetPublicCredentials(ctx, registry.Name)
 	}
 	return nil, fmt.Errorf("unknown service %q", registry.Service)
+}
+
+// GetGlobalCredentials fetches a globally valid ECR token through the SignIn CreateBearerToken API.
+func (c *defaultClient) GetGlobalCredentials(ctx context.Context, serverURL, region string) (*Auth, error) {
+	proxyEndpoint, err := canonicalProxyEndpoint(serverURL)
+	if err != nil {
+		return nil, err
+	}
+	cacheKey := strings.TrimPrefix(proxyEndpoint, proxyEndpointScheme)
+
+	cachedEntry, auth, err := c.getGlobalCachedCredentials(cacheKey)
+	if err != nil || auth != nil {
+		return auth, err
+	}
+
+	logrus.WithField("registry", cacheKey).Debug("Calling SignIn.CreateBearerToken")
+	output, err := c.signInClient.CreateBearerToken(
+		ctx,
+		&signin.CreateBearerTokenInput{
+			GrantType: aws.String(signInGrantType),
+			Resource:  aws.String(signInResource),
+		},
+	)
+	if err == nil && (output == nil || aws.ToString(output.AccessToken) == "" || aws.ToInt32(output.ExpiresIn) <= 0) {
+		err = fmt.Errorf("missing or invalid token data in SignIn response")
+	}
+	if err != nil {
+		if cachedEntry != nil {
+			logrus.WithError(err).Info("Got error fetching global token. Falling back to cached token.")
+			return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+		}
+		return nil, fmt.Errorf("signin: failed to create bearer token for registry %q (region %q): %w", cacheKey, region, err)
+	}
+
+	now := time.Now()
+	accessToken := aws.ToString(output.AccessToken)
+	encodedToken := base64.StdEncoding.EncodeToString([]byte("AWS:" + accessToken))
+	authEntry := cache.AuthEntry{
+		AuthorizationToken: encodedToken,
+		RequestedAt:        now,
+		ExpiresAt:          now.Add(time.Duration(aws.ToInt32(output.ExpiresIn)) * time.Second),
+		ProxyEndpoint:      proxyEndpoint,
+		Service:            cache.ServiceECR,
+	}
+	c.credentialCache.Set(cacheKey, &authEntry)
+
+	return &Auth{
+		Username:      "AWS",
+		Password:      accessToken,
+		ProxyEndpoint: proxyEndpoint,
+	}, nil
 }
 
 // GetCredentialsByRegistryID returns username, password, and proxyEndpoint
@@ -209,6 +302,23 @@ func (c *defaultClient) GetCredentialsByRegistryID(ctx context.Context, registry
 		return extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
 	}
 	return auth, err
+}
+
+func (c *defaultClient) getGlobalCachedCredentials(cacheKey string) (*cache.AuthEntry, *Auth, error) {
+	cachedEntry := c.credentialCache.Get(cacheKey)
+	if cachedEntry == nil {
+		return nil, nil, nil
+	}
+	if cachedEntry.IsValid(time.Now()) {
+		logrus.WithField("registry", cacheKey).Debug("Using cached token")
+		auth, err := extractToken(cachedEntry.AuthorizationToken, cachedEntry.ProxyEndpoint)
+		return cachedEntry, auth, err
+	}
+	logrus.
+		WithField("requestedAt", cachedEntry.RequestedAt).
+		WithField("expiresAt", cachedEntry.ExpiresAt).
+		Debug("Cached token is no longer valid")
+	return cachedEntry, nil, nil
 }
 
 func (c *defaultClient) GetPublicCredentials(ctx context.Context, registry string) (*Auth, error) {
