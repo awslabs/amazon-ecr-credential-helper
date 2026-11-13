@@ -4,8 +4,9 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves the repository policy for the specified repository.
@@ -39,6 +40,21 @@ type GetRepositoryPolicyInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetRepositoryPolicyInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetRepositoryPolicyRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetRepositoryPolicyInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RegistryId != nil {
+		s.WriteString(schemas.GetRepositoryPolicyRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.GetRepositoryPolicyRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type GetRepositoryPolicyOutput struct {
 
 	// The JSON repository policy text associated with the repository.
@@ -56,22 +72,47 @@ type GetRepositoryPolicyOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetRepositoryPolicyOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetRepositoryPolicyResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetRepositoryPolicyOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.PolicyText != nil {
+		s.WriteString(schemas.GetRepositoryPolicyResponse_policyText, *v.PolicyText)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.GetRepositoryPolicyResponse_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.GetRepositoryPolicyResponse_repositoryName, *v.RepositoryName)
+	}
+}
+func (v *GetRepositoryPolicyOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetRepositoryPolicyResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetRepositoryPolicyResponse_policyText:
+			v.PolicyText = new(string)
+			return d.ReadString(schemas.GetRepositoryPolicyResponse_policyText, v.PolicyText)
+		case schemas.GetRepositoryPolicyResponse_registryId:
+			v.RegistryId = new(string)
+			return d.ReadString(schemas.GetRepositoryPolicyResponse_registryId, v.RegistryId)
+		case schemas.GetRepositoryPolicyResponse_repositoryName:
+			v.RepositoryName = new(string)
+			return d.ReadString(schemas.GetRepositoryPolicyResponse_repositoryName, v.RepositoryName)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetRepositoryPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetRepositoryPolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetRepositoryPolicy, schemas.GetRepositoryPolicyRequest, schemas.GetRepositoryPolicyResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetRepositoryPolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetRepositoryPolicy, schemas.GetRepositoryPolicyRequest, schemas.GetRepositoryPolicyResponse), output: &GetRepositoryPolicyOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -81,19 +122,10 @@ func (c *Client) addOperationGetRepositoryPolicyMiddlewares(stack *middleware.St
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetRepositoryPolicyValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetRepositoryPolicy"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

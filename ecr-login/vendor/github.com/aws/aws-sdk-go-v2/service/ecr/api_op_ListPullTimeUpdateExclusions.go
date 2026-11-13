@@ -4,8 +4,9 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists the IAM principals that are excluded from having their image pull times
@@ -50,6 +51,21 @@ type ListPullTimeUpdateExclusionsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListPullTimeUpdateExclusionsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListPullTimeUpdateExclusionsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListPullTimeUpdateExclusionsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.ListPullTimeUpdateExclusionsRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListPullTimeUpdateExclusionsRequest_nextToken, *v.NextToken)
+	}
+}
+
 type ListPullTimeUpdateExclusionsOutput struct {
 
 	// The nextToken value to include in a future ListPullTimeUpdateExclusions
@@ -68,22 +84,40 @@ type ListPullTimeUpdateExclusionsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListPullTimeUpdateExclusionsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListPullTimeUpdateExclusionsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListPullTimeUpdateExclusionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListPullTimeUpdateExclusionsResponse_nextToken, *v.NextToken)
+	}
+	if v.PullTimeUpdateExclusions != nil {
+		serializePullTimeUpdateExclusionList(s, schemas.ListPullTimeUpdateExclusionsResponse_pullTimeUpdateExclusions, v.PullTimeUpdateExclusions)
+	}
+}
+func (v *ListPullTimeUpdateExclusionsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListPullTimeUpdateExclusionsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListPullTimeUpdateExclusionsResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.ListPullTimeUpdateExclusionsResponse_nextToken, v.NextToken)
+		case schemas.ListPullTimeUpdateExclusionsResponse_pullTimeUpdateExclusions:
+			return deserializePullTimeUpdateExclusionList(d, schemas.ListPullTimeUpdateExclusionsResponse_pullTimeUpdateExclusions, &v.PullTimeUpdateExclusions)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListPullTimeUpdateExclusionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListPullTimeUpdateExclusions{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListPullTimeUpdateExclusions, schemas.ListPullTimeUpdateExclusionsRequest, schemas.ListPullTimeUpdateExclusionsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListPullTimeUpdateExclusions{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListPullTimeUpdateExclusions, schemas.ListPullTimeUpdateExclusionsRequest, schemas.ListPullTimeUpdateExclusionsResponse), output: &ListPullTimeUpdateExclusionsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -93,16 +127,7 @@ func (c *Client) addOperationListPullTimeUpdateExclusionsMiddlewares(stack *midd
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListPullTimeUpdateExclusions"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

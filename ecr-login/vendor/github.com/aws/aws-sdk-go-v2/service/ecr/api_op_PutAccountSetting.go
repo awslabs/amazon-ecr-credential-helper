@@ -4,8 +4,9 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Allows you to change the basic scan type version or registry policy scope.
@@ -42,6 +43,21 @@ type PutAccountSettingInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutAccountSettingInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutAccountSettingRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutAccountSettingInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.PutAccountSettingRequest_name, *v.Name)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.PutAccountSettingRequest_value, *v.Value)
+	}
+}
+
 type PutAccountSettingOutput struct {
 
 	// Retrieves the name of the account setting.
@@ -56,22 +72,41 @@ type PutAccountSettingOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutAccountSettingOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutAccountSettingResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutAccountSettingOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.PutAccountSettingResponse_name, *v.Name)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.PutAccountSettingResponse_value, *v.Value)
+	}
+}
+func (v *PutAccountSettingOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutAccountSettingResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutAccountSettingResponse_name:
+			v.Name = new(string)
+			return d.ReadString(schemas.PutAccountSettingResponse_name, v.Name)
+		case schemas.PutAccountSettingResponse_value:
+			v.Value = new(string)
+			return d.ReadString(schemas.PutAccountSettingResponse_value, v.Value)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutAccountSettingMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutAccountSetting{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutAccountSetting, schemas.PutAccountSettingRequest, schemas.PutAccountSettingResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutAccountSetting{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutAccountSetting, schemas.PutAccountSettingRequest, schemas.PutAccountSettingResponse), output: &PutAccountSettingOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -81,19 +116,10 @@ func (c *Client) addOperationPutAccountSettingMiddlewares(stack *middleware.Stac
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutAccountSettingValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutAccountSetting"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

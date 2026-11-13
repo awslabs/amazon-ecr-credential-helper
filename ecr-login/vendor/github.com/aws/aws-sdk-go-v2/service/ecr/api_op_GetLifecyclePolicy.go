@@ -4,8 +4,9 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
@@ -40,6 +41,21 @@ type GetLifecyclePolicyInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetLifecyclePolicyInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetLifecyclePolicyRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetLifecyclePolicyInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RegistryId != nil {
+		s.WriteString(schemas.GetLifecyclePolicyRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.GetLifecyclePolicyRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type GetLifecyclePolicyOutput struct {
 
 	// The time stamp of the last time that the lifecycle policy was run.
@@ -60,22 +76,53 @@ type GetLifecyclePolicyOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetLifecyclePolicyOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetLifecyclePolicyResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetLifecyclePolicyOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LastEvaluatedAt != nil {
+		s.WriteTime(schemas.GetLifecyclePolicyResponse_lastEvaluatedAt, *v.LastEvaluatedAt)
+	}
+	if v.LifecyclePolicyText != nil {
+		s.WriteString(schemas.GetLifecyclePolicyResponse_lifecyclePolicyText, *v.LifecyclePolicyText)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.GetLifecyclePolicyResponse_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.GetLifecyclePolicyResponse_repositoryName, *v.RepositoryName)
+	}
+}
+func (v *GetLifecyclePolicyOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetLifecyclePolicyResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetLifecyclePolicyResponse_lastEvaluatedAt:
+			v.LastEvaluatedAt = new(time.Time)
+			return d.ReadTime(schemas.GetLifecyclePolicyResponse_lastEvaluatedAt, v.LastEvaluatedAt)
+		case schemas.GetLifecyclePolicyResponse_lifecyclePolicyText:
+			v.LifecyclePolicyText = new(string)
+			return d.ReadString(schemas.GetLifecyclePolicyResponse_lifecyclePolicyText, v.LifecyclePolicyText)
+		case schemas.GetLifecyclePolicyResponse_registryId:
+			v.RegistryId = new(string)
+			return d.ReadString(schemas.GetLifecyclePolicyResponse_registryId, v.RegistryId)
+		case schemas.GetLifecyclePolicyResponse_repositoryName:
+			v.RepositoryName = new(string)
+			return d.ReadString(schemas.GetLifecyclePolicyResponse_repositoryName, v.RepositoryName)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetLifecyclePolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetLifecyclePolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetLifecyclePolicy, schemas.GetLifecyclePolicyRequest, schemas.GetLifecyclePolicyResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetLifecyclePolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetLifecyclePolicy, schemas.GetLifecyclePolicyRequest, schemas.GetLifecyclePolicyResponse), output: &GetLifecyclePolicyOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -85,19 +132,10 @@ func (c *Client) addOperationGetLifecyclePolicyMiddlewares(stack *middleware.Sta
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetLifecyclePolicyValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetLifecyclePolicy"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

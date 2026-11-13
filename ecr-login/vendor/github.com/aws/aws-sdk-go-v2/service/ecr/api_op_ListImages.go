@@ -5,9 +5,10 @@ package ecr
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists all the image IDs for the specified repository.
@@ -68,6 +69,32 @@ type ListImagesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListImagesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListImagesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListImagesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Filter != nil {
+		s.WriteStruct(schemas.ListImagesRequest_filter)
+		v.Filter.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.ListImagesRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListImagesRequest_nextToken, *v.NextToken)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.ListImagesRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.ListImagesRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type ListImagesOutput struct {
 
 	// The list of image IDs for the requested repository.
@@ -85,22 +112,40 @@ type ListImagesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListImagesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListImagesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListImagesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ImageIds != nil {
+		serializeImageIdentifierList(s, schemas.ListImagesResponse_imageIds, v.ImageIds)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListImagesResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *ListImagesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListImagesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListImagesResponse_imageIds:
+			return deserializeImageIdentifierList(d, schemas.ListImagesResponse_imageIds, &v.ImageIds)
+		case schemas.ListImagesResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.ListImagesResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListImagesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListImages{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListImages, schemas.ListImagesRequest, schemas.ListImagesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListImages{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListImages, schemas.ListImagesRequest, schemas.ListImagesResponse), output: &ListImagesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -110,19 +155,10 @@ func (c *Client) addOperationListImagesMiddlewares(stack *middleware.Stack, opti
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpListImagesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListImages"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

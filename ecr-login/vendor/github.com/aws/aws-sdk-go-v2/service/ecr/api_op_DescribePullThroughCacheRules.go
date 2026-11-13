@@ -5,9 +5,10 @@ package ecr
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns the pull through cache rules for a registry.
@@ -59,6 +60,27 @@ type DescribePullThroughCacheRulesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribePullThroughCacheRulesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribePullThroughCacheRulesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribePullThroughCacheRulesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EcrRepositoryPrefixes != nil {
+		serializePullThroughCacheRuleRepositoryPrefixList(s, schemas.DescribePullThroughCacheRulesRequest_ecrRepositoryPrefixes, v.EcrRepositoryPrefixes)
+	}
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.DescribePullThroughCacheRulesRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribePullThroughCacheRulesRequest_nextToken, *v.NextToken)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.DescribePullThroughCacheRulesRequest_registryId, *v.RegistryId)
+	}
+}
+
 type DescribePullThroughCacheRulesOutput struct {
 
 	// The nextToken value to include in a future DescribePullThroughCacheRulesRequest
@@ -76,22 +98,40 @@ type DescribePullThroughCacheRulesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribePullThroughCacheRulesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribePullThroughCacheRulesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribePullThroughCacheRulesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribePullThroughCacheRulesResponse_nextToken, *v.NextToken)
+	}
+	if v.PullThroughCacheRules != nil {
+		serializePullThroughCacheRuleList(s, schemas.DescribePullThroughCacheRulesResponse_pullThroughCacheRules, v.PullThroughCacheRules)
+	}
+}
+func (v *DescribePullThroughCacheRulesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribePullThroughCacheRulesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribePullThroughCacheRulesResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribePullThroughCacheRulesResponse_nextToken, v.NextToken)
+		case schemas.DescribePullThroughCacheRulesResponse_pullThroughCacheRules:
+			return deserializePullThroughCacheRuleList(d, schemas.DescribePullThroughCacheRulesResponse_pullThroughCacheRules, &v.PullThroughCacheRules)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribePullThroughCacheRulesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribePullThroughCacheRules{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribePullThroughCacheRules, schemas.DescribePullThroughCacheRulesRequest, schemas.DescribePullThroughCacheRulesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribePullThroughCacheRules{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribePullThroughCacheRules, schemas.DescribePullThroughCacheRulesRequest, schemas.DescribePullThroughCacheRulesResponse), output: &DescribePullThroughCacheRulesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -101,16 +141,7 @@ func (c *Client) addOperationDescribePullThroughCacheRulesMiddlewares(stack *mid
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribePullThroughCacheRules"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Checks the availability of one or more image layers in a repository.
@@ -53,6 +54,24 @@ type BatchCheckLayerAvailabilityInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *BatchCheckLayerAvailabilityInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BatchCheckLayerAvailabilityRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BatchCheckLayerAvailabilityInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LayerDigests != nil {
+		serializeBatchedOperationLayerDigestList(s, schemas.BatchCheckLayerAvailabilityRequest_layerDigests, v.LayerDigests)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.BatchCheckLayerAvailabilityRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.BatchCheckLayerAvailabilityRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type BatchCheckLayerAvailabilityOutput struct {
 
 	// Any failures associated with the call.
@@ -68,22 +87,39 @@ type BatchCheckLayerAvailabilityOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *BatchCheckLayerAvailabilityOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.BatchCheckLayerAvailabilityResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *BatchCheckLayerAvailabilityOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Failures != nil {
+		serializeLayerFailureList(s, schemas.BatchCheckLayerAvailabilityResponse_failures, v.Failures)
+	}
+	if v.Layers != nil {
+		serializeLayerList(s, schemas.BatchCheckLayerAvailabilityResponse_layers, v.Layers)
+	}
+}
+func (v *BatchCheckLayerAvailabilityOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.BatchCheckLayerAvailabilityResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.BatchCheckLayerAvailabilityResponse_failures:
+			return deserializeLayerFailureList(d, schemas.BatchCheckLayerAvailabilityResponse_failures, &v.Failures)
+		case schemas.BatchCheckLayerAvailabilityResponse_layers:
+			return deserializeLayerList(d, schemas.BatchCheckLayerAvailabilityResponse_layers, &v.Layers)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationBatchCheckLayerAvailabilityMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpBatchCheckLayerAvailability{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.BatchCheckLayerAvailability, schemas.BatchCheckLayerAvailabilityRequest, schemas.BatchCheckLayerAvailabilityResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpBatchCheckLayerAvailability{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.BatchCheckLayerAvailability, schemas.BatchCheckLayerAvailabilityRequest, schemas.BatchCheckLayerAvailabilityResponse), output: &BatchCheckLayerAvailabilityOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -93,19 +129,10 @@ func (c *Client) addOperationBatchCheckLayerAvailabilityMiddlewares(stack *middl
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpBatchCheckLayerAvailabilityValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "BatchCheckLayerAvailability"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

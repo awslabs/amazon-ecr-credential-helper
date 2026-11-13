@@ -4,9 +4,10 @@ package ecrpublic
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates or updates the catalog data for a repository in a public registry.
@@ -46,6 +47,26 @@ type PutRepositoryCatalogDataInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutRepositoryCatalogDataInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutRepositoryCatalogDataRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutRepositoryCatalogDataInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CatalogData != nil {
+		s.WriteStruct(schemas.PutRepositoryCatalogDataRequest_catalogData)
+		v.CatalogData.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.PutRepositoryCatalogDataRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.PutRepositoryCatalogDataRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type PutRepositoryCatalogDataOutput struct {
 
 	// The catalog data for the repository.
@@ -57,22 +78,37 @@ type PutRepositoryCatalogDataOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutRepositoryCatalogDataOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutRepositoryCatalogDataResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutRepositoryCatalogDataOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CatalogData != nil {
+		s.WriteStruct(schemas.PutRepositoryCatalogDataResponse_catalogData)
+		v.CatalogData.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *PutRepositoryCatalogDataOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutRepositoryCatalogDataResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutRepositoryCatalogDataResponse_catalogData:
+			v.CatalogData = &types.RepositoryCatalogData{}
+			return v.CatalogData.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutRepositoryCatalogDataMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutRepositoryCatalogData{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutRepositoryCatalogData, schemas.PutRepositoryCatalogDataRequest, schemas.PutRepositoryCatalogDataResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutRepositoryCatalogData{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutRepositoryCatalogData, schemas.PutRepositoryCatalogDataRequest, schemas.PutRepositoryCatalogDataResponse), output: &PutRepositoryCatalogDataOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -82,19 +118,10 @@ func (c *Client) addOperationPutRepositoryCatalogDataMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutRepositoryCatalogDataValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutRepositoryCatalogData"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
