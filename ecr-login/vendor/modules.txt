@@ -136,8 +136,8 @@ github.com/docker/docker-credential-helpers/credentials
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
-# github.com/sirupsen/logrus v1.9.4
-## explicit; go 1.17
+# github.com/sirupsen/logrus v1.10.2
+## explicit; go 1.23
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.12.1
 ## explicit; go 1.17
