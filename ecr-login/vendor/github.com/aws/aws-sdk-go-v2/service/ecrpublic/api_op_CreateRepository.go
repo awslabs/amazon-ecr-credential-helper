@@ -4,9 +4,10 @@ package ecrpublic
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates a repository in a public registry. For more information, see [Amazon ECR repositories] in the
@@ -51,6 +52,26 @@ type CreateRepositoryInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CreateRepositoryInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateRepositoryRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateRepositoryInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CatalogData != nil {
+		s.WriteStruct(schemas.CreateRepositoryRequest_catalogData)
+		v.CatalogData.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.CreateRepositoryRequest_repositoryName, *v.RepositoryName)
+	}
+	if v.Tags != nil {
+		serializeTagList(s, schemas.CreateRepositoryRequest_tags, v.Tags)
+	}
+}
+
 type CreateRepositoryOutput struct {
 
 	// The catalog data for a repository. This data is publicly visible in the Amazon
@@ -66,22 +87,45 @@ type CreateRepositoryOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CreateRepositoryOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateRepositoryResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateRepositoryOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CatalogData != nil {
+		s.WriteStruct(schemas.CreateRepositoryResponse_catalogData)
+		v.CatalogData.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Repository != nil {
+		s.WriteStruct(schemas.CreateRepositoryResponse_repository)
+		v.Repository.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *CreateRepositoryOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CreateRepositoryResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CreateRepositoryResponse_catalogData:
+			v.CatalogData = &types.RepositoryCatalogData{}
+			return v.CatalogData.Deserialize(d)
+		case schemas.CreateRepositoryResponse_repository:
+			v.Repository = &types.Repository{}
+			return v.Repository.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationCreateRepositoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateRepository{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateRepository, schemas.CreateRepositoryRequest, schemas.CreateRepositoryResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCreateRepository{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateRepository, schemas.CreateRepositoryRequest, schemas.CreateRepositoryResponse), output: &CreateRepositoryOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -91,19 +135,10 @@ func (c *Client) addOperationCreateRepositoryMiddlewares(stack *middleware.Stack
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpCreateRepositoryValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "CreateRepository"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

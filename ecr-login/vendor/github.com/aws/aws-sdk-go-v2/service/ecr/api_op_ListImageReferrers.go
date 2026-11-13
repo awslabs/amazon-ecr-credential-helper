@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists the artifacts associated with a specified subject image.
@@ -72,6 +73,37 @@ type ListImageReferrersInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListImageReferrersInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListImageReferrersRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListImageReferrersInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Filter != nil {
+		s.WriteStruct(schemas.ListImageReferrersRequest_filter)
+		v.Filter.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.ListImageReferrersRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListImageReferrersRequest_nextToken, *v.NextToken)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.ListImageReferrersRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.ListImageReferrersRequest_repositoryName, *v.RepositoryName)
+	}
+	if v.SubjectId != nil {
+		s.WriteStruct(schemas.ListImageReferrersRequest_subjectId)
+		v.SubjectId.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+
 type ListImageReferrersOutput struct {
 
 	// The nextToken value to include in a future ListImageReferrers request. When the
@@ -89,22 +121,40 @@ type ListImageReferrersOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListImageReferrersOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListImageReferrersResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListImageReferrersOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListImageReferrersResponse_nextToken, *v.NextToken)
+	}
+	if v.Referrers != nil {
+		serializeImageReferrerList(s, schemas.ListImageReferrersResponse_referrers, v.Referrers)
+	}
+}
+func (v *ListImageReferrersOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListImageReferrersResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListImageReferrersResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.ListImageReferrersResponse_nextToken, v.NextToken)
+		case schemas.ListImageReferrersResponse_referrers:
+			return deserializeImageReferrerList(d, schemas.ListImageReferrersResponse_referrers, &v.Referrers)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListImageReferrersMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListImageReferrers{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListImageReferrers, schemas.ListImageReferrersRequest, schemas.ListImageReferrersResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListImageReferrers{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListImageReferrers, schemas.ListImageReferrersRequest, schemas.ListImageReferrersResponse), output: &ListImageReferrersOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -114,19 +164,10 @@ func (c *Client) addOperationListImageReferrersMiddlewares(stack *middleware.Sta
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpListImageReferrersValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListImageReferrers"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

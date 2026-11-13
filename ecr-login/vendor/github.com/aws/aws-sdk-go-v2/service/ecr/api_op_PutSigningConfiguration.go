@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates or updates the registry's signing configuration, which defines rules
@@ -44,6 +45,20 @@ type PutSigningConfigurationInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutSigningConfigurationInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutSigningConfigurationRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutSigningConfigurationInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SigningConfiguration != nil {
+		s.WriteStruct(schemas.PutSigningConfigurationRequest_signingConfiguration)
+		v.SigningConfiguration.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+
 type PutSigningConfigurationOutput struct {
 
 	// The registry's updated signing configuration.
@@ -55,22 +70,37 @@ type PutSigningConfigurationOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutSigningConfigurationOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutSigningConfigurationResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutSigningConfigurationOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.SigningConfiguration != nil {
+		s.WriteStruct(schemas.PutSigningConfigurationResponse_signingConfiguration)
+		v.SigningConfiguration.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *PutSigningConfigurationOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutSigningConfigurationResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutSigningConfigurationResponse_signingConfiguration:
+			v.SigningConfiguration = &types.SigningConfiguration{}
+			return v.SigningConfiguration.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutSigningConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutSigningConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutSigningConfiguration, schemas.PutSigningConfigurationRequest, schemas.PutSigningConfigurationResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutSigningConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutSigningConfiguration, schemas.PutSigningConfigurationRequest, schemas.PutSigningConfigurationResponse), output: &PutSigningConfigurationOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -80,19 +110,10 @@ func (c *Client) addOperationPutSigningConfigurationMiddlewares(stack *middlewar
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutSigningConfigurationValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutSigningConfiguration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates or updates the scanning configuration for your private registry.
@@ -49,6 +50,21 @@ type PutRegistryScanningConfigurationInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutRegistryScanningConfigurationInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutRegistryScanningConfigurationRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutRegistryScanningConfigurationInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Rules != nil {
+		serializeRegistryScanningRuleList(s, schemas.PutRegistryScanningConfigurationRequest_rules, v.Rules)
+	}
+	if v.ScanType != "" {
+		s.WriteString(schemas.PutRegistryScanningConfigurationRequest_scanType, string(v.ScanType))
+	}
+}
+
 type PutRegistryScanningConfigurationOutput struct {
 
 	// The scanning configuration for your registry.
@@ -60,22 +76,37 @@ type PutRegistryScanningConfigurationOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutRegistryScanningConfigurationOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutRegistryScanningConfigurationResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutRegistryScanningConfigurationOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RegistryScanningConfiguration != nil {
+		s.WriteStruct(schemas.PutRegistryScanningConfigurationResponse_registryScanningConfiguration)
+		v.RegistryScanningConfiguration.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *PutRegistryScanningConfigurationOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutRegistryScanningConfigurationResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutRegistryScanningConfigurationResponse_registryScanningConfiguration:
+			v.RegistryScanningConfiguration = &types.RegistryScanningConfiguration{}
+			return v.RegistryScanningConfiguration.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutRegistryScanningConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutRegistryScanningConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutRegistryScanningConfiguration, schemas.PutRegistryScanningConfigurationRequest, schemas.PutRegistryScanningConfigurationResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutRegistryScanningConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutRegistryScanningConfiguration, schemas.PutRegistryScanningConfigurationRequest, schemas.PutRegistryScanningConfigurationResponse), output: &PutRegistryScanningConfigurationOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -85,19 +116,10 @@ func (c *Client) addOperationPutRegistryScanningConfigurationMiddlewares(stack *
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutRegistryScanningConfigurationValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutRegistryScanningConfiguration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

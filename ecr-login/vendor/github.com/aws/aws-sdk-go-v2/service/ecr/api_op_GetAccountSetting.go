@@ -4,8 +4,9 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves the account setting value for the specified setting name.
@@ -35,6 +36,18 @@ type GetAccountSettingInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAccountSettingInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAccountSettingRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAccountSettingInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.GetAccountSettingRequest_name, *v.Name)
+	}
+}
+
 type GetAccountSettingOutput struct {
 
 	// Retrieves the name of the account setting.
@@ -51,22 +64,41 @@ type GetAccountSettingOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAccountSettingOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAccountSettingResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAccountSettingOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Name != nil {
+		s.WriteString(schemas.GetAccountSettingResponse_name, *v.Name)
+	}
+	if v.Value != nil {
+		s.WriteString(schemas.GetAccountSettingResponse_value, *v.Value)
+	}
+}
+func (v *GetAccountSettingOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetAccountSettingResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetAccountSettingResponse_name:
+			v.Name = new(string)
+			return d.ReadString(schemas.GetAccountSettingResponse_name, v.Name)
+		case schemas.GetAccountSettingResponse_value:
+			v.Value = new(string)
+			return d.ReadString(schemas.GetAccountSettingResponse_value, v.Value)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetAccountSettingMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetAccountSetting{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAccountSetting, schemas.GetAccountSettingRequest, schemas.GetAccountSettingResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetAccountSetting{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAccountSetting, schemas.GetAccountSettingRequest, schemas.GetAccountSettingResponse), output: &GetAccountSettingOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -76,19 +108,10 @@ func (c *Client) addOperationGetAccountSettingMiddlewares(stack *middleware.Stac
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetAccountSettingValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetAccountSetting"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves an authorization token. An authorization token represents your IAM
@@ -50,6 +51,18 @@ type GetAuthorizationTokenInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAuthorizationTokenInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAuthorizationTokenRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAuthorizationTokenInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RegistryIds != nil {
+		serializeGetAuthorizationTokenRegistryIdList(s, schemas.GetAuthorizationTokenRequest_registryIds, v.RegistryIds)
+	}
+}
+
 type GetAuthorizationTokenOutput struct {
 
 	// A list of authorization token data objects that correspond to the registryIds
@@ -65,22 +78,34 @@ type GetAuthorizationTokenOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAuthorizationTokenOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAuthorizationTokenResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAuthorizationTokenOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AuthorizationData != nil {
+		serializeAuthorizationDataList(s, schemas.GetAuthorizationTokenResponse_authorizationData, v.AuthorizationData)
+	}
+}
+func (v *GetAuthorizationTokenOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetAuthorizationTokenResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetAuthorizationTokenResponse_authorizationData:
+			return deserializeAuthorizationDataList(d, schemas.GetAuthorizationTokenResponse_authorizationData, &v.AuthorizationData)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetAuthorizationTokenMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetAuthorizationToken{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAuthorizationToken, schemas.GetAuthorizationTokenRequest, schemas.GetAuthorizationTokenResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetAuthorizationToken{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAuthorizationToken, schemas.GetAuthorizationTokenRequest, schemas.GetAuthorizationTokenResponse), output: &GetAuthorizationTokenOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -90,16 +115,7 @@ func (c *Client) addOperationGetAuthorizationTokenMiddlewares(stack *middleware.
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetAuthorizationToken"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

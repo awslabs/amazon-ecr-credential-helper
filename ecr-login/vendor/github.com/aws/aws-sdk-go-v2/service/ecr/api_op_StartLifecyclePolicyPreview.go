@@ -4,9 +4,10 @@ package ecr
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecr/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Starts a preview of a lifecycle policy for the specified repository. This
@@ -46,6 +47,24 @@ type StartLifecyclePolicyPreviewInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StartLifecyclePolicyPreviewInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StartLifecyclePolicyPreviewRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StartLifecyclePolicyPreviewInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LifecyclePolicyText != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewRequest_lifecyclePolicyText, *v.LifecyclePolicyText)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type StartLifecyclePolicyPreviewOutput struct {
 
 	// The JSON repository policy text.
@@ -66,22 +85,57 @@ type StartLifecyclePolicyPreviewOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StartLifecyclePolicyPreviewOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StartLifecyclePolicyPreviewResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StartLifecyclePolicyPreviewOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LifecyclePolicyText != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewResponse_lifecyclePolicyText, *v.LifecyclePolicyText)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewResponse_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewResponse_repositoryName, *v.RepositoryName)
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.StartLifecyclePolicyPreviewResponse_status, string(v.Status))
+	}
+}
+func (v *StartLifecyclePolicyPreviewOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.StartLifecyclePolicyPreviewResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.StartLifecyclePolicyPreviewResponse_lifecyclePolicyText:
+			v.LifecyclePolicyText = new(string)
+			return d.ReadString(schemas.StartLifecyclePolicyPreviewResponse_lifecyclePolicyText, v.LifecyclePolicyText)
+		case schemas.StartLifecyclePolicyPreviewResponse_registryId:
+			v.RegistryId = new(string)
+			return d.ReadString(schemas.StartLifecyclePolicyPreviewResponse_registryId, v.RegistryId)
+		case schemas.StartLifecyclePolicyPreviewResponse_repositoryName:
+			v.RepositoryName = new(string)
+			return d.ReadString(schemas.StartLifecyclePolicyPreviewResponse_repositoryName, v.RepositoryName)
+		case schemas.StartLifecyclePolicyPreviewResponse_status:
+			var ev string
+			if err := d.ReadString(schemas.StartLifecyclePolicyPreviewResponse_status, &ev); err != nil {
+				return err
+			}
+			v.Status = types.LifecyclePolicyPreviewStatus(ev)
+			return nil
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationStartLifecyclePolicyPreviewMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpStartLifecyclePolicyPreview{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StartLifecyclePolicyPreview, schemas.StartLifecyclePolicyPreviewRequest, schemas.StartLifecyclePolicyPreviewResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpStartLifecyclePolicyPreview{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StartLifecyclePolicyPreview, schemas.StartLifecyclePolicyPreviewRequest, schemas.StartLifecyclePolicyPreviewResponse), output: &StartLifecyclePolicyPreviewOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -91,19 +145,10 @@ func (c *Client) addOperationStartLifecyclePolicyPreviewMiddlewares(stack *middl
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpStartLifecyclePolicyPreviewValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "StartLifecyclePolicyPreview"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

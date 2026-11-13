@@ -5,9 +5,10 @@ package ecrpublic
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns the image tag details for a repository in a public registry.
@@ -58,6 +59,27 @@ type DescribeImageTagsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeImageTagsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeImageTagsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeImageTagsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.DescribeImageTagsRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeImageTagsRequest_nextToken, *v.NextToken)
+	}
+	if v.RegistryId != nil {
+		s.WriteString(schemas.DescribeImageTagsRequest_registryId, *v.RegistryId)
+	}
+	if v.RepositoryName != nil {
+		s.WriteString(schemas.DescribeImageTagsRequest_repositoryName, *v.RepositoryName)
+	}
+}
+
 type DescribeImageTagsOutput struct {
 
 	// The image tag details for the images in the requested repository.
@@ -75,22 +97,40 @@ type DescribeImageTagsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeImageTagsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeImageTagsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeImageTagsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ImageTagDetails != nil {
+		serializeImageTagDetailList(s, schemas.DescribeImageTagsResponse_imageTagDetails, v.ImageTagDetails)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeImageTagsResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *DescribeImageTagsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeImageTagsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeImageTagsResponse_imageTagDetails:
+			return deserializeImageTagDetailList(d, schemas.DescribeImageTagsResponse_imageTagDetails, &v.ImageTagDetails)
+		case schemas.DescribeImageTagsResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribeImageTagsResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeImageTagsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeImageTags{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeImageTags, schemas.DescribeImageTagsRequest, schemas.DescribeImageTagsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeImageTags{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeImageTags, schemas.DescribeImageTagsRequest, schemas.DescribeImageTagsResponse), output: &DescribeImageTagsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -100,19 +140,10 @@ func (c *Client) addOperationDescribeImageTagsMiddlewares(stack *middleware.Stac
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDescribeImageTagsValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeImageTags"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
