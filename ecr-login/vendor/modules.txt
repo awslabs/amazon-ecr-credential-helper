@@ -135,7 +135,7 @@ github.com/aws/smithy-go/transport/http/protocol/internal/json
 github.com/aws/smithy-go/transport/http/protocol/internal/json/internal/stdlib
 github.com/aws/smithy-go/transport/http/protocol/restjson1
 github.com/aws/smithy-go/waiter
-# github.com/docker/docker-credential-helpers v0.9.12
+# github.com/docker/docker-credential-helpers v0.9.13
 ## explicit; go 1.21
 github.com/docker/docker-credential-helpers/credentials
 # github.com/mitchellh/go-homedir v1.1.0
