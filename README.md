@@ -322,6 +322,32 @@ The credentials must have a policy applied that
 | AWS_ECR_DISABLE_CACHE        | true          | Disables the local file auth cache if set to a non-empty value. When disabled, the credential helper will not store or read cached ECR authorization tokens from the local filesystem, requiring fresh credentials to be fetched from AWS for each Docker operation. This may be useful in environments where persisting credentials to disk is not desired, though it will result in additional API calls to ECR.  |
 | AWS_ECR_CACHE_DIR            | ~/.ecr        | Specifies the local file auth cache directory location             |
 | AWS_ECR_IGNORE_CREDS_STORAGE | true          | Ignore calls to docker login or logout and pretend they succeeded  |
+| AWS_ECR_PRIVATE_TOKEN_TYPE   | global-token  | Selects the token type used for private ECR registries.            |
+
+#### Global token configuration
+
+1. Existing configurations are unchanged: without `AWS_ECR_PRIVATE_TOKEN_TYPE`, the
+   helper keeps using regional tokens.
+2. Set `AWS_ECR_PRIVATE_TOKEN_TYPE=global-token` explicitly to use a global token for
+   private ECR registries.
+3. This setting does not apply to ECR Public.
+
+For example, use this Docker configuration and environment variable:
+
+```json
+{
+  "credHelpers": {
+    "123456789012.dkr.ecr.us-west-2.amazonaws.com": "ecr-login"
+  }
+}
+```
+
+```shell
+export AWS_ECR_PRIVATE_TOKEN_TYPE=global-token
+```
+
+For global token details, see
+[Private registry authentication](https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html).
 
 ## Usage
 

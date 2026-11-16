@@ -4,11 +4,10 @@ package sts
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/service/sts/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
@@ -17,6 +16,8 @@ import (
 // services that support OIDC discovery. The token is signed by Amazon Web Services
 // STS and can be publicly verified using the verification keys published at the
 // issuer's JWKS endpoint.
+//
+// The GetWebIdentityToken API is not available on the STS Global endpoint.
 func (c *Client) GetWebIdentityToken(ctx context.Context, params *GetWebIdentityTokenInput, optFns ...func(*Options)) (*GetWebIdentityTokenOutput, error) {
 	if params == nil {
 		params = &GetWebIdentityTokenInput{}
@@ -64,6 +65,27 @@ type GetWebIdentityTokenInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetWebIdentityTokenInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetWebIdentityTokenRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetWebIdentityTokenInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Audience != nil {
+		serializewebIdentityTokenAudienceListType(s, schemas.GetWebIdentityTokenRequest_Audience, v.Audience)
+	}
+	if v.DurationSeconds != nil {
+		s.WriteInt32(schemas.GetWebIdentityTokenRequest_DurationSeconds, *v.DurationSeconds)
+	}
+	if v.SigningAlgorithm != nil {
+		s.WriteString(schemas.GetWebIdentityTokenRequest_SigningAlgorithm, *v.SigningAlgorithm)
+	}
+	if v.Tags != nil {
+		serializetagListType(s, schemas.GetWebIdentityTokenRequest_Tags, v.Tags)
+	}
+}
+
 type GetWebIdentityTokenOutput struct {
 
 	// The date and time when the web identity token expires, in UTC. The expiration
@@ -86,80 +108,54 @@ type GetWebIdentityTokenOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetWebIdentityTokenOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetWebIdentityTokenResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetWebIdentityTokenOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Expiration != nil {
+		s.WriteTime(schemas.GetWebIdentityTokenResponse_Expiration, *v.Expiration)
+	}
+	if v.WebIdentityToken != nil {
+		s.WriteString(schemas.GetWebIdentityTokenResponse_WebIdentityToken, *v.WebIdentityToken)
+	}
+}
+func (v *GetWebIdentityTokenOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetWebIdentityTokenResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetWebIdentityTokenResponse_Expiration:
+			v.Expiration = new(time.Time)
+			return d.ReadTime(schemas.GetWebIdentityTokenResponse_Expiration, v.Expiration)
+		case schemas.GetWebIdentityTokenResponse_WebIdentityToken:
+			v.WebIdentityToken = new(string)
+			return d.ReadString(schemas.GetWebIdentityTokenResponse_WebIdentityToken, v.WebIdentityToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetWebIdentityTokenMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetWebIdentityToken, schemas.GetWebIdentityTokenRequest, schemas.GetWebIdentityTokenResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Serialize.Add(&awsAwsquery_serializeOpGetWebIdentityToken{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetWebIdentityToken, schemas.GetWebIdentityTokenRequest, schemas.GetWebIdentityTokenResponse), output: &GetWebIdentityTokenOutput{}}, middleware.After); err != nil {
 		return err
-	}
-	err = stack.Deserialize.Add(&awsAwsquery_deserializeOpGetWebIdentityToken{}, middleware.After)
-	if err != nil {
-		return err
-	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "GetWebIdentityToken"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetWebIdentityTokenValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetWebIdentityToken(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -174,22 +170,8 @@ func (c *Client) addOperationGetWebIdentityTokenMiddlewares(stack *middleware.St
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptBeforeRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAttempt(stack, options); err != nil {
-		return err
-	}
 	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opGetWebIdentityToken(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "GetWebIdentityToken",
-	}
 }

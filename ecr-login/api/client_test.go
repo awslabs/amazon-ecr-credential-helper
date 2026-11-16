@@ -18,11 +18,15 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	awscreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	ecrtypes "github.com/aws/aws-sdk-go-v2/service/ecr/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecrpublic"
@@ -291,7 +295,7 @@ func TestGetAuthConfigSuccess(t *testing.T) {
 		compareAuthEntry(t, actual, authEntry)
 	}
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.Nil(t, err)
 	assert.Equal(t, auth.Username, expectedUsername)
 	assert.Equal(t, auth.Password, expectedPassword)
@@ -320,7 +324,7 @@ func TestGetAuthConfigNoMatchAuthorizationToken(t *testing.T) {
 
 	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.NotNil(t, err)
 	assert.Nil(t, auth)
 }
@@ -349,7 +353,7 @@ func TestGetAuthConfigGetCacheSuccess(t *testing.T) {
 		return authEntry
 	}
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.Nil(t, err)
 	assert.Equal(t, auth.Username, expectedUsername)
 	assert.Equal(t, auth.Password, expectedPassword)
@@ -403,7 +407,7 @@ func TestGetAuthConfigSuccessInvalidCacheHit(t *testing.T) {
 		compareAuthEntry(t, actual, authEntry)
 	}
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.Nil(t, err)
 	assert.Equal(t, auth.Username, expectedUsername)
 	assert.Equal(t, auth.Password, expectedPassword)
@@ -432,7 +436,7 @@ func TestGetAuthConfigBadBase64(t *testing.T) {
 
 	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.NotNil(t, err)
 	t.Log(err)
 	assert.Nil(t, auth)
@@ -455,7 +459,7 @@ func TestGetAuthConfigMissingResponse(t *testing.T) {
 
 	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.NotNil(t, err)
 	t.Log(err)
 	assert.Nil(t, auth)
@@ -478,7 +482,7 @@ func TestGetAuthConfigECRError(t *testing.T) {
 
 	credentialCache.GetFn = func(_ string) *cache.AuthEntry { return nil }
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.NotNil(t, err)
 	t.Log(err)
 	assert.Nil(t, auth)
@@ -514,7 +518,7 @@ func TestGetAuthConfigSuccessInvalidCacheHitFallback(t *testing.T) {
 		return expiredAuthEntry
 	}
 
-	auth, err := client.GetCredentials(proxyEndpoint)
+	auth, err := client.GetCredentials(context.Background(), proxyEndpoint)
 	assert.Nil(t, err)
 	assert.Equal(t, auth.Username, expectedUsername)
 	assert.Equal(t, auth.Password, expectedPassword)
@@ -554,7 +558,7 @@ func TestListCredentialsSuccess(t *testing.T) {
 	credentialCache.GetPublicFn = func() *cache.AuthEntry { return nil }
 	credentialCache.ListFn = func() []*cache.AuthEntry { return authEntries }
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(context.Background())
 	assert.NoError(t, err)
 	assert.NotNil(t, auths)
 	assert.Len(t, auths, 1)
@@ -596,7 +600,7 @@ func TestListCredentialsCached(t *testing.T) {
 	credentialCache.GetPublicFn = func() *cache.AuthEntry { return authEntry2 }
 	credentialCache.ListFn = func() []*cache.AuthEntry { return authEntries }
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(context.Background())
 	assert.NoError(t, err)
 	assert.NotNil(t, auths)
 	assert.Len(t, auths, 2)
@@ -667,7 +671,7 @@ func TestListCredentialsEmpty(t *testing.T) {
 		setCallCount++
 	}
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(context.Background())
 	assert.NoError(t, err)
 	assert.NotNil(t, auths)
 	assert.Len(t, auths, 2)
@@ -715,7 +719,7 @@ func TestListCredentialsBadBase64AuthToken(t *testing.T) {
 		return nil, errors.New("test error")
 	}
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(context.Background())
 	assert.NoError(t, err)
 	assert.NotNil(t, auths)
 	assert.Empty(t, auths)
@@ -755,7 +759,7 @@ func TestListCredentialsInvalidAuthToken(t *testing.T) {
 		return nil, errors.New("test error")
 	}
 
-	auths, err := client.ListCredentials()
+	auths, err := client.ListCredentials(context.Background())
 	assert.NoError(t, err)
 	assert.NotNil(t, auths)
 	assert.Empty(t, auths)
@@ -952,5 +956,98 @@ func TestECRPublicClientWrapper(t *testing.T) {
 		_, err := client.GetAuthorizationToken(context.Background(), &ecrpublic.GetAuthorizationTokenInput{})
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestContextCancel(t *testing.T) {
+	// Start an HTTP server that accepts connections but never responds,
+	// simulating a hanging endpoint for both credential retrieval and
+	// ECR API calls.
+	testDone := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case <-testDone:
+		}
+	}))
+	defer server.Close()
+	defer close(testDone)
+
+	// setupEnv directs the SDK's credential chain to the test server
+	// and disables all other credential sources.
+	setupEnv := func(t *testing.T) {
+		t.Helper()
+		t.Setenv("AWS_CONTAINER_CREDENTIALS_FULL_URI", server.URL+"/creds")
+		t.Setenv("AWS_EC2_METADATA_DISABLED", "true")
+		t.Setenv("AWS_CONFIG_FILE", os.DevNull)
+		t.Setenv("AWS_SHARED_CREDENTIALS_FILE", os.DevNull)
+		t.Setenv("AWS_ACCESS_KEY_ID", "")
+		t.Setenv("AWS_SECRET_ACCESS_KEY", "")
+	}
+
+	factory := DefaultClientFactory{}
+
+	// Each subtest creates a client via a different factory method and
+	// verifies that a cancelled context is respected. The context is
+	// pre-cancelled so behaviour is deterministic — BuildCredentialsCache
+	// calls Retrieve(ctx) eagerly, so a live context would block on the
+	// hanging server.
+
+	t.Run("NewClientFromRegion", func(t *testing.T) {
+		setupEnv(t)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		client, err := factory.NewClientFromRegion(ctx, "us-east-1")
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+		auth, err := client.GetCredentials(ctx, proxyEndpoint)
+		assert.Nil(t, auth)
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("NewClientWithFipsEndpoint", func(t *testing.T) {
+		setupEnv(t)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		client, err := factory.NewClientWithFipsEndpoint(ctx, "us-east-1")
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+		auth, err := client.GetCredentials(ctx, proxyEndpoint)
+		assert.Nil(t, auth)
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("NewClientWithDefaults", func(t *testing.T) {
+		setupEnv(t)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		client, err := factory.NewClientWithDefaults(ctx)
+		assert.NoError(t, err)
+		assert.NotNil(t, client)
+		auth, err := client.GetCredentials(ctx, proxyEndpoint)
+		assert.Nil(t, auth)
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("GetCredentials", func(t *testing.T) {
+		awsCfg := aws.Config{
+			Region:      "us-east-1",
+			Credentials: awscreds.NewStaticCredentialsProvider("AKID", "SECRET", "TOKEN"),
+		}
+		ecrClient := ecr.NewFromConfig(awsCfg, func(o *ecr.Options) {
+			o.BaseEndpoint = aws.String(server.URL)
+		})
+		credentialCache := &mock_cache.MockCredentialsCache{
+			GetFn: func(_ string) *cache.AuthEntry { return nil },
+		}
+		client := &defaultClient{
+			ecrClient:       ecrClient,
+			credentialCache: credentialCache,
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		auth, err := client.GetCredentials(ctx, proxyEndpoint)
+		assert.Nil(t, auth)
+		assert.ErrorIs(t, err, context.Canceled)
 	})
 }

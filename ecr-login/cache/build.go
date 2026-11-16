@@ -29,7 +29,7 @@ import (
 	ecrconfig "github.com/awslabs/amazon-ecr-credential-helper/ecr-login/config"
 )
 
-func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache {
+func BuildCredentialsCache(ctx context.Context, config aws.Config, cacheDir string) CredentialsCache {
 	if os.Getenv("AWS_ECR_DISABLE_CACHE") != "" {
 		logrus.Debug("Cache disabled due to AWS_ECR_DISABLE_CACHE")
 		return NewNullCredentialsCache()
@@ -48,7 +48,7 @@ func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache 
 
 	cacheFilename := "cache.json"
 
-	credentials, err := config.Credentials.Retrieve(context.TODO())
+	credentials, err := config.Credentials.Retrieve(ctx)
 	if err != nil {
 		logrus.WithError(err).Debug("Could not fetch credentials for cache prefix, disabling cache")
 		return NewNullCredentialsCache()
@@ -71,23 +71,23 @@ func BuildCredentialsCache(config aws.Config, cacheDir string) CredentialsCache 
 	)
 }
 
-// Determine a key prefix for a credentials cache. Because auth tokens are scoped to an account and region, rely on provided
-// region, as well as hash of the access key.
+// Determine a key prefix for a credentials cache. Because auth tokens are scoped to an account and region, rely on the
+// provided region and a hash of the AWS account ID.
 func credentialsCachePrefix(region string, credentials aws.Credentials) string {
-	return fmt.Sprintf("%s-%s-", region, checksum(credentials.AccessKeyID))
+	return fmt.Sprintf("%s-%s-", region, checksum(credentials.AccountID))
 }
 
 func credentialsPublicCacheKey(credentials aws.Credentials) string {
-	return fmt.Sprintf("%s-%s", ServiceECRPublic, checksum(credentials.AccessKeyID))
+	return fmt.Sprintf("%s-%s", ServiceECRPublic, checksum(credentials.AccountID))
 }
 
 // Legacy cache key functions for backward compatibility with MD5-based keys
 func legacyCredentialsCachePrefix(region string, credentials aws.Credentials) string {
-	return fmt.Sprintf("%s-%s-", region, md5Checksum(credentials.AccessKeyID))
+	return fmt.Sprintf("%s-%s-", region, md5Checksum(credentials.AccountID))
 }
 
 func legacyCredentialsPublicCacheKey(credentials aws.Credentials) string {
-	return fmt.Sprintf("%s-%s", ServiceECRPublic, md5Checksum(credentials.AccessKeyID))
+	return fmt.Sprintf("%s-%s", ServiceECRPublic, md5Checksum(credentials.AccountID))
 }
 
 // Base64 encodes a SHA-256 checksum. Used for uniqueness, not cryptographic security.

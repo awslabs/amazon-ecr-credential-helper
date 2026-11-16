@@ -13,7 +13,7 @@ permissions:
 jobs:
   label:
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     permissions:
       pull-requests: write
@@ -21,7 +21,7 @@ jobs:
     steps:
       # Use label configuration from main instead of from the pull request branch
       # to mitigate running untrusted workflows with write permissions.
-      - uses: actions/labeler@v6
+      - uses: actions/labeler@v7
         with:
           configuration-path: '.github/new-pull-request-labels.yml'
           sync-labels: true

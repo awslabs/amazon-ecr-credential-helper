@@ -2,8 +2,9 @@ package stscreds
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -80,7 +81,7 @@ type IdentityTokenFile string
 
 // GetIdentityToken retrieves the JWT token from the file and returns the contents as a []byte
 func (j IdentityTokenFile) GetIdentityToken() ([]byte, error) {
-	b, err := ioutil.ReadFile(string(j))
+	b, err := os.ReadFile(string(j))
 	if err != nil {
 		return nil, fmt.Errorf("unable to read file at %s: %v", string(j), err)
 	}
@@ -139,6 +140,9 @@ func (p *WebIdentityRoleProvider) Retrieve(ctx context.Context) (aws.Credentials
 	if err != nil {
 		return aws.Credentials{}, fmt.Errorf("failed to retrieve credentials, %w", err)
 	}
+	if err := validateCredentials(resp.Credentials); err != nil {
+		return aws.Credentials{}, fmt.Errorf("validate credentials, %w", err)
+	}
 
 	var accountID string
 	if resp.AssumedRoleUser != nil {
@@ -154,10 +158,18 @@ func (p *WebIdentityRoleProvider) Retrieve(ctx context.Context) (aws.Credentials
 		SessionToken:    aws.ToString(resp.Credentials.SessionToken),
 		Source:          WebIdentityProviderName,
 		CanExpire:       true,
-		Expires:         *resp.Credentials.Expiration,
+		Expires:         aws.ToTime(resp.Credentials.Expiration),
 		AccountID:       accountID,
 	}
 	return value, nil
+}
+
+func validateCredentials(c *types.Credentials) error {
+	if c == nil {
+		return errors.New("response did not contain credentials")
+	}
+
+	return nil
 }
 
 // extract accountID from arn with format "arn:partition:service:region:account-id:[resource-section]"

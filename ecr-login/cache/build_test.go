@@ -14,12 +14,12 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,19 +29,31 @@ const (
 	testAccessKey     = "accessKey"
 	testSecretKey     = "secretKey"
 	testToken         = "token"
-	// base64 SHA-256 sum of "accessKey" - FIPS-compatible
-	testCredentialHash = "xOV45/s/9aT8cbO8tDicjEV1KKkfpLdKrQs0ipPGgGc="
-	// Legacy base64 MD5 sum of "accessKey" for backward compatibility tests
-	testLegacyCredentialHash = "YWNjZXNzS2V51B2M2Y8AsgTpgAmY7PhCfg=="
+	testAccountID     = "123456789012"
+	// base64 SHA-256 sum of "accountID" - FIPS-compatible
+	testCredentialHash = "KjM0nn5gaorS4w48hFIfk3dFDPCQg+Fi4KmxSAzg+XI="
+	// Legacy base64 MD5 sum of "accountID" for backward compatibility tests
+	testLegacyCredentialHash = "MTIzNDU2Nzg5MDEy1B2M2Y8AsgTpgAmY7PhCfg=="
 )
+
+func testCredentialsProvider() aws.CredentialsProvider {
+	return aws.CredentialsProviderFunc(func(context.Context) (aws.Credentials, error) {
+		return aws.Credentials{
+			AccessKeyID:     testAccessKey,
+			SecretAccessKey: testSecretKey,
+			SessionToken:    testToken,
+			AccountID:       testAccountID,
+		}, nil
+	})
+}
 
 func TestFactoryBuildFileCache(t *testing.T) {
 	config := aws.Config{
 		Region:      testRegion,
-		Credentials: credentials.NewStaticCredentialsProvider(testAccessKey, testSecretKey, testToken),
+		Credentials: testCredentialsProvider(),
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)
@@ -57,7 +69,7 @@ func TestFactoryBuildNullCacheWithoutCredentials(t *testing.T) {
 		Credentials: aws.AnonymousCredentials{},
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	_, ok := cache.(*nullCredentialsCache)
@@ -70,7 +82,7 @@ func TestFactoryBuildNullCache(t *testing.T) {
 
 	config := aws.Config{Region: testRegion}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 	_, ok := cache.(*nullCredentialsCache)
 	assert.True(t, ok, "built cache is a nullCredentialsCache")
@@ -78,7 +90,7 @@ func TestFactoryBuildNullCache(t *testing.T) {
 
 // TestCredentialsPrefixUsesNewHash verifies that credentialsCachePrefix uses SHA-256
 func TestCredentialsPrefixUsesNewHash(t *testing.T) {
-	creds := aws.Credentials{AccessKeyID: testAccessKey}
+	creds := aws.Credentials{AccountID: testAccountID}
 	prefix := credentialsCachePrefix(testRegion, creds)
 	expectedPrefix := fmt.Sprintf("%s-%s-", testRegion, testCredentialHash)
 
@@ -130,10 +142,10 @@ func TestIsFipsMode(t *testing.T) {
 func TestLegacyKeysNotGeneratedInFipsSimulation(t *testing.T) {
 	config := aws.Config{
 		Region:      testRegion,
-		Credentials: credentials.NewStaticCredentialsProvider(testAccessKey, testSecretKey, testToken),
+		Credentials: testCredentialsProvider(),
 	}
 
-	cache := BuildCredentialsCache(config, "")
+	cache := BuildCredentialsCache(context.Background(), config, "")
 	assert.NotNil(t, cache)
 
 	fileCache, ok := cache.(*fileCredentialCache)
