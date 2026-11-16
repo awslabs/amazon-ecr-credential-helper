@@ -15,8 +15,8 @@
 %define debug_package %{nil}
 %endif
 Name:           amazon-ecr-credential-helper
-Version:        0.12.0
-Release:        6%{?dist}
+Version:        0.13.0
+Release:        1%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -26,7 +26,7 @@ BuildRoot:      ${_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0: release.tar.gz
 
-BuildRequires: golang >= 1.26.10
+BuildRequires: golang >= 1.26.11
 
 # The following 'Provides' lists the vendored dependencies bundled in
 # and used to produce the amazon-ecr-credential-helper package. As dependencies
@@ -139,6 +139,12 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Mon Nov 16 2026 davbson <davbson@amazon.com> - 0.13.0-1
+- Update to v0.13.0
+- Support ECR global token
+- Use AccountID instead of AccessKeyID for credential cache prefix
+- Propagate context through requests
+
 * Wed Oct 28 2026 davbson <davbson@amazon.com> - 0.12.0-6
 - Rebuild with Golang 1.26.10
 
