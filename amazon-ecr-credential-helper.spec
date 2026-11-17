@@ -16,7 +16,7 @@
 %endif
 Name:           amazon-ecr-credential-helper
 Version:        0.13.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Tools
 Vendor:         Amazon.com
 License:        Apache 2.0
@@ -139,6 +139,9 @@ install -D -m 0644 \
 rm -rf %{buildroot}
 
 %changelog
+* Mon Nov 16 2026 davbson <davbson@amazon.com> - 0.13.0-2
+- Rebuild after merging to branch
+
 * Mon Nov 16 2026 davbson <davbson@amazon.com> - 0.13.0-1
 - Update to v0.13.0
 - Support ECR global token
